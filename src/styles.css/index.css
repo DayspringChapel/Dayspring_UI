@@ -1,0 +1,124 @@
+.btn {
+  border-radius: 30px;
+  padding: 8px 1rem;
+  text-align: center;
+  border: none;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+}
+
+.plain-btn {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+}
+
+.welcome {
+  text-align: center;
+}
+
+.welcome h2 {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome p {
+  justify-self: end;
+  margin-top: 1rem;
+}
+
+.events,
+.vision {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.events h2,
+.vision h2 {
+  text-align: center;
+}
+
+.library {
+  background-color: var(--primary-color);
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.library h2 {
+  margin-bottom: 1.5rem;
+}
+
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.library-grid img {
+  width: 99%;
+}
+
+.library-grid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.library-grid .title {
+  width: 60%;
+}
+
+.gallery {
+  overflow: hidden;
+  text-align: center;
+}
+
+.gallery h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.gallery div {
+  padding: 0 1rem;
+}
+
+.gallery div > p {
+  text-align: end;
+  margin-top: 1.5rem;
+}
+
+.gallery p {
+  margin-bottom: 1rem;
+}
+
+.carousel {
+  display: flex;
+  gap: 2rem;
+}
+
+.carousel li {
+  height: 200px;
+  transition: 10000ms ease-in;
+}
+
+.carousel img {
+  height: 100%;
+}
+
+.partner {
+  margin: 4.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4.5rem;
+}
