@@ -1,0 +1,31 @@
+.center-item {
+  margin-top: 5rem;
+  margin-bottom: 6rem;
+}
+
+.appointment-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.appointment-form label {
+  display: block;
+  color: var(--text-gray);
+}
+
+.appointment-form input {
+  margin-bottom: 1rem;
+  width: 100%;
+  border: solid 1px #bebebe85;
+  border-radius: 4px;
+  padding: 5px;
+  outline: none;
+}
+
+.appointment-form button {
+  color: #fff;
+  background-color: var(--primary-color);
+  padding: 0.5rem 3rem;
+  border-radius: 4px;
+  align-self: center;
+}
