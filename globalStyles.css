@@ -46,7 +46,7 @@ body {
   margin-bottom: 2rem;
   height: calc(100vh - 134.23px);
   border-radius: 10px;
-  background-image: url("../../public/hero.png");
+  background-image: url("./public/hero.png");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
