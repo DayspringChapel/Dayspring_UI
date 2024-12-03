@@ -1,0 +1,39 @@
+.center-item .grid {
+  margin: 5rem 0;
+}
+
+.reason h2 {
+  margin-bottom: 2rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  margin-bottom: 3rem;
+  width: fit-content;
+}
+
+.options h1 {
+  margin-bottom: 4rem;
+}
+
+.options button {
+  padding: 0.7rem 5rem;
+  display: inline-block;
+  margin-bottom: 2rem;
+  border-radius: 6px;
+  box-shadow: -0.5px 2px 1px var(--text-gray), 0.5px 2px 1px var(--text-gray);
+  width: 100%;
+}
+
+.options .primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.options :not(.primary) {
+  background-color: #fff;
+}
