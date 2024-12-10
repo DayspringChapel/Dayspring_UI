@@ -1,3 +1,7 @@
+.hero-full {
+  margin-bottom: 1rem;
+}
+
 .btn {
   border-radius: 30px;
   padding: 8px 1rem;
@@ -39,6 +43,10 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
+}
+
+.upcoming-events {
+  margin-bottom: 4rem;
 }
 
 .events h2,
@@ -139,18 +147,33 @@
     margin-bottom: 1rem;
   }
 
+  .upcoming-events {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+  }
+
   .events h2 {
     display: none;
   }
 
-  .events .btn-link,
-  .btn-link {
-    align-self: end;
+  .events,
+  .partner {
+    text-align: center;
   }
 
-  .flex-end {
+  .events .btn-link,
+  .btn-link {
+    align-self: center;
+  }
+
+  .flex-center {
+    margin-top: 1rem;
+  }
+
+  .flex-center,
+  .welcome .btn-link {
     display: flex;
-    justify-self: end;
+    justify-self: center;
   }
 
   .heading-screen-sm {
@@ -170,18 +193,8 @@
     grid-template-columns: 1fr;
   }
 
-  .hidden {
-    display: none !important;
-  }
-
-  .newsletter div {
-    width: 80%;
-  }
-
-  .newsletter-btn {
-    position: relative !important;
-    display: flex;
-    justify-self: center;
+  .partner {
     margin-top: 2rem;
+    gap: 2rem;
   }
 }
