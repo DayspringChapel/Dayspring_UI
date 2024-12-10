@@ -26,6 +26,10 @@ h6 {
   font-family: "Poppins", sans-serif, Arial, Helvetica, sans-serif;
 }
 
+.text-white {
+  color: #fff !important;
+}
+
 .bg-primary {
   background-color: var(--primary-color);
 }
