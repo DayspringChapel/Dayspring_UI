@@ -230,9 +230,9 @@ button {
   color: var(--text-gray);
 }
 
-.footer li {
+/* .footer li {
   font-size: 13px;
-}
+} */
 
 .socials {
   display: flex;
