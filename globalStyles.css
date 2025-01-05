@@ -42,10 +42,10 @@ h6 {
 .navbar {
   background-color: #070505;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  /* padding: 1rem; */
+  font-size: 12px;  
+  padding: 0 1rem 0 1rem;
 }
 
 .pages {
