@@ -44,28 +44,45 @@
 
       <section class="container center-item">
         <div class="grid">
+          <h2 class="hidden-lg">KINDLY FILL OUT THE FORM BELOW</h2>
+
           <div>
             <img src="./public/palm.png" />
           </div>
 
           <form class="appointment-form">
-            <h2>KINDLY FILL OUT THE FORM BELOW</h2>
+            <h2 class="hidden">KINDLY FILL OUT THE FORM BELOW</h2>
 
             <div>
-              <label for="name">NAME</label>
-              <input name="name" type="text" required />
+              <label for="name" class="first">Name</label>
+              <input name="name" type="text" placeholder="Test Name" required />
             </div>
             <div>
-              <label for="email">EMAIL</label>
-              <input name="email" type="email" required />
+              <label for="email">Email</label>
+              <input
+                name="email"
+                type="email"
+                placeholder="test@gmail.com"
+                required
+              />
             </div>
             <div>
-              <label for="purpose">PURPOSE</label>
-              <input name="purpose" type="text" required />
+              <label for="contact">Contact</label>
+              <input
+                name="contact"
+                type="tel"
+                placeholder="001222433456"
+                required
+              />
             </div>
             <div>
-              <label for="contact">CONTACT</label>
-              <input name="contact" type="tel" required />
+              <label for="purpose">Purpose</label>
+              <textarea
+                name="purpose"
+                type="text"
+                placeholder="Counselling"
+                required
+              ></textarea>
             </div>
 
             <button>submit</button>

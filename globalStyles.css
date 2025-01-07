@@ -26,6 +26,14 @@ h6 {
   font-family: "Poppins", sans-serif, Arial, Helvetica, sans-serif;
 }
 
+.heading-screen-sm {
+  display: block;
+}
+
+.hidden-lg {
+  display: none !important;
+}
+
 .text-white {
   color: #fff !important;
 }
@@ -102,6 +110,11 @@ h6 {
 
 .container {
   width: 80%;
+  margin: 0 auto;
+}
+
+.container-wide {
+  width: 90%;
   margin: 0 auto;
 }
 
@@ -260,6 +273,20 @@ button {
     font-size: 1rem;
   }
 
+  .container,
+  .container-wide {
+    width: 90%;
+  }
+
+  .hidden-lg {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .hidden-sm {
+    display: none !important;
+  }
+
   .navbar {
     justify-content: space-between;
     padding: 0.5rem;
@@ -329,3 +356,11 @@ button {
     margin-top: 4rem;
   }
 }
+
+/* 
+to-dos:
+events mobile screen
+about page
+
+
+*/
