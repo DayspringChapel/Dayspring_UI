@@ -60,9 +60,12 @@
 }
 
 .sermon-dropdown {
-  padding: 0.5rem 3rem;
-  text-align: center;
+  padding: 1rem 0;
+  padding-left: 0;
+  padding-right: 1rem;
+  text-align: end;
   background-color: #fff;
+  width: 100%;
   border-radius: 5px;
 }
 
@@ -76,6 +79,20 @@
   .sermon-categories {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .sermon-category {
+    padding: 1.5rem 1rem;
+    border-radius: 20px;
+  }
+
+  .sermon-dropdown {
+    border-radius: 10px;
+  }
+
+  .sermon-category img {
+    height: 50px;
+    width: 40px;
   }
 
   .section-heading h2 {
