@@ -179,7 +179,7 @@
   }
 
   .hero-full {
-    /* margin: 1rem auto; */
+    margin: 0;
     width: 100% !important;
     /* border-radius: 10px; */
   }
