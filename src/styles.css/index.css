@@ -166,6 +166,10 @@
     font-size: 1.2rem;
   }
 
+  .hero-text {
+    display: none;
+  }
+
   .welcome p {
     margin-top: 0;
   }
