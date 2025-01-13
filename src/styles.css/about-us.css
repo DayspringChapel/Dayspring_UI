@@ -1,3 +1,108 @@
-.history{
-    width: 80%;
+.history {
+  text-align: center;
+}
+
+.about-us {
+  margin-top: 5rem;
+}
+
+.about-us-imgs {
+  position: relative;
+  min-height: 564px;
+  /* padding-top: 2rem; */
+}
+
+.about-us img {
+  height: 510px;
+  width: 408px;
+  position: absolute;
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+}
+
+.bottom-left {
+  top: 2rem;
+  left: 25.5%;
+}
+
+.mission-statement-imgs,
+.culture-imgs {
+  position: relative;
+  min-height: 372px;
+}
+
+.mission-statement-imgs img,
+.culture-imgs img {
+  max-width: 510px;
+  max-height: 340px;
+  position: absolute;
+}
+
+.top-right {
+  right: 20%;
+  top: 0;
+}
+
+.bottom-right {
+  right: 0;
+  top: 2rem;
+}
+
+.our-creed,
+.general-overseer,
+.leadership,
+.core-values {
+  margin-bottom: 5rem;
+}
+
+.our-creed-imgs,
+.goals-and-objectives-imgs,
+.core-values-imgs,
+.leadership-imgs,
+.general-overseer-imgs {
+  position: relative;
+  min-height: 510px;
+}
+
+.our-creed-imgs img,
+.goals-and-objectives img,
+.core-values img,
+.leadership-imgs img,
+.general-overseer img {
+  max-height: 510px;
+  max-width: 510px;
+  position: absolute;
+}
+
+.top-left-creed,
+.top-left-values,
+.top-left-leadership {
+  top: 0;
+  left: 0;
+}
+
+.bottom-left-creed,
+.bottom-left-values,
+.bottom-left-leadership {
+  top: 2rem;
+  left: 10.5%;
+}
+
+.goals-and-objectives {
+  margin-bottom: 5rem;
+}
+
+.top-right-objectives,
+.top-right-overseer {
+  top: 0;
+  left: 0;
+}
+
+.bottom-right-objectives,
+.bottom-right-overseer {
+  top: 2rem;
+  left: 10.5%;
 }
