@@ -14,3 +14,23 @@ h2 {
   width: 90%;
   margin-bottom: 5rem;
 }
+
+@media (max-width: 820px) {
+  h2 {
+    margin-bottom: 1rem;
+  }
+
+  img {
+    margin-bottom: 1rem;
+  }
+
+  .upcoming-events {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .upcoming-events.final,
+  .view-all {
+    margin-bottom: 3rem;
+  }
+}
