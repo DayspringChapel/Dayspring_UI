@@ -20,6 +20,10 @@
   top: 40%;
   left: 50%;
   transform: translate(-50%, -40%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .btn {
@@ -168,6 +172,16 @@
 
   .hero-text {
     display: none;
+  }
+
+  .hero-full h1 {
+    width: max-content;
+  }
+
+  .hero-full {
+    /* margin: 1rem auto; */
+    width: 100% !important;
+    /* border-radius: 10px; */
   }
 
   .welcome p {
