@@ -106,3 +106,15 @@
   top: 2rem;
   left: 10.5%;
 }
+
+@media (max-width: 820px) {
+  /*ONLY TEMPORARY */
+  .about-us img,
+  .our-creed-imgs img,
+  .goals-and-objectives img,
+  .core-values img,
+  .leadership-imgs img,
+  .general-overseer img {
+    width: 200px;
+  }
+}
