@@ -34,17 +34,19 @@ if (heroEl) {
 
 // Prevent browser reload when clicked link is same as the currently viewed page
 mobileNav.addEventListener("click", (e) => {
-  e.preventDefault();
+  // e.preventDefault();
   const page = e.target.closest(".page");
   const href = e.target.getAttribute("href");
   const windowhref = window.location.pathname.slice(1);
+
+  console.log(e.target);
 
   if (
     (href === "index.html" && windowhref === "") ||
     href === windowhref ||
     !page
   )
-    return;
+    return e.preventDefault();
 
   window.location.pathname = href;
 });
