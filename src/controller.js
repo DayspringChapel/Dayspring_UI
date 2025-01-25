@@ -35,11 +35,11 @@ window.addEventListener("resize", () => {
 });
 
 // function to set active link
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
   const href = window.location.pathname.slice(1);
 
   pageLinks.forEach((link) => {
-    const hrefAttr = link.getAttribute("href");
+    const hrefAttr = link.getAttribute("href").replaceAll("/", "");
 
     console.log({
       contains: link.classList.contains("link-active"),
