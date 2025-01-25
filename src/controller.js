@@ -3,6 +3,7 @@ import { ASPECT_RATIO } from "./config.js";
 const heroEl = document.querySelector(".hero-home");
 const viedoEl = document.querySelector(".video-bg");
 
+const navbar = document.querySelector(".navbar");
 const hamburger = document.querySelector(".hamburger-menu");
 const mobileNav = document.querySelector(".mobile-nav");
 const mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
@@ -41,40 +42,39 @@ window.addEventListener("DOMContentLoaded", () => {
   pageLinks.forEach((link) => {
     const hrefAttr = link.getAttribute("href").replaceAll("/", "");
 
-    console.log({
-      contains: link.classList.contains("link-active"),
-    });
     // clean-up to remove the active class from any link with it, before adding to the current link in view.
     if (link.classList.contains("link-active"))
       link.classList.remove("link-active");
 
     if (hrefAttr === href || (hrefAttr === "index.html" && href === ""))
       link.classList.add("link-active");
-
-    console.log({
-      add: hrefAttr === href || (hrefAttr === "index.html" && href === ""),
-      link: hrefAttr,
-      href,
-    });
   });
 });
 
 // Prevent browser reload when clicked link is same as the currently viewed page
-mobileNav.addEventListener("click", (e) => {
+function navLinkHandler(e) {
   e.preventDefault();
   const page = e.target.closest(".page");
-  const href = e.target.getAttribute("href");
+
+  if (!page) return;
+
+  let href;
+  if (page.getAttribute("href")) href = page.getAttribute("href");
+  else href = e.target.getAttribute("href");
+
   const windowhref = window.location.pathname.slice(1);
 
   if (
-    (href === "index.html" && windowhref === "") ||
-    href === windowhref ||
-    !page
+    (href.replaceAll("/", "") === "index.html" && windowhref === "") ||
+    href.replaceAll("/", "") === windowhref
   )
     return;
 
   window.location.pathname = href;
-});
+}
+
+navbar.addEventListener("click", navLinkHandler);
+mobileNav.addEventListener("click", navLinkHandler);
 
 // Toggle mobile nav visibilty
 hamburger.addEventListener("click", () => {
