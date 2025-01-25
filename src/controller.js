@@ -53,6 +53,8 @@ window.addEventListener("load", () => {
 
     console.log({
       add: hrefAttr === href || (hrefAttr === "index.html" && href === ""),
+      link: hrefAttr,
+      href,
     });
   });
 });
