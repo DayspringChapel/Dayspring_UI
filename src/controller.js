@@ -41,12 +41,19 @@ window.addEventListener("load", () => {
   pageLinks.forEach((link) => {
     const hrefAttr = link.getAttribute("href");
 
+    console.log({
+      contains: link.classList.contains("link-active"),
+    });
     // clean-up to remove the active class from any link with it, before adding to the current link in view.
     if (link.classList.contains("link-active"))
       link.classList.remove("link-active");
 
     if (hrefAttr === href || (hrefAttr === "index.html" && href === ""))
       link.classList.add("link-active");
+
+    console.log({
+      add: hrefAttr === href || (hrefAttr === "index.html" && href === ""),
+    });
   });
 });
 
