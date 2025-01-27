@@ -1,4 +1,4 @@
-import View from "./View.js";
+import View from "./view.js";
 import { ASPECT_RATIO } from "./config.js";
 
 class IndexView extends View {
