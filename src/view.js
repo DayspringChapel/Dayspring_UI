@@ -37,11 +37,12 @@ class View {
     }, 500);
   }
 
-  closeMobileNav(delay) {
+  closeMobileNav() {
     // reset document scroll when mobile nav is closed
-    console.log(delay);
+    // console.log(delay);
 
-    setTimeout(() => document.body.classList.remove("body-fixed"), delay || 0);
+    // setTimeout(() => document.body.classList.remove("body-fixed"), delay || 0);
+    document.body.classList.remove("body-fixed");
     this.mobileNav.classList.add("hide-mobile-nav");
   }
 
@@ -56,11 +57,21 @@ class View {
   }
 
   handleTouchEnd() {
+    if (this.touchYEnd === 0) return;
+
     if (
       this.touchYStart - this.touchYEnd >
-      Math.abs(this.touchXStart - this.touchXEnd)
+        Math.abs(this.touchXStart - this.touchXEnd) &&
+      this.touchYStart - this.touchYEnd > 40
     )
-      this.closeMobileNav(160);
+      this.closeMobileNav();
+    // console.log({
+    //   sy: this.touchYStart,
+    //   ey: this.touchYEnd,
+    //   xs: this.touchXStart,
+    //   xe: this.touchXEnd,
+    // });
+
     this.touchYStart = 0;
     this.touchYEnd = 0;
     this.touchXStart = 0;
