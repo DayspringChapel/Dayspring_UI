@@ -9,6 +9,11 @@ const hamburger = document.querySelector(".hamburger-menu");
 const mobileNav = document.querySelector(".mobile-nav");
 const mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
 
+const listenOnline = document.querySelector(".btn.plain-btn")
+listenOnline.addEventListener("click", () => {
+  window.location.href = "./mixlr.html"
+})
+
 // Temporary
 if (heroEl) {
   function calcVideoHeight() {
@@ -54,3 +59,5 @@ hamburger.addEventListener("click", () => {
 mobileNavCloseBtn.addEventListener("click", () => {
   mobileNav.classList.add("hide-mobile-nav");
 });
+
+
