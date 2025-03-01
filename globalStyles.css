@@ -27,7 +27,7 @@ h6 {
 }
 
 .hide-mobile-nav {
-  transform: translateY(-100%);
+  transform: translateY(-150%);
 }
 
 .mobile-nav {

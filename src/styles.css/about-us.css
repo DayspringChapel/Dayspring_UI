@@ -4,41 +4,45 @@
 
 .about-us {
   margin-top: 5rem;
+  margin-bottom: 5rem;
 }
 
 .about-us-imgs {
   position: relative;
-  min-height: 564px;
-  /* padding-top: 2rem; */
+  width: 100%;
+  height: fit-content;
 }
 
 .about-us img {
-  height: 510px;
-  width: 408px;
-  position: absolute;
-}
-
-.top-left {
-  top: 0;
-  left: 0;
+  display: block;
+  object-fit: cover;
+  width: 70%;
+  margin: 0 auto;
 }
 
 .bottom-left {
+  position: absolute;
   top: 2rem;
   left: 25.5%;
+}
+
+.mission-statement {
+  margin-bottom: 5rem;
 }
 
 .mission-statement-imgs,
 .culture-imgs {
   position: relative;
-  min-height: 372px;
+  height: fit-content;
+  width: 100%;
 }
 
 .mission-statement-imgs img,
 .culture-imgs img {
-  max-width: 510px;
-  max-height: 340px;
-  position: absolute;
+  display: block;
+  object-fit: cover;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .top-right {
@@ -49,6 +53,7 @@
 .bottom-right {
   right: 0;
   top: 2rem;
+  position: absolute;
 }
 
 .our-creed,
@@ -64,7 +69,8 @@
 .leadership-imgs,
 .general-overseer-imgs {
   position: relative;
-  min-height: 510px;
+  height: fit-content;
+  margin-bottom: 5rem;
 }
 
 .our-creed-imgs img,
@@ -72,9 +78,10 @@
 .core-values img,
 .leadership-imgs img,
 .general-overseer img {
-  max-height: 510px;
-  max-width: 510px;
-  position: absolute;
+  display: block;
+  object-fit: cover;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .top-left-creed,
@@ -87,11 +94,13 @@
 .bottom-left-creed,
 .bottom-left-values,
 .bottom-left-leadership {
+  position: absolute;
   top: 2rem;
   left: 10.5%;
 }
 
-.goals-and-objectives {
+.goals-and-objectives,
+.our-culture {
   margin-bottom: 5rem;
 }
 
@@ -105,16 +114,45 @@
 .bottom-right-overseer {
   top: 2rem;
   left: 10.5%;
+  position: absolute;
 }
 
 @media (max-width: 820px) {
   /*ONLY TEMPORARY */
+
+  .about-us {
+    margin-top: 2rem;
+    gap: 3rem !important;
+  }
+
+  .mission-statement {
+    margin-top: 2rem;
+    gap: 2rem !important;
+  }
+
   .about-us img,
+  .mission-statement img,
   .our-creed-imgs img,
   .goals-and-objectives img,
   .core-values img,
   .leadership-imgs img,
   .general-overseer img {
-    width: 200px;
+    margin: 0;
+  }
+
+  .top-left {
+    top: 50%;
+    left: 50%;
+    /* transform: translate(-70%, -50%); */
+  }
+
+  .bottom-left {
+    /* top: calc(50% + 2rem);
+    left: 75.5%; */
+    /* transform: translate(calc(-70% - 2rem), -45.5%); */
+  }
+
+  .about-us img {
+    /* height: 250px; */
   }
 }
