@@ -36,10 +36,13 @@ li.signout {
     }
 
         #menu .logo img {
-            width: 15%;
+            width: 25%;
             margin-right: 15px;
         }
 
+#menu .logo h2{
+    font-size: large;
+}
     #menu .items {
         margin-top: 40px;
     }
@@ -225,6 +228,7 @@ li.signout {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    margin-top: 5rem;
 }
 
     .values .val-box {
