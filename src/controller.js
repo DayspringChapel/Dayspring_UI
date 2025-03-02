@@ -9,10 +9,10 @@ const hamburger = document.querySelector(".hamburger-menu");
 const mobileNav = document.querySelector(".mobile-nav");
 const mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
 
-const listenOnline = document.querySelector(".btn.plain-btn")
+const listenOnline = document.querySelector(".btn.plain-btn");
 listenOnline.addEventListener("click", () => {
-  window.location.href = "./mixlr.html"
-})
+  window.location.href = "./mixlr.html";
+});
 
 // Temporary
 if (heroEl) {
@@ -60,8 +60,7 @@ mobileNavCloseBtn.addEventListener("click", () => {
   mobileNav.classList.add("hide-mobile-nav");
 });
 
-
-=======
+// =======
 // import "./IndexView.js";
 
 // const x = new index();
@@ -158,4 +157,3 @@ mobileNavCloseBtn.addEventListener("click", () => {
 //   document.body.classList.remove("body-fixed");
 //   mobileNav.classList.add("hide-mobile-nav");
 // });
-
