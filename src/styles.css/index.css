@@ -55,7 +55,11 @@
   flex-direction: column;
 }
 
-.welcome p {
+.welcome .text-icon {
+  margin-right: 2rem;
+}
+
+.text-icon {
   justify-self: end;
   margin-top: 1rem;
 }

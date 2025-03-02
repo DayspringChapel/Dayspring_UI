@@ -3,7 +3,7 @@ class View {
   hamburger = document.querySelector(".hamburger-menu");
   mobileNav = document.querySelector(".mobile-nav");
   mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
-  pageLinks = [...document.querySelectorAll("a")];
+  pageLinks = [...this.navbar.querySelectorAll("a")];
   touchYStart;
   touchYEnd;
   touchXStart;
@@ -18,6 +18,7 @@ class View {
     const handleTouchMove = this.handleTouchMove.bind(this);
     const handleTouchEnd = this.handleTouchEnd.bind(this);
 
+    this.setVisibilityState(false);
     window.addEventListener("DOMContentLoaded", setActiveLink);
     this.hamburger.addEventListener("click", openMobileNav);
     this.mobileNavCloseBtn.addEventListener("click", closeMobileNav);
@@ -31,19 +32,28 @@ class View {
   showMobileNav() {
     this.mobileNav.classList.remove("hide-mobile-nav");
 
+    this.setVisibilityState(true);
     // prevent document scroll when mobile nav is open
     setTimeout(() => {
       document.body.classList.add("body-fixed");
     }, 500);
   }
 
-  closeMobileNav() {
-    // reset document scroll when mobile nav is closed
-    // console.log(delay);
+  setVisibilityState(isVisible) {
+    let state = isVisible ? "visible" : "hidden";
 
-    // setTimeout(() => document.body.classList.remove("body-fixed"), delay || 0);
+    this.mobileNav
+      .querySelectorAll("*")
+      .forEach((el) => (el.style.visibility = state));
+  }
+
+  closeMobileNav() {
+    const callback = this.setVisibilityState.bind(this);
+
+    // reset document scroll when mobile nav is closed
     document.body.classList.remove("body-fixed");
     this.mobileNav.classList.add("hide-mobile-nav");
+    setTimeout(callback, 500, false);
   }
 
   handleTouchStart(e) {
@@ -65,12 +75,6 @@ class View {
       this.touchYStart - this.touchYEnd > 40
     )
       this.closeMobileNav();
-    // console.log({
-    //   sy: this.touchYStart,
-    //   ey: this.touchYEnd,
-    //   xs: this.touchXStart,
-    //   xe: this.touchXEnd,
-    // });
 
     this.touchYStart = 0;
     this.touchYEnd = 0;
@@ -115,5 +119,3 @@ class View {
 }
 
 export default View;
-
-// document.querySelector("a").addEventListener("touch")
