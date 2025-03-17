@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    text-align: center;
+}
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+.event-card {
+    background: #e3f2fd;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.event-card img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+.event-info {
+    flex: 1;
+    padding-left: 10px;
+    text-align: left;
+}
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.delete-btn:hover {
+    background: darkred;
+}
+.add-event {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.add-event textarea{
+    height: 122px;
+    /* width: 719px; */
+}
+
+.add-event button{
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;    
+}
+
+.heading-Section{
+    display: flex;
+    justify-content: space-between;
+}
+
+input, button {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+button {
+    cursor: pointer;
+    background: #1e88e5;
+    color: white;
+    border: none;
+}
+button:hover {
+    background: #1565c0;
+}
