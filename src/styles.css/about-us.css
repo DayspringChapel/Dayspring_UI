@@ -7,7 +7,7 @@ h1 {
   background-image: url("../../public/about-cover.png");
 }
 
-.history h2 {
+.history h2:not(.exclude) {
   margin: 2rem 0;
 }
 
@@ -49,7 +49,7 @@ h1 {
   margin-bottom: 5rem;
 }
 
-.mission-statement p {
+.mission-statement .list-with-icon {
   margin-top: 2rem;
   text-align: center;
 }

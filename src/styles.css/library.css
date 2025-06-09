@@ -1,5 +1,10 @@
-.library-images {
-  padding: 2rem 0;
+.hero-full {
+  background-image: url("../../public/library-hero.png");
+}
+
+.library-images > div > div.text-icon {
+  margin-top: 1rem;
+  /* padding: 2rem 0; */
 }
 
 .library-images img {
@@ -15,15 +20,19 @@
   text-align: center;
 }
 
+.section-heading.books {
+  margin-top: 1rem;
+}
+
 .section-heading h2 {
-  margin-bottom: 1.5rem;
+  /* margin-bottom: 1.5rem; */
   display: flex;
   flex-direction: column;
 }
 
 .section-heading p {
   justify-self: end;
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
 .sermons h2 {
@@ -44,6 +53,18 @@
   margin-right: 3rem;
   width: 100%;
 } */
+
+.sermon-view-all {
+  display: flex;
+}
+
+.text-icon {
+  justify-self: end;
+}
+
+.container-wide > div.text-icon {
+  margin-bottom: 2rem;
+}
 
 .sermon-category {
   display: flex;
@@ -69,6 +90,21 @@
   border-radius: 5px;
 }
 
+.sermon-dropdown > div {
+  display: flex;
+  justify-self: end;
+  gap: 1rem;
+}
+
+.dropdown-icon {
+  height: 18px;
+  width: 18px;
+}
+
+.sermon-dropdown img {
+  width: 100%;
+}
+
 .hidden-lg {
   display: none;
   text-align: center;
@@ -76,6 +112,12 @@
 }
 
 @media (max-width: 820px) {
+  .hero-full {
+    background-image: url("../../public/library-hero-sm.png");
+    width: 100%;
+    border-radius: 0px;
+  }
+
   .sermon-categories {
     grid-template-columns: 1fr;
     gap: 1rem;

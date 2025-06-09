@@ -4,6 +4,7 @@ class View {
   mobileNav = document.querySelector(".mobile-nav");
   mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
   pageLinks = [...this.navbar.querySelectorAll("a")];
+  copyright = document.querySelector(".copyright");
   touchYStart;
   touchYEnd;
   touchXStart;
@@ -18,6 +19,7 @@ class View {
     const handleTouchMove = this.handleTouchMove.bind(this);
     const handleTouchEnd = this.handleTouchEnd.bind(this);
 
+    this.fixNavBar();
     this.setVisibilityState(false);
     window.addEventListener("DOMContentLoaded", setActiveLink);
     this.hamburger.addEventListener("click", openMobileNav);
@@ -27,6 +29,33 @@ class View {
     this.mobileNav.addEventListener("touchstart", handleTouchStart);
     this.mobileNav.addEventListener("touchmove", handleTouchMove);
     this.mobileNav.addEventListener("touchend", handleTouchEnd);
+
+    this.copyright.textContent = this.copyright.textContent.replace(
+      "{YEAR}",
+      `${new Date().getFullYear()}`
+    );
+  }
+
+  fixNavBar() {
+    function observerHandler(entries) {
+      const [entry] = entries;
+
+      if (!entry.isIntersecting) {
+        this.navbar.classList.add("fixed");
+      } else this.navbar.classList.remove("fixed");
+    }
+    const observer = new IntersectionObserver(observerHandler.bind(this), {
+      root: null,
+      threshold: 0,
+      rootMargin: `-${getComputedStyle(this.navbar).height}`,
+    });
+
+    const observee =
+      document.querySelector(".hero-home") ||
+      document.querySelector(".hero-full") ||
+      document.querySelector(".hero");
+
+    observer.observe(observee);
   }
 
   showMobileNav() {
@@ -117,5 +146,73 @@ class View {
     });
   }
 }
+
+// https://medium.com/web-dev-survey-from-kyoto/vanilla-js-carousel-that-is-accessible-swipeable-infinite-scrolling-and-autoplaying-5de5f281ef13
+// const carousel = document.querySelector(".gallery");
+// const slide = document.querySelector(".gallery-image");
+// const next = document.querySelector(".next");
+// const prev = document.querySelector(".prev");
+
+// let x = 0;
+
+// next.addEventListener("click", () => {
+//   console.log(getComputedStyle(slide).width, carousel);
+//   // carousel.style.gap = "4rem";
+
+//   // window.scrollTo(0, 0);
+//   x += 1;
+//   carousel.scrollTo(400 * x, 0);
+// });
+
+// const carousel = document.querySelector(".carousel");
+// // const backgroundImage = document.querySelector(".bg-image");
+
+// const leftArrow = document.querySelector(".prev");
+// const rightArrow = document.querySelector(".next");
+
+// let currentIndex = 0;
+// let prevIndex;
+// const images = document.querySelectorAll(".gallery-image");
+
+// const totalImages = Object.keys(images).length;
+
+// // Use this in your project, if you're doing it locally
+// // const imageWidth = images[1].getBoundingClientRect().x;
+
+// const imageWidth = 400;
+// // console.log("getbounding1", images[1].getBoundingClientRect());
+
+// leftArrow.addEventListener("click", () => {
+//   prevIndex = currentIndex;
+//   currentIndex = (currentIndex - 1 + totalImages) % totalImages;
+//   carousel.style.transform = `translateX(-${imageWidth}px)`;
+//   carousel.insertBefore(images[currentIndex], carousel.firstChild);
+
+//   setTimeout(() => {
+//     // carousel.style.transform = "";
+//     carousel.classList.add("sliding-transition");
+//     // backgroundImage.src = images[currentIndex].src.slice(0, -3) + "1000";
+//   }, 10);
+
+//   setTimeout(() => {
+//     // carousel.classList.remove("sliding-transition");
+//   }, 490);
+// });
+
+// rightArrow.addEventListener("click", () => {
+//   // carousel.classList.add("sliding-transition");
+
+//   prevIndex = currentIndex;
+//   currentIndex = (currentIndex + 1) % totalImages;
+
+//   carousel.style.transform = `translateX(-${imageWidth}px)`;
+//   // backgroundImage.src = images[currentIndex].src.slice(0, -3) + "1000";
+
+//   setTimeout(() => {
+//     carousel.appendChild(images[prevIndex]);
+//     // carousel.classList.remove("sliding-transition");
+//     carousel.style.transform = "";
+//   }, 500);
+// });
 
 export default View;

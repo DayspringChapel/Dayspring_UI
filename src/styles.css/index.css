@@ -64,7 +64,57 @@
   margin-top: 1rem;
 }
 
-.events,
+.upcoming-events-imgs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.upcoming-events-imgs .event {
+  position: relative;
+  height: 300px;
+  cursor: pointer;
+}
+
+.upcoming-events-imgs .event:hover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  height: 100%;
+  width: 100%;
+}
+
+.events h2 {
+  margin-top: 2rem;
+  font-style: italic;
+}
+
+.events-text {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.upcoming-events-imgs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.upcoming-events-imgs .event-description {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  /* z-index: 10; */
+}
+
+/* .events, */
 .vision {
   display: flex;
   flex-direction: column;
@@ -92,8 +142,7 @@
 }
 
 .library {
-  background-color: var(--primary-color);
-  color: #fff;
+  /* background-color: var(--primary-color); */
   text-align: center;
   padding: 1.5rem 0;
 }
@@ -107,6 +156,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
   margin-top: 3rem;
+  color: rgba(0, 0, 0) !important;
 }
 
 .library-grid img {
@@ -124,9 +174,14 @@
   width: 60%;
 }
 
+.library-grid .text-icon {
+  margin-top: 0;
+}
+
 .gallery {
   overflow: hidden;
-  text-align: center;
+  margin-bottom: 6rem;
+  /* text-align: center; */
 }
 
 .gallery h2 {
@@ -150,15 +205,24 @@
 .carousel {
   display: flex;
   gap: 2rem;
+  transition: 1s ease;
 }
 
 .carousel li {
-  height: 200px;
-  transition: 10000ms ease-in;
+  /* height: 400px; */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: 1000s ease-in;
 }
 
 .carousel img {
   height: 100%;
+  width: 400px;
+  height: 400px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 1rem;
 }
 
 .partner {
@@ -209,6 +273,24 @@
     margin-bottom: 3rem;
   }
 
+  .upcoming-events-imgs p.hidden-lg {
+    text-align: start !important;
+  }
+
+  .upcoming-events-imgs {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .upcoming-events-imgs > div:not(:first-child) {
+    display: none;
+  }
+
+  .upcoming-events .text-icon,
+  .welcome .text-icon {
+    justify-self: center;
+  }
+
   .events h2 {
     display: none;
   }
@@ -253,6 +335,10 @@
   .partner {
     margin-top: 2rem;
     gap: 2rem;
+  }
+
+  .gallery {
+    margin-bottom: 2rem;
   }
 }
 
