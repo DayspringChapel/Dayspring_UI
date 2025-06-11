@@ -4,6 +4,7 @@ import { ASPECT_RATIO } from "./config.js";
 class IndexView extends View {
   heroEl = document.querySelector(".hero-home");
   viedoEl = document.querySelector(".video-bg");
+  // sections = document.querySelectorAll(".scroll-animate");
 
   constructor() {
     super();
@@ -12,6 +13,7 @@ class IndexView extends View {
 
     this.#InitializeVideoHeight();
     window.addEventListener("resize", resizeHeroVideo);
+    // this.#revealsection();
   }
 
   #calcVideoHeight() {
@@ -32,6 +34,28 @@ class IndexView extends View {
   #resizeHeroVideo() {
     this.heroEl.style.height = this.#calcVideoHeight();
   }
+
+  // #revealsection() {
+  //   const observer = new IntersectionObserver(handler, {
+  //     root: null,
+  //     threshold: 0.1,
+  //   });
+
+  //   function handler(entries) {
+  //     const entry = entries[0];
+
+  //     console.log(entry);
+
+  //     if (entry.isIntersecting) {
+  //       entry.target.classList.remove("scroll-animate");
+  //       observer.unobserve(entry.target);
+  //     }
+  //   }
+
+  //   this.sections.forEach((curSec) => {
+  //     observer.observe(curSec);
+  //   });
+  // }
 }
 
 // const carousel = document.querySelector(".carousel");
