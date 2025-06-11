@@ -3,6 +3,7 @@ class View {
   hamburger = document.querySelector(".hamburger-menu");
   mobileNav = document.querySelector(".mobile-nav");
   mobileNavCloseBtn = document.querySelector(".close-mobile-nav-btn");
+  sections = [...document.querySelectorAll(".scroll-animate")];
   pageLinks = [...this.navbar.querySelectorAll("a")];
   copyright = document.querySelector(".copyright");
   touchYStart;
@@ -34,6 +35,8 @@ class View {
       "{YEAR}",
       `${new Date().getFullYear()}`
     );
+
+    this.#revealsection();
   }
 
   fixNavBar() {
@@ -143,6 +146,26 @@ class View {
 
       if (hrefAttr === href || (hrefAttr === "index.html" && href === ""))
         link.classList.add("link-active");
+    });
+  }
+
+  #revealsection() {
+    const observer = new IntersectionObserver(handler, {
+      root: null,
+      threshold: 0.1,
+    });
+
+    function handler(entries) {
+      const entry = entries[0];
+
+      if (entry.isIntersecting) {
+        entry.target.classList.remove("scroll-animate");
+        observer.unobserve(entry.target);
+      }
+    }
+
+    this.sections.forEach((curSec) => {
+      observer.observe(curSec);
     });
   }
 }
