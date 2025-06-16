@@ -223,6 +223,7 @@
   object-fit: cover;
   object-position: center;
   border-radius: 1rem;
+  cursor: pointer;
 }
 
 .partner {
