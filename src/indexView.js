@@ -4,7 +4,17 @@ import { ASPECT_RATIO } from "./config.js";
 class IndexView extends View {
   heroEl = document.querySelector(".hero-home");
   viedoEl = document.querySelector(".video-bg");
-  // sections = document.querySelectorAll(".scroll-animate");
+  carousel = document.querySelector(".carousel");
+  slides = [...document.querySelectorAll(".gallery-image")];
+  slideCount = this.slides.length;
+  carouselFlexGap = +getComputedStyle(this.carousel).gap.split("p").at(0);
+  slideWidth = this.slides.at(0).getBoundingClientRect().width;
+  scrollPos = 0;
+  scrollSpeed = 2;
+  maxScrollWidth =
+    this.slideWidth * this.slideCount + this.carouselFlexGap * this.slideCount;
+  isPaused = true;
+  gallery = document.querySelector(".gallery");
 
   constructor() {
     super();
@@ -13,7 +23,27 @@ class IndexView extends View {
 
     this.#InitializeVideoHeight();
     window.addEventListener("resize", resizeHeroVideo);
-    // this.#revealsection();
+
+    this.slides.forEach((curEl) => {
+      this.carousel.insertAdjacentElement("beforeend", curEl.cloneNode(true));
+    });
+
+    this.#handleCarouselPlayState();
+    this.gallery.addEventListener("mouseover", () => {
+      this.isPaused = true;
+    });
+
+    this.gallery.addEventListener("mouseleave", () => {
+      this.isPaused = false;
+      this.startCarousel();
+    });
+
+    console.log(
+      this.maxScrollWidth,
+      this.slideCount,
+      this.carouselFlexGap,
+      this.slideWidth
+    );
   }
 
   #calcVideoHeight() {
@@ -35,73 +65,46 @@ class IndexView extends View {
     this.heroEl.style.height = this.#calcVideoHeight();
   }
 
-  // #revealsection() {
-  //   const observer = new IntersectionObserver(handler, {
-  //     root: null,
-  //     threshold: 0.1,
-  //   });
+  #handleCarouselPlayState() {
+    function handler(entries) {
+      const entry = entries[0];
 
-  //   function handler(entries) {
-  //     const entry = entries[0];
+      if (entry.isIntersecting) {
+        this.isPaused = false;
+        this.startCarousel();
+      } else {
+        this.isPaused = true;
+      }
+    }
 
-  //     console.log(entry);
+    const observer = new IntersectionObserver(handler.bind(this), {
+      threshold: 0.1,
+      root: null,
+    });
 
-  //     if (entry.isIntersecting) {
-  //       entry.target.classList.remove("scroll-animate");
-  //       observer.unobserve(entry.target);
-  //     }
-  //   }
+    observer.observe(this.gallery);
+  }
 
-  //   this.sections.forEach((curSec) => {
-  //     observer.observe(curSec);
-  //   });
-  // }
+  startCarousel() {
+    if (this.isPaused) return;
+
+    this.scrollPos = this.scrollPos + this.scrollSpeed;
+
+    if (this.scrollPos >= this.maxScrollWidth) {
+      this.carousel.style.transition = "none";
+      this.scrollPos = 0;
+      this.carousel.style.transform = `translateX(-${this.scrollPos})`;
+
+      void this.carousel.offsetWidth;
+
+      this.carousel.style.transition = "transform 0.02s linear";
+    } else {
+      this.carousel.style.transition = "transform 0.02s linear";
+      this.carousel.style.transform = `translateX(-${this.scrollPos}px)`;
+    }
+
+    requestAnimationFrame(this.startCarousel.bind(this));
+  }
 }
-
-// const carousel = document.querySelector(".carousel");
-// const slides = [...document.querySelectorAll(".gallery-image")];
-// let index = 1;
-// const width = 400;
-
-// slides.forEach((el) => console.log(el.dataset.index));
-
-// function moveCarousel() {
-//   carousel.style.transition = "transform 0.5s ease-in-out";
-//   carousel.style.transform = `translateX(${-width * index}px)`;
-// }
-
-// function handleTransitionEnd() {
-//   // console.log(index);
-//   if (slides[index].dataset.index === slides[0].dataset.index) {
-//     carousel.style.transition = "none";
-//     index = 1;
-//     carousel.style.transform = `translateX(${-width * index}px)`;
-//   }
-//   console.log(
-//     slides[index].dataset.index === slides[slides.length - 3].dataset.index,
-//     slides[index].dataset.index,
-//     slides[slides.length - 3].dataset.index,
-//     index
-//   );
-
-//   if (slides[index].dataset.index === slides[slides.length - 3].dataset.index) {
-//     console.log("okay");
-//     carousel.style.transition = "none";
-//     index = slides.length - 2;
-//     console.log(index);
-//     carousel.style.transform = `translateX(${-width * index}px)`;
-//   }
-// }
-
-// carousel.addEventListener("transitionend", handleTransitionEnd);
-
-// function startCarousel() {
-//   setInterval(() => {
-//     index++;
-//     moveCarousel();
-//   }, 1000);
-// }
-
-// startCarousel();
 
 new IndexView();
