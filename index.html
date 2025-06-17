@@ -66,8 +66,20 @@
     <main>
       <div class="hero-full hero-home">
         <video autoplay muted loop class="video-bg hide">
-          <source src="./public/VID-20250105-WA0000.mp4" type="video/mp4" />
+          <source
+            src="./public/home-hero-vid.mp4"
+            type="video/mp4"
+            media="(min-width: 820px)"
+          />
+          <source
+            src="./public/home-hero-vid-portrait.mp4"
+            type="video/mp4"
+            media="(max-width: 819px)"
+            data-is-portrait="true"
+          />
         </video>
+
+        <div class="overlay"></div>
 
         <div class="temp-positioning">
           <h1>A HOME AWAY FROM HOME</h1>
