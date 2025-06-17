@@ -66,6 +66,7 @@ class IndexView extends View {
   }
 
   #resizeHeroVideo() {
+    this.heroEl.style.height = this.#calcVideoHeight();
     // const clientWidth = document.documentElement.clientWidth;
     // const curVidEl = this.heroEl.firstElementChild;
     // const isPortrait = clientWidth <= 819;
@@ -94,8 +95,6 @@ class IndexView extends View {
     //     `;
 
     // console.log(document.documentElement.clientWidth, "test");
-
-    this.heroEl.style.height = this.#calcVideoHeight();
 
     // if (
     //   (isPortrait && curVidEl.firstElementChild.dataset.isPortrait) ||
