@@ -65,18 +65,12 @@
 
     <main>
       <div class="hero-full hero-home">
-        <video autoplay muted loop class="video-bg hide">
-          <source
-            src="./public/home-hero-vid.mp4"
-            type="video/mp4"
-            media="(min-width: 820px)"
-          />
-          <source
-            src="./public/home-hero-vid-portrait.mp4"
-            type="video/mp4"
-            media="(max-width: 819px)"
-            data-is-portrait="true"
-          />
+        <video autoplay muted loop class="video-bg hidden-sm">
+          <source src="./public/home-hero-vid.mp4" type="video/mp4" />
+        </video>
+
+        <video autoplay muted loop class="video-bg hidden-lg">
+          <source src="./public/home-hero-vid-portrait.mp4" type="video/mp4" />
         </video>
 
         <div class="overlay"></div>
