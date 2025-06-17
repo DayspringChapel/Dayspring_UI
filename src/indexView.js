@@ -66,34 +66,34 @@ class IndexView extends View {
   }
 
   #resizeHeroVideo() {
-    const clientWidth = document.documentElement.clientWidth;
-    const curVidEl = this.heroEl.firstElementChild;
-    const isPortrait = clientWidth <= 819;
+    // const clientWidth = document.documentElement.clientWidth;
+    // const curVidEl = this.heroEl.firstElementChild;
+    // const isPortrait = clientWidth <= 819;
 
-    console.log(curVidEl);
+    // console.log(curVidEl);
 
-    const bgVideoPortrait = `
-      <video autoplay muted loop class="video-bg">
-          <source
-            src="./public/home-hero-vid-portrait.mp4"
-            type="video/mp4"
-            media="(max-width: 819px)"
-            data-is-portrait="true"
-          />
-      </video>
-        `;
+    // const bgVideoPortrait = `
+    //   <video autoplay muted loop class="video-bg">
+    //       <source
+    //         src="./public/home-hero-vid-portrait.mp4"
+    //         type="video/mp4"
+    //         media="(max-width: 819px)"
+    //         data-is-portrait="true"
+    //       />
+    //   </video>
+    //     `;
 
-    const bgVideoLandscape = `
-      <video autoplay muted loop class="video-bg">
-          <source
-            src="./public/home-hero-vid.mp4"
-            type="video/mp4"
-            media="(min-width: 820px)"
-          />
-      </video>     
-        `;
+    // const bgVideoLandscape = `
+    //   <video autoplay muted loop class="video-bg">
+    //       <source
+    //         src="./public/home-hero-vid.mp4"
+    //         type="video/mp4"
+    //         media="(min-width: 820px)"
+    //       />
+    //   </video>
+    //     `;
 
-    console.log(document.documentElement.clientWidth, "test");
+    // console.log(document.documentElement.clientWidth, "test");
 
     this.heroEl.style.height = this.#calcVideoHeight();
 
@@ -107,13 +107,24 @@ class IndexView extends View {
     //   return;
     // }
 
-    if (isPortrait) {
-      curVidEl.remove();
-      this.heroEl.insertAdjacentHTML("afterbegin", bgVideoPortrait);
-    } else {
-      curVidEl.remove();
-      this.heroEl.insertAdjacentHTML("afterbegin", bgVideoLandscape);
-    }
+    // if (isPortrait) {
+    //   curVidEl.remove();
+    //   this.heroEl.insertAdjacentHTML("afterbegin", bgVideoPortrait);
+    // } else {
+    //   curVidEl.remove();
+    //   this.heroEl.insertAdjacentHTML("afterbegin", bgVideoLandscape);
+    // }
+    // if (isPortrait) {
+    //   curVidEl.firstElementChild.setAttribute(
+    //     "src",
+    //     "./public/home-hero-vid-portrait.mp4"
+    //   );
+    // } else {
+    //   curVidEl.firstElementChild.setAttribute(
+    //     "src",
+    //     "./public/home-hero-vid.mp4"
+    //   );
+    // }
   }
 
   #handleCarouselPlayState() {
