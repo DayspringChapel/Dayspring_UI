@@ -1,5 +1,5 @@
 import View from "./view.js";
-import { ASPECT_RATIO } from "./config.js";
+import { ASPECT_RATIO, ASPECT_RATIO_PORTRAIT } from "./config.js";
 
 class IndexView extends View {
   heroEl = document.querySelector(".hero-home");
@@ -48,8 +48,12 @@ class IndexView extends View {
 
   #calcVideoHeight() {
     const clientWidth = document.documentElement.clientWidth;
+
+    const finalAspectRatio =
+      clientWidth >= 820 ? ASPECT_RATIO : ASPECT_RATIO_PORTRAIT;
+
     const height = `${
-      (ASPECT_RATIO.height * clientWidth) / ASPECT_RATIO.width
+      (finalAspectRatio.height * clientWidth) / finalAspectRatio.width
     }px`;
 
     return height;
@@ -62,7 +66,54 @@ class IndexView extends View {
   }
 
   #resizeHeroVideo() {
+    const clientWidth = document.documentElement.clientWidth;
+    const curVidEl = this.heroEl.firstElementChild;
+    const isPortrait = clientWidth <= 819;
+
+    console.log(curVidEl);
+
+    const bgVideoPortrait = `
+      <video autoplay muted loop class="video-bg">
+          <source
+            src="./public/home-hero-vid-portrait.mp4"
+            type="video/mp4"
+            media="(max-width: 819px)"
+            data-is-portrait="true"
+          />
+      </video>
+        `;
+
+    const bgVideoLandscape = `
+      <video autoplay muted loop class="video-bg">
+          <source
+            src="./public/home-hero-vid.mp4"
+            type="video/mp4"
+            media="(min-width: 820px)"
+          />
+      </video>     
+        `;
+
+    console.log(document.documentElement.clientWidth, "test");
+
     this.heroEl.style.height = this.#calcVideoHeight();
+
+    // if (
+    //   (isPortrait && curVidEl.firstElementChild.dataset.isPortrait) ||
+    //   (!isPortrait && !curVidEl.firstElementChild.dataset.isPortrait)
+    // ) {
+    //   console.log({
+    //     isPort: isPortrait && curVidEl.firstElementChild.dataset.isPortrait,
+    //   });
+    //   return;
+    // }
+
+    if (isPortrait) {
+      curVidEl.remove();
+      this.heroEl.insertAdjacentHTML("afterbegin", bgVideoPortrait);
+    } else {
+      curVidEl.remove();
+      this.heroEl.insertAdjacentHTML("afterbegin", bgVideoLandscape);
+    }
   }
 
   #handleCarouselPlayState() {
