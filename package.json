@@ -4,12 +4,14 @@
   "description": "This repository contains all frontend code for the Dayspring Chapel Management application, including user interfaces for interacting with the backend",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "serve": "serve dist"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "parcel": "^2.13.2"
+    "parcel": "^2.13.2",
+    "serve": "^14.2.0"
   },
   "dependencies": {
     "core-js": "^3.39.0",
