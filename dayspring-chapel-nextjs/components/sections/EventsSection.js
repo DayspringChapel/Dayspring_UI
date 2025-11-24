@@ -20,6 +20,24 @@ const events = [
         date: 'MARCH 2025',
         image: '/upcoming-events-2.png',
     },
+    {
+        id: 4,
+        title: 'SERVICE OF HYMNS',
+        date: 'MARCH 2025',
+        image: '/upcoming-events-3.png',
+    },
+    {
+        id: 5,
+        title: "GLS'2025",
+        date: 'MARCH 2025',
+        image: '/upcoming-events-1.png',
+    },
+    {
+        id: 6,
+        title: 'YOUTH FEAST',
+        date: 'MARCH 2025',
+        image: '/upcoming-events-2.png',
+    },
 ];
 
 export default function EventsSection() {
@@ -31,22 +49,21 @@ export default function EventsSection() {
             </h2>
 
             <div className="text-center md:text-left">
-                <h2 className="text-3xl md:text-4xl font-bold italic mb-6 hidden md:block">
-                    GET A GLIMPSE OF UPCOMING EVENTS
+                <h2 className="text-3xl md:text-4xl font-bold italic mb-6 hidden md:block text-center">
+                    GET A GLIMPSE OF OUR UPCOMING EVENTS
                 </h2>
-                <p className="text-lg mb-12 max-w-3xl leading-relaxed">
+                <p className="text-lg mb-12 max-w-4xl mx-auto text-center leading-relaxed text-gray-600">
                     Explore our upcoming programs and get ready for a life-transforming
                     encounter in God's presence. These God-ordained gatherings are
                     designed to uplift, inspire, and renew your spirit.
                 </p>
 
-                {/* Events Grid */}
+                {/* Events Grid - 2 rows x 3 columns */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mb-8">
-                    {events.map((event, index) => (
+                    {events.map((event) => (
                         <div
                             key={event.id}
-                            className={`relative h-[300px] rounded-lg overflow-hidden cursor-pointer group shadow-lg ${index > 0 ? 'hidden md:block' : ''
-                                }`}
+                            className="relative h-[300px] rounded-lg overflow-hidden cursor-pointer group shadow-lg"
                         >
                             <Image
                                 src={event.image}
@@ -64,13 +81,6 @@ export default function EventsSection() {
                         </div>
                     ))}
                 </div>
-
-                {/* Mobile Description */}
-                <p className="md:hidden text-left mb-6 text-base leading-relaxed">
-                    Explore our upcoming programs and get ready for a life-transforming
-                    encounter in God's presence. These God-ordained gatherings are
-                    designed to uplift, inspire, and renew your spirit.
-                </p>
 
                 {/* Learn More Link */}
                 <Link
