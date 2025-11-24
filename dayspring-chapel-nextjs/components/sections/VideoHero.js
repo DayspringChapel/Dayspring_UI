@@ -40,10 +40,10 @@ export default function VideoHero() {
                     potentials are built, and dreams are fulfilled
                 </p>
                 <div className="flex flex-col md:flex-row gap-6">
-                    <button className="bg-[#F58634] hover:bg-[#d9752c] text-white font-bold px-10 py-3 rounded-full transition-colors uppercase text-sm tracking-wider">
+                    <button className="bg-[#F58634] hover:bg-[#d9752c] text-white font-bold px-10 py-4 rounded-full transition-colors uppercase text-sm tracking-wider">
                         WATCH ONLINE
                     </button>
-                    <button className="bg-transparent border-2 border-white hover:bg-white hover:text-black text-white font-bold px-10 py-3 rounded-full transition-all uppercase text-sm tracking-wider">
+                    <button className="bg-transparent border-2 border-white hover:bg-white hover:text-black text-white font-bold px-10 py-4 rounded-full transition-all uppercase text-sm tracking-wider">
                         LISTEN ONLINE
                     </button>
                 </div>
