@@ -6,13 +6,13 @@ export default function HistorySection() {
     return (
         <section className="py-16 md:py-24 bg-white">
             <div className="container mx-auto px-4">
-                <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex flex-col lg:flex-row items-center gap-12">
                     {/* Text Content */}
-                    <div className="w-full md:w-1/2">
-                        <h2 className="text-3xl md:text-4xl font-bold text-[#F58634] mb-6 italic">
-                            OUR HISTORY
+                    <div className="w-full lg:w-1/2">
+                        <h2 className="text-3xl md:text-5xl font-bold text-[#F58634] mb-6 uppercase italic">
+                            Our History
                         </h2>
-                        <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
+                        <div className="space-y-4 text-gray-700 text-base md:text-lg leading-relaxed">
                             <p>
                                 DaySpring Chapel was established with a divine mandate to raise a
                                 generation of purposeful people. It began as a vision to create a
@@ -34,9 +34,9 @@ export default function HistorySection() {
                     </div>
 
                     {/* Image Content */}
-                    <div className="w-full md:w-1/2 relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
+                    <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
                         <Image
-                            src="/about-history.jpg" // Placeholder image path
+                            src="/about-us4.png"
                             alt="Church History"
                             fill
                             className="object-cover"
