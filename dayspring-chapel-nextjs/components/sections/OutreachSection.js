@@ -6,11 +6,11 @@ export default function OutreachSection() {
     return (
         <section className="py-16 md:py-24 bg-white">
             <div className="container mx-auto px-4">
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
                     {/* Text Content */}
                     <div className="w-full lg:w-1/2">
-                        <h2 className="text-3xl md:text-5xl font-bold text-[#14142f] mb-6 uppercase">
-                            Our Local, Rural, and Urban Outreach
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#14142f] mb-6 uppercase">
+                            Outreach
                         </h2>
                         <div className="space-y-4 text-gray-700 text-base md:text-lg leading-relaxed">
                             <p>
@@ -35,7 +35,7 @@ export default function OutreachSection() {
                     </div>
 
                     {/* Image */}
-                    <div className="w-full lg:w-1/2 relative h-[400px] rounded-2xl overflow-hidden shadow-xl">
+                    <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
                         <Image
                             src="/about-us5.png"
                             alt="Church outreach activities"

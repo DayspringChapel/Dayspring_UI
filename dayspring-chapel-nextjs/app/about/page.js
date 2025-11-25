@@ -8,7 +8,6 @@ import OurCultureSection from '@/components/sections/OurCultureSection';
 import OrganizationalStructureSection from '@/components/sections/OrganizationalStructureSection';
 import OurCentralObjectivesSection from '@/components/sections/OurCentralObjectivesSection';
 import OurArmourSection from '@/components/sections/OurArmourSection';
-import TeamSection from '@/components/sections/TeamSection';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
@@ -62,11 +61,8 @@ export default function AboutPage() {
                 <OurArmourSection />
             </ScrollReveal>
 
-            <ScrollReveal>
-                <TeamSection />
-            </ScrollReveal>
-
             <NewsletterSection />
         </main>
     );
 }
+

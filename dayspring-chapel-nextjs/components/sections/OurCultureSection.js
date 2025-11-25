@@ -6,10 +6,20 @@ export default function OurCultureSection() {
     return (
         <section className="py-16 md:py-24 bg-white">
             <div className="container mx-auto px-4">
-                <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+                    {/* Image */}
+                    <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
+                        <Image
+                            src="/carousel-img-1.png"
+                            alt="Church culture and community"
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+
                     {/* Text Content */}
                     <div className="w-full lg:w-1/2">
-                        <h2 className="text-3xl md:text-5xl font-bold text-[#F58634] mb-6 uppercase italic">
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#14142f] mb-6 uppercase">
                             Our Culture
                         </h2>
                         <div className="space-y-4 text-gray-700 text-base md:text-lg leading-relaxed">
@@ -30,16 +40,6 @@ export default function OurCultureSection() {
                                 a place where you belong.
                             </p>
                         </div>
-                    </div>
-
-                    {/* Image */}
-                    <div className="w-full lg:w-1/2 relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl">
-                        <Image
-                            src="/carousel-img-1.png"
-                            alt="Church culture and community"
-                            fill
-                            className="object-cover"
-                        />
                     </div>
                 </div>
             </div>
