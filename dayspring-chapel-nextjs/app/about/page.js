@@ -18,7 +18,7 @@ export const metadata = {
 
 export default function AboutPage() {
     return (
-        <main>
+        <main >
             <PageHero
                 title="ABOUT US"
                 subtitle="Discover our history, our mission, and the people who serve."

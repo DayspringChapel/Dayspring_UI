@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-export default function WhoWeAreSection() {
+export default function WhoWeAreSection({ className = '' }) {
     const points = [
         'Service to God is made interesting and simplified',
         'People\'s spiritual and physical needs are met',
@@ -14,12 +14,12 @@ export default function WhoWeAreSection() {
     ];
 
     return (
-        <section className="py-16 md:py-24 bg-white">
-            <div className="container mx-auto px-4">
+        <section className={`py-16 md:py-24 bg-white ${className}`}>
+            <div className="px-4">
                 <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
                     {/* Image Collage - Left Side */}
                     <div className="w-full lg:w-1/2 order-2 lg:order-1">
-                        <div className="relative h-[500px] md:h-[600px]">
+                        <div className="relative h-[500px] md:h-[600px] max-w-[600px] lg:ml-auto mx-auto lg:mx-0">
                             {/* Main large image - bottom left */}
                             <div className="absolute right-5 bottom-20 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-10">
                                 <Image
