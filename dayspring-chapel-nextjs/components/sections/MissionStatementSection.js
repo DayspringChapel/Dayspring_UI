@@ -1,24 +1,51 @@
 'use client';
+import Image from 'next/image';
 
 export default function MissionStatementSection({ className = '' }) {
     return (
-        <section className={`py-16 md:py-24 bg-gray-50 ${className}`}>
-            <div className="px-4">
-                <div className="max-w-3xl mx-auto">
-                    {/* Mission Statement Card */}
-                    <div className="bg-white p-10 md:p-12 rounded-2xl shadow-xl border-t-4 border-[#F58634]">
-                        <div className="w-16 h-16 bg-[#F58634]/10 rounded-full flex items-center justify-center mb-6 text-[#F58634] mx-auto">
-                            <span className="text-4xl">🎯</span>
-                        </div>
-                        <h3 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900 uppercase text-center">
+        <section className={`py-16 md:py-24 bg-white  ${className}`}>
+            <div className="container mx-auto max-w-7xl ">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
+                    {/* Left Content */}
+                    <div className="flex-1 max-w-xl">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900 uppercase">
                             Our Mission Statement
-                        </h3>
-                        <p className="text-gray-600 leading-relaxed text-base md:text-lg text-center">
-                            To raise a people of purpose, power, and passion who will impact their
-                            generation for Christ through the preaching of the Word and the
-                            demonstration of the Spirit. We are committed to creating an atmosphere
-                            where divinity meets humanity and lives are forever changed.
-                        </p>
+                        </h2>
+
+
+                        <div className="flex gap-4">
+                            <div className="flex-shrink-0 mt-1">
+
+                            </div>
+                            <p className="text-gray-700 text-base md:text-lg leading-relaxed">
+                                Discover Purpose, Build Potentials, and Fulfill Dreams
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Right Images - Overlapping Stack */}
+                    <div className="flex-1 relative w-full max-w-2xl">
+                        <div className="relative h-[300px] md:h-[400px]">
+                            {/* Back Image */}
+                            <div className="absolute top-0 left-0 w-[70%] md:w-[60%] h-full rounded-3xl overflow-hidden shadow-2xl">
+                                <Image
+                                    src="/about-us2.png"
+                                    alt="Worship at Dayspring Chapel"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+
+                            {/* Front Image - Overlapping */}
+                            <div className="absolute bottom-0 right-0 w-[70%] md:w-[60%] h-[85%] rounded-3xl overflow-hidden shadow-2xl">
+                                <Image
+                                    src="/about-us2.png"
+                                    alt="Community worship"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

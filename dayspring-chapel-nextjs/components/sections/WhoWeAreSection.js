@@ -41,14 +41,14 @@ export default function WhoWeAreSection({ className = '' }) {
                     </div>
 
                     {/* Text Content - Right Side */}
-                    <div className="w-full lg:w-1/2 order-1 lg:order-2">
+                    <div className="w-full lg:w-1/2 order-1 lg:order-2 text-center lg:text-left">
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#14142f] mb-6 uppercase">
                             Who We Are
                         </h2>
                         <p className="text-gray-700 text-base md:text-lg mb-6">
                             We are a Church where:
                         </p>
-                        <ul className="space-y-4">
+                        <ul className="space-y-4 inline-block text-left">
                             {points.map((point, index) => (
                                 <li key={index} className="flex items-start gap-3">
                                     <Image
