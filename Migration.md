@@ -5,8 +5,8 @@
 - [x] About Us (/about)
 - [x] Library (/library)
 - [x] Giving (/donate)
+- [x] Events (/events)
+- [x] Gallery (/gallery)
 
 ## Pending Pages
-- [ ] Events (/events)
-- [ ] Gallery (/gallery)
 - [ ] Appointment (/appointment)

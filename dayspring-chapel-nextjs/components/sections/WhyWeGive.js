@@ -11,11 +11,10 @@ export default function WhyWeGive() {
                     <div className="w-full md:w-1/2">
                         <div className="relative h-[400px] w-full rounded-3xl overflow-hidden shadow-xl">
                             <Image
-                                src="/donate-hero.jfif" // Placeholder - User to update with specific image
+                                src="/giving.png"
                                 alt="Why We Give"
                                 fill
-                                className="object-cover grayscale" // Adding grayscale to match the black and white vibe of the screenshot
-                            />
+                                className="object-cover " />
                         </div>
                     </div>
 
