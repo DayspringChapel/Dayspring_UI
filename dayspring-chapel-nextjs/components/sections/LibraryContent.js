@@ -50,7 +50,7 @@ export default function LibraryContent() {
                     <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 uppercase">
                         Books Section
                     </h2>
-                    <p className="text-gray-700 max-w-4xl mx-auto text-base md:text-lg">
+                    <p className="text-gray-700 max-w-5xl mx-auto text-base md:text-lg">
                         Welcome to DaySpringChapel. a place where purpose is discovered, potentials are built. and dreams are fulfilled. Welcome to DaySpringChapel. a place wySpringChapel. a place where purpose is discovered, potentials are built. and dreams are fulfilled
                     </p>
                 </div>

@@ -3,7 +3,7 @@
 export default function PageHero({ title, subtitle, bgImage }) {
     return (
         <div
-            className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center text-white text-center bg-cover bg-center bg-no-repeat"
+            className="relative w-full h-[50vh] md:h-[70vh] flex items-center justify-center text-white text-center bg-cover bg-center bg-no-repeat"
             style={{
                 backgroundImage: `url(${bgImage || '/about-bg.jpg'})`,
             }}
