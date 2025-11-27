@@ -7,13 +7,7 @@ import OurCoreValues from '@/components/sections/OurCoreValues';
 import OurCulture from '@/components/sections/Ourculture';
 import LeadershipStructure from '@/components/sections/LeadershipStructure';
 import GeneralOverSeer from '@/components/sections/GeneralOverSeer';
-import HistorySection from '@/components/sections/HistorySection';
-import OutreachSection from '@/components/sections/OutreachSection';
-import CoreValuesSection from '@/components/sections/CoreValuesSection';
-import OurCultureSection from '@/components/sections/OurCultureSection';
-import OrganizationalStructureSection from '@/components/sections/OrganizationalStructureSection';
-import OurCentralObjectivesSection from '@/components/sections/OurCentralObjectivesSection';
-import OurArmourSection from '@/components/sections/OurArmourSection';
+import OurPastors from '@/components/sections/OurPastors';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
@@ -64,16 +58,10 @@ export default function AboutPage() {
             </ScrollReveal>
 
             <ScrollReveal>
-                <OrganizationalStructureSection className="" />
+                <OurPastors className="" />
             </ScrollReveal>
 
-            <ScrollReveal>
-                <OurCentralObjectivesSection className="" />
-            </ScrollReveal>
 
-            <ScrollReveal>
-                <OurArmourSection className="" />
-            </ScrollReveal>
 
             <NewsletterSection />
         </main>
