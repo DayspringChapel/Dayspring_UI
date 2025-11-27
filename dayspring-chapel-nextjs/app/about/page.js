@@ -1,6 +1,8 @@
 import PageHero from '@/components/sections/PageHero';
 import WhoWeAreSection from '@/components/sections/WhoWeAreSection';
+import OurCreedSection from '@/components/sections/OurCreedSection';
 import MissionStatementSection from '@/components/sections/MissionStatementSection';
+import GoalsAimObjective from '@/components/sections/GoalsAimObjective';
 import HistorySection from '@/components/sections/HistorySection';
 import OutreachSection from '@/components/sections/OutreachSection';
 import CoreValuesSection from '@/components/sections/CoreValuesSection';
@@ -26,39 +28,47 @@ export default function AboutPage() {
             />
 
             <ScrollReveal>
-                <WhoWeAreSection />
+                <WhoWeAreSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <MissionStatementSection />
+                <MissionStatementSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <HistorySection />
+                <OurCreedSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OutreachSection />
+                <GoalsAimObjective className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <CoreValuesSection />
+                <HistorySection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OurCultureSection />
+                <OutreachSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OrganizationalStructureSection />
+                <CoreValuesSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OurCentralObjectivesSection />
+                <OurCultureSection className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OurArmourSection />
+                <OrganizationalStructureSection className="" />
+            </ScrollReveal>
+
+            <ScrollReveal>
+                <OurCentralObjectivesSection className="" />
+            </ScrollReveal>
+
+            <ScrollReveal>
+                <OurArmourSection className="" />
             </ScrollReveal>
 
             <NewsletterSection />
