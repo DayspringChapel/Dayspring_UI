@@ -3,6 +3,10 @@ import WhoWeAreSection from '@/components/sections/WhoWeAreSection';
 import OurCreedSection from '@/components/sections/OurCreedSection';
 import MissionStatementSection from '@/components/sections/MissionStatementSection';
 import GoalsAimObjective from '@/components/sections/GoalsAimObjective';
+import OurCoreValues from '@/components/sections/OurCoreValues';
+import OurCulture from '@/components/sections/Ourculture';
+import LeadershipStructure from '@/components/sections/LeadershipStructure';
+import GeneralOverSeer from '@/components/sections/GeneralOverSeer';
 import HistorySection from '@/components/sections/HistorySection';
 import OutreachSection from '@/components/sections/OutreachSection';
 import CoreValuesSection from '@/components/sections/CoreValuesSection';
@@ -44,19 +48,19 @@ export default function AboutPage() {
             </ScrollReveal>
 
             <ScrollReveal>
-                <HistorySection className="" />
+                <OurCoreValues className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OutreachSection className="" />
+                <OurCulture className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <CoreValuesSection className="" />
+                <LeadershipStructure className="" />
             </ScrollReveal>
 
             <ScrollReveal>
-                <OurCultureSection className="" />
+                <GeneralOverSeer className="" />
             </ScrollReveal>
 
             <ScrollReveal>

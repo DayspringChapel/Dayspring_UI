@@ -1,33 +1,37 @@
 'use client';
 import Image from 'next/image';
 
-export default function MissionStatementSection({ className = '' }) {
+export default function OurCulture({ className = '' }) {
+    const point = [
+        'Excellence',
+        'Ethical Behaviour',
+        'Spiritual Growth',
+        'Purity',
+    ];
     return (
         <section className={` bg-white  ${className}`}>
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4">
                     {/* Left Content */}
-                    <div className="flex-1 max-w-xl text-center lg:text-right">
+                    <div className="w-full lg:w-1/2 order-1 lg:order-1 text-center lg:text-center">
                         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-gray-900 uppercase">
-                            Our Mission Statement
+                            Our Culture
                         </h2>
 
-
-                        <div className="flex gap-4 justify-center lg:justify-end">
-                            <div className="flex-shrink-0 mt-1">
-
-                            </div>
-                            <p className="text-gray-700 text-base md:text-lg leading-relaxed flex items-center gap-2">
-                                <Image
-                                    src="/light-bulb.png"
-                                    alt="bullet"
-                                    width={20}
-                                    height={20}
-                                    className="flex-shrink-0"
-                                />
-                                Discover Purpose, Build Potentials, and Fulfill Dreams
-                            </p>
-                        </div>
+                        <ul className="space-y-4 inline-block text-left">
+                            {point.map((point, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                    <Image
+                                        src="/light-bulb.png"
+                                        alt="bullet"
+                                        width={20}
+                                        height={20}
+                                        className="mt-1 flex-shrink-0"
+                                    />
+                                    <span className="text-gray-700 text-base font-semibold md:text-normal">{point}</span>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
 
                     {/* Right Images - Overlapping Stack */}

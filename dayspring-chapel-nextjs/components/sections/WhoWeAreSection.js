@@ -21,7 +21,7 @@ export default function WhoWeAreSection({ className = '' }) {
                     <div className="w-full lg:w-1/2 order-2 lg:order-1">
                         <div className="relative h-[500px] md:h-[600px] max-w-[600px] mx-auto">
                             {/* Main large image - bottom left */}
-                            <div className="absolute right-5 bottom-20 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-10">
+                            <div className="absolute left-1/2 -translate-x-[35%] lg:left-auto lg:right-5 lg:translate-x-0 bottom-20 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-10">
                                 <Image
                                     src="/about-us1.png"
                                     alt="Church worship service"
@@ -29,7 +29,7 @@ export default function WhoWeAreSection({ className = '' }) {
                                     className="object-cover"
                                 />
                             </div>
-                            <div className="absolute right-20 bottom-30 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-1">
+                            <div className="absolute left-1/2 -translate-x-[65%] lg:left-auto lg:right-20 lg:translate-x-0 bottom-30 w-[55%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-1">
                                 <Image
                                     src="/about-us1.png"
                                     alt="Church worship service"

@@ -12,7 +12,7 @@ export default function GoalsAimObjective({ className = '' }) {
     ];
 
     return (
-        <section className={`py-16 md:py-24 bg-white ${className}`}>
+        <section className={` bg-white ${className}`}>
             <div className="px-4 max-w-7xl mx-auto">
                 <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
@@ -43,7 +43,7 @@ export default function GoalsAimObjective({ className = '' }) {
                     <div className="w-full lg:w-1/2 order-2 lg:order-2">
                         <div className="relative h-[500px] md:h-[600px] max-w-[600px] mx-auto">
                             {/* Main large image - bottom left */}
-                            <div className="absolute right-5 bottom-20 w-[65%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-10">
+                            <div className="absolute left-1/2 -translate-x-[35%] lg:left-auto lg:right-5 lg:translate-x-0 bottom-20 w-[65%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-10">
                                 <Image
                                     src="/about-us4.png"
                                     alt="Church worship service"
@@ -51,7 +51,7 @@ export default function GoalsAimObjective({ className = '' }) {
                                     className="object-cover"
                                 />
                             </div>
-                            <div className="absolute right-25 bottom-30 w-[65%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-1">
+                            <div className="absolute left-1/2 -translate-x-[65%] lg:left-auto lg:right-25 lg:translate-x-0 bottom-30 w-[65%] h-[65%] rounded-2xl overflow-hidden shadow-xl z-1">
                                 <Image
                                     src="/about-us4.png"
                                     alt="Church worship service"
