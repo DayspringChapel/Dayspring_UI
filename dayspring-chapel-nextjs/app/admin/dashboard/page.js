@@ -51,28 +51,28 @@ export default function AdminDashboard() {
             description: 'Add or edit events, sermons, books, and albums',
             icon: '📝',
             path: '/admin/content',
-            color: '#667eea',
+            color: '#a78bfa', // Soft purple
         },
         {
             title: 'Appointments',
             description: 'View and manage appointment requests',
             icon: '📅',
             path: '/admin/appointments',
-            color: '#48bb78',
+            color: '#6ee7b7', // Soft mint
         },
         {
             title: 'Requisitions',
             description: 'Review and approve requisition requests',
             icon: '📋',
             path: '/admin/requisitions',
-            color: '#ed8936',
+            color: '#fbbf24', // Soft amber
         },
         {
             title: 'Members',
             description: 'Manage member profiles and birthdays',
             icon: '👥',
             path: '/admin/members',
-            color: '#9f7aea',
+            color: '#f9a8d4', // Soft pink
         },
     ];
 
@@ -81,31 +81,31 @@ export default function AdminDashboard() {
             title: 'Appointments',
             value: stats.appointments,
             icon: '📅',
-            color: '#48bb78',
+            color: '#a78bfa', // Soft purple
         },
         {
             title: 'Events',
             value: stats.events,
             icon: '🎉',
-            color: '#667eea',
+            color: '#6ee7b7', // Soft mint
         },
         {
             title: 'Books',
             value: stats.books,
             icon: '📚',
-            color: '#ed8936',
+            color: '#fbbf24', // Soft amber
         },
         {
             title: 'Sermons',
             value: stats.sermons,
             icon: '🎤',
-            color: '#9f7aea',
+            color: '#f9a8d4', // Soft pink
         },
         {
             title: 'Requisitions',
             value: stats.requisitions,
             icon: '📋',
-            color: '#f56565',
+            color: '#93c5fd', // Soft blue
         },
     ];
 
