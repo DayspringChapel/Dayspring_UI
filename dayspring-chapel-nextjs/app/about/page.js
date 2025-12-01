@@ -61,8 +61,6 @@ export default function AboutPage() {
                 <OurPastors className="" />
             </ScrollReveal>
 
-
-
             <NewsletterSection />
         </main>
     );

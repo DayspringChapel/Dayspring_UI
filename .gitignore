@@ -23,13 +23,13 @@ yarn-debug.log*
 yarn-error.log*
 
 # Legacy Project Files (Root Level Only)
-/*.html
-/*.css
-/src/
-/public/
-/Route/
-/package.json
-/package-lock.json
-/Dockerfile
-/GEMINI.md
-/README.md
+# /*.html
+# /*.css
+# /src/
+# /public/
+# /Route/
+# /package.json
+# /package-lock.json
+# /Dockerfile
+# /GEMINI.md
+# /README.md
