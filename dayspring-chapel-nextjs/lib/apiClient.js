@@ -99,42 +99,10 @@ class ApiClient {
 
     // Auth endpoints
     async login(userNameOrEmail, password) {
-        try {
-            const data = await this.request('/api/Users/login', {
-                method: 'POST',
-                body: JSON.stringify({ userNameOrEmail, password }),
-            });
-
-            console.log('Login response:', data);
-
-            // Handle different response formats
-            // The backend might return { token, user } or just success with data
-            if (data) {
-                // Store token if present
-                if (data.token) {
-                    this.setToken(data.token);
-                }
-
-                // Store user data
-                if (data.user) {
-                    this.setUserData(data.user);
-                } else {
-                    this.setUserData({ email: userNameOrEmail });
-                }
-
-                // If no token but response is successful, still proceed
-                // (some APIs might use session-based auth)
-                if (!data.token) {
-                    console.warn('No token in response, using dummy token for now');
-                    this.setToken('dummy-token-' + Date.now());
-                }
-            }
-
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
+        return this.request('/api/Auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ userNameOrEmail, password }),
+        });
     }
 
     async logout() {
@@ -193,6 +161,177 @@ class ApiClient {
         const token = this.getToken();
         const response = await fetch(`${this.baseUrl}/api/Book`, {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData, // multipart/form-data
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async updateBook(bookData) {
+        return this.request('/api/Book/update', {
+            method: 'PATCH',
+            body: JSON.stringify(bookData),
+        });
+    }
+
+    async deleteBook(bookId) {
+        return this.request(`/api/Book/${bookId}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Events
+    async getEvents() {
+        return this.request('/api/Event');
+    }
+
+    async createEvent(formData) {
+        const token = this.getToken();
+        const response = await fetch(`${this.baseUrl}/api/Event`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async updateEvent(eventData) {
+        return this.request('/api/Event', {
+            method: 'PATCH',
+            body: JSON.stringify(eventData),
+        });
+    }
+
+    async deleteEvent(eventId) {
+        return this.request(`/api/Event/${eventId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Sermons
+    async getSermons() {
+        return this.request('/api/Sermon');
+    }
+
+    async createSermon(sermonData) {
+        return this.request('/api/Sermon/create', {
+            method: 'POST',
+            body: JSON.stringify(sermonData),
+        });
+    }
+
+    async updateSermon(sermonId, sermonData) {
+        return this.request(`/api/Sermon/${sermonId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify(sermonData),
+        });
+    }
+
+    async deleteSermon(sermonId) {
+        return this.request(`/api/Sermon/${sermonId}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Series
+    async getSeries() {
+        return this.request('/api/Series/series');
+    }
+
+    async createSeries(seriesData) {
+        return this.request('/api/Series/create', {
+            method: 'POST',
+            body: JSON.stringify(seriesData),
+        });
+    }
+
+    async updateSeries(id, seriesData) {
+        return this.request(`/api/Series/${id}/update`, {
+            method: 'PUT',
+            body: JSON.stringify(seriesData),
+        });
+    }
+
+    async deleteSeries(id) {
+        return this.request(`/api/Series/${id}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Images
+    async getImages() {
+        return this.request('/api/Image/get-all');
+    }
+
+    async uploadImage(formData) {
+        const token = this.getToken();
+        const response = await fetch(`${this.baseUrl}/api/Image/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async deleteImage(imageId) {
+        return this.request(`/api/Image/${imageId}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Requisitions
+    async getRequisitions() {
+        return this.request('/api/Requisition/requisition');
+    }
+
+    async createRequisition(requisitionData) {
+        return this.request('/create-requisition', {
+            method: 'POST',
+            body: JSON.stringify(requisitionData),
+        });
+    }
+
+    async updateRequisition(id, requisitionData) {
+        return this.request(`/api/Requisition/${id}/requisition`, {
+            method: 'PUT',
+            body: JSON.stringify(requisitionData),
+        });
+    }
+
+    async approveRequisition(id) {
+        return this.request(`/api/Requisition/${id}/approve`, {
+            method: 'PATCH',
+        });
+    }
+
+    // Giving
+    async getGivings() {
+        return this.request('/api/Giving/givings');
+    }
+
+    async deleteGiving(givingId) {
+        return this.request(`/api/Giving/${givingId}/delete-giving`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
