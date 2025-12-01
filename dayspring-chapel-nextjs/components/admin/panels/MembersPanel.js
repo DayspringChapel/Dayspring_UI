@@ -25,15 +25,8 @@ export default function MembersPanel() {
 
     const loadMembers = async () => {
         try {
-            // Placeholder for API call - replace with actual endpoint when available
-            // const data = await apiClient.getMembers();
-            // setMembers(Array.isArray(data) ? data : []);
-
-            // Mock data for now
-            setMembers([
-                { id: 1, firstName: 'John', lastName: 'Doe', email: 'john@example.com', phoneNumber: '1234567890', dateOfBirth: '1990-01-15', role: 'Member' },
-                { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', phoneNumber: '0987654321', dateOfBirth: '1985-05-20', role: 'Admin' },
-            ]);
+            const data = await apiClient.getBioData();
+            setMembers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to load members:', error);
             setMembers([]);
@@ -48,11 +41,9 @@ export default function MembersPanel() {
 
         try {
             if (editingMember) {
-                // await apiClient.updateMember(editingMember.id, formData);
-                console.log('Updating member:', formData);
+                await apiClient.updateBioData({ ...formData, id: editingMember.id });
             } else {
-                // await apiClient.createMember(formData);
-                console.log('Creating member:', formData);
+                await apiClient.createBioData(formData);
             }
 
             await loadMembers();
@@ -69,8 +60,7 @@ export default function MembersPanel() {
         if (!confirm('Are you sure you want to delete this member?')) return;
 
         try {
-            // await apiClient.deleteMember(memberId);
-            console.log('Deleting member:', memberId);
+            await apiClient.deleteBioData(memberId);
             await loadMembers();
         } catch (error) {
             console.error('Failed to delete member:', error);

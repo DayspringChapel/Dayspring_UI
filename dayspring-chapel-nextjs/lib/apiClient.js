@@ -99,7 +99,7 @@ class ApiClient {
 
     // Auth endpoints
     async login(userNameOrEmail, password) {
-        return this.request('/api/Auth/login', {
+        return this.request('/api/Users/login', {
             method: 'POST',
             body: JSON.stringify({ userNameOrEmail, password }),
         });
@@ -306,7 +306,7 @@ class ApiClient {
     }
 
     async createRequisition(requisitionData) {
-        return this.request('/create-requisition', {
+        return this.request('/api/Requisition/create-requisition', {
             method: 'POST',
             body: JSON.stringify(requisitionData),
         });
@@ -329,180 +329,37 @@ class ApiClient {
     async getGivings() {
         return this.request('/api/Giving/givings');
     }
-
     async deleteGiving(givingId) {
         return this.request(`/api/Giving/${givingId}/delete-giving`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-            body: formData, // multipart/form-data
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-    async updateBook(bookData) {
-        return this.request('/api/Book/update', {
-            method: 'PATCH',
-            body: JSON.stringify(bookData),
-        });
-    }
-
-    async deleteBook(bookId) {
-        return this.request(`/api/Book/${bookId}/delete`, {
             method: 'DELETE',
         });
     }
 
-    // Events
-    async getEvents() {
-        return this.request('/api/Event');
+    // BioData
+    async getBioData() {
+        return this.request('/api/BioData');
     }
 
-    async createEvent(formData) {
-        const token = this.getToken();
-        const response = await fetch(`${this.baseUrl}/api/Event`, {
+    async getBioDataById(id) {
+        return this.request(`/api/BioData/${id}`);
+    }
+
+    async createBioData(bioData) {
+        return this.request('/api/BioData/create-biodata', {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-    async updateEvent(eventData) {
-        return this.request('/api/Event', {
-            method: 'PATCH',
-            body: JSON.stringify(eventData),
+            body: JSON.stringify(bioData),
         });
     }
 
-    async deleteEvent(eventId) {
-        return this.request(`/api/Event/${eventId}`, {
-            method: 'DELETE',
-        });
-    }
-
-    // Sermons
-    async getSermons() {
-        return this.request('/api/Sermon');
-    }
-
-    async createSermon(sermonData) {
-        return this.request('/api/Sermon/create', {
-            method: 'POST',
-            body: JSON.stringify(sermonData),
-        });
-    }
-
-    async updateSermon(sermonId, sermonData) {
-        return this.request(`/api/Sermon/${sermonId}/update`, {
+    async updateBioData(bioData) {
+        return this.request('/api/BioData/update-biodata', {
             method: 'PUT',
-            body: JSON.stringify(sermonData),
+            body: JSON.stringify(bioData),
         });
     }
 
-    async deleteSermon(sermonId) {
-        return this.request(`/api/Sermon/${sermonId}/delete`, {
-            method: 'DELETE',
-        });
-    }
-
-    // Series
-    async getSeries() {
-        return this.request('/api/Series/series');
-    }
-
-    async createSeries(seriesData) {
-        return this.request('/api/Series/create', {
-            method: 'POST',
-            body: JSON.stringify(seriesData),
-        });
-    }
-
-    async updateSeries(id, seriesData) {
-        return this.request(`/api/Series/${id}/update`, {
-            method: 'PUT',
-            body: JSON.stringify(seriesData),
-        });
-    }
-
-    async deleteSeries(id) {
-        return this.request(`/api/Series/${id}/delete`, {
-            method: 'DELETE',
-        });
-    }
-
-    // Images
-    async getImages() {
-        return this.request('/api/Image/get-all');
-    }
-
-    async uploadImage(formData) {
-        const token = this.getToken();
-        const response = await fetch(`${this.baseUrl}/api/Image/upload`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return response.json();
-    }
-
-    async deleteImage(imageId) {
-        return this.request(`/api/Image/${imageId}/delete`, {
-            method: 'DELETE',
-        });
-    }
-
-    // Requisitions
-    async getRequisitions() {
-        return this.request('/api/Requisition/requisition');
-    }
-
-    async createRequisition(requisitionData) {
-        return this.request('/create-requisition', {
-            method: 'POST',
-            body: JSON.stringify(requisitionData),
-        });
-    }
-
-    async updateRequisition(id, requisitionData) {
-        return this.request(`/api/Requisition/${id}/requisition`, {
-            method: 'PUT',
-            body: JSON.stringify(requisitionData),
-        });
-    }
-
-    async approveRequisition(id) {
-        return this.request(`/api/Requisition/${id}/approve`, {
-            method: 'PATCH',
-        });
-    }
-
-    // Giving
-    async getGivings() {
-        return this.request('/api/Giving/givings');
-    }
-
-    async deleteGiving(givingId) {
-        return this.request(`/api/Giving/${givingId}/delete-giving`, {
+    async deleteBioData(id) {
+        return this.request(`/api/BioData/${id}/delete`, {
             method: 'DELETE',
         });
     }

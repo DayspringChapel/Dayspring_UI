@@ -21,9 +21,14 @@ export default function AdminLayout({ children }) {
 
         // Check if user is authenticated
         const token = apiClient.getToken();
+        console.log('Admin layout - checking auth for path:', pathname);
+        console.log('Admin layout - token found:', token ? 'Yes' : 'No');
+
         if (!token) {
+            console.log('Admin layout - No token, redirecting to login');
             router.push('/admin/login');
         } else {
+            console.log('Admin layout - Token valid, allowing access');
             setLoading(false);
         }
     }, [pathname, router]);
