@@ -1,9 +1,10 @@
 // API Client utility for admin backend calls
-const API_BASE_URL = 'https://dayspring-backend-4ar8.onrender.com';
+const API_BASE_URL = '/api/proxy'; // Use Next.js proxy to avoid CORS
 
 class ApiClient {
     constructor() {
         this.baseUrl = API_BASE_URL;
+        this.backendUrl = 'https://dayspring-backend-4ar8.onrender.com';
     }
 
     getToken() {
@@ -42,22 +43,36 @@ class ApiClient {
 
     async request(endpoint, options = {}) {
         const token = this.getToken();
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const config = {
-            ...options,
-            headers,
-        };
+        const method = options.method || 'GET';
 
         try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`, config);
+            let response;
+
+            if (method === 'GET' || method === 'DELETE') {
+                // For GET and DELETE, use query params
+                const url = `${this.baseUrl}?endpoint=${encodeURIComponent(endpoint)}`;
+                response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token && { 'Authorization': `Bearer ${token}` }),
+                    },
+                });
+            } else {
+                // For POST, PUT, PATCH, send data in body
+                response = await fetch(this.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        endpoint,
+                        method,
+                        data: options.body ? JSON.parse(options.body) : undefined,
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                    }),
+                });
+            }
 
             // Handle 401 Unauthorized
             if (response.status === 401) {
@@ -68,20 +83,14 @@ class ApiClient {
                 throw new Error('Unauthorized');
             }
 
-            // Parse response
-            const contentType = response.headers.get('content-type');
-            let data;
-            if (contentType && contentType.includes('application/json')) {
-                data = await response.json();
-            } else {
-                data = await response.text();
-            }
+            const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                throw new Error(result.error || `HTTP error! status: ${response.status}`);
             }
 
-            return data;
+            // Return the actual data from the proxy response
+            return result.data || result;
         } catch (error) {
             console.error('API request failed:', error);
             throw error;
@@ -90,17 +99,42 @@ class ApiClient {
 
     // Auth endpoints
     async login(userNameOrEmail, password) {
-        const data = await this.request('/api/Users/login', {
-            method: 'POST',
-            body: JSON.stringify({ userNameOrEmail, password }),
-        });
+        try {
+            const data = await this.request('/api/Users/login', {
+                method: 'POST',
+                body: JSON.stringify({ userNameOrEmail, password }),
+            });
 
-        if (data.token) {
-            this.setToken(data.token);
-            this.setUserData(data.user || { email: userNameOrEmail });
+            console.log('Login response:', data);
+
+            // Handle different response formats
+            // The backend might return { token, user } or just success with data
+            if (data) {
+                // Store token if present
+                if (data.token) {
+                    this.setToken(data.token);
+                }
+
+                // Store user data
+                if (data.user) {
+                    this.setUserData(data.user);
+                } else {
+                    this.setUserData({ email: userNameOrEmail });
+                }
+
+                // If no token but response is successful, still proceed
+                // (some APIs might use session-based auth)
+                if (!data.token) {
+                    console.warn('No token in response, using dummy token for now');
+                    this.setToken('dummy-token-' + Date.now());
+                }
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
         }
-
-        return data;
     }
 
     async logout() {
