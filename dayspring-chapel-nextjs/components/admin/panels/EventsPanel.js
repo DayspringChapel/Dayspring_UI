@@ -37,11 +37,13 @@ export default function EventsPanel() {
         try {
             if (editingEvent) {
                 // Update existing event
-                await apiClient.updateEvent({
-                    eventId: editingEvent.id,
-                    description: formData.description,
-                    eventImage: formData.eventImage,
-                });
+                const formDataToSend = new FormData();
+                formDataToSend.append('Id', editingEvent.id);
+                formDataToSend.append('Description', formData.description);
+                if (formData.eventImage) {
+                    formDataToSend.append('EventImage', formData.eventImage);
+                }
+                await apiClient.updateEvent(formDataToSend);
             } else {
                 // Create new event
                 const formDataToSend = new FormData();
@@ -174,14 +176,23 @@ export default function EventsPanel() {
 
                             <div className={styles.formGroup}>
                                 <label htmlFor="eventImage">Event Image</label>
-                                <input
-                                    type="file"
-                                    id="eventImage"
-                                    accept="image/*"
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, eventImage: e.target.files[0] })
-                                    }
-                                />
+                                <div className={styles.fileInputWrapper}>
+                                    <input
+                                        type="file"
+                                        id="eventImage"
+                                        accept="image/*"
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, eventImage: e.target.files[0] })
+                                        }
+                                        className={styles.fileInput}
+                                    />
+                                    <div className={styles.fileInputButton}>
+                                        {formData.eventImage ? 'Change Image' : 'Choose Image'}
+                                    </div>
+                                    <span className={styles.fileName}>
+                                        {formData.eventImage ? formData.eventImage.name : 'No file chosen'}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className={styles.formActions}>

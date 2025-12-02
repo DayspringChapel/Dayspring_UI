@@ -1,6 +1,8 @@
 .container {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 0 1rem;
+    /* Add padding to prevent edge touching */
 }
 
 .header {
@@ -27,6 +29,15 @@
     border-bottom: 2px solid #e2e8f0;
     overflow-x: auto;
     padding-bottom: 0;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
 }
 
 .tab {
@@ -73,16 +84,25 @@
 }
 
 @media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
     .header h1 {
         font-size: 1.5rem;
     }
 
+    .header p {
+        font-size: 0.95rem;
+    }
+
     .tabs {
         gap: 0.25rem;
+        margin-bottom: 1.5rem;
     }
 
     .tab {
-        padding: 0.875rem 1rem;
+        padding: 0.75rem 1rem;
         font-size: 0.875rem;
     }
 
@@ -91,6 +111,8 @@
     }
 
     .content {
-        padding: 1.5rem;
+        padding: 1rem;
+        /* Reduce padding on mobile */
+        border-radius: 12px;
     }
 }

@@ -209,11 +209,30 @@ class ApiClient {
         return response.json();
     }
 
-    async updateEvent(eventData) {
-        return this.request('/api/Event', {
-            method: 'PATCH',
-            body: JSON.stringify(eventData),
-        });
+    async updateEvent(formData) {
+        const token = this.getToken();
+        // Check if formData is actually FormData or a plain object
+        if (formData instanceof FormData) {
+            const response = await fetch(`${this.baseUrl}/api/Event`, {
+                method: 'PATCH', // Or PUT, depending on backend. Keeping PATCH as per original.
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return response.json();
+        } else {
+            // Fallback for JSON updates if needed (though we'll switch to FormData in panel)
+            return this.request('/api/Event', {
+                method: 'PATCH',
+                body: JSON.stringify(formData),
+            });
+        }
     }
 
     async deleteEvent(eventId) {
