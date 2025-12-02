@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import styles from './dashboard.module.css';
 
 export default function AdminDashboard() {
@@ -125,38 +126,46 @@ export default function AdminDashboard() {
                 <p>Here's what's happening with your church today.</p>
             </div>
 
-            <div className={styles.statsGrid}>
-                {statCards.map((stat) => (
-                    <div
-                        key={stat.title}
-                        className={styles.statCard}
-                        style={{ '--accent-color': stat.color }}
-                    >
-                        <div className={styles.statIcon}>{stat.icon}</div>
-                        <div className={styles.statContent}>
-                            <h3>{stat.title}</h3>
-                            <p className={styles.statValue}>{stat.value}</p>
+            <div className={styles.dashboardGrid}>
+                <div className={styles.mainContent}>
+                    <div className={styles.statsGrid}>
+                        {statCards.map((stat) => (
+                            <div
+                                key={stat.title}
+                                className={styles.statCard}
+                                style={{ '--accent-color': stat.color }}
+                            >
+                                <div className={styles.statIcon}>{stat.icon}</div>
+                                <div className={styles.statContent}>
+                                    <h3>{stat.title}</h3>
+                                    <p className={styles.statValue}>{stat.value}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className={styles.quickActionsSection}>
+                        <h2>Quick Actions</h2>
+                        <div className={styles.actionsGrid}>
+                            {quickActions.map((action) => (
+                                <button
+                                    key={action.path}
+                                    className={styles.actionCard}
+                                    onClick={() => router.push(action.path)}
+                                    style={{ '--action-color': action.color }}
+                                >
+                                    <div className={styles.actionIcon}>{action.icon}</div>
+                                    <h3>{action.title}</h3>
+                                    <p>{action.description}</p>
+                                    <div className={styles.actionArrow}>→</div>
+                                </button>
+                            ))}
                         </div>
                     </div>
-                ))}
-            </div>
+                </div>
 
-            <div className={styles.quickActionsSection}>
-                <h2>Quick Actions</h2>
-                <div className={styles.actionsGrid}>
-                    {quickActions.map((action) => (
-                        <button
-                            key={action.path}
-                            className={styles.actionCard}
-                            onClick={() => router.push(action.path)}
-                            style={{ '--action-color': action.color }}
-                        >
-                            <div className={styles.actionIcon}>{action.icon}</div>
-                            <h3>{action.title}</h3>
-                            <p>{action.description}</p>
-                            <div className={styles.actionArrow}>→</div>
-                        </button>
-                    ))}
+                <div className={styles.sidebarContent}>
+                    <BirthdayWidget />
                 </div>
             </div>
         </div>
