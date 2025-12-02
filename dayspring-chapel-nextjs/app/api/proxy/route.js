@@ -49,18 +49,32 @@ export async function GET(request) {
         const endpoint = searchParams.get('endpoint');
         const token = request.headers.get('authorization');
 
+        console.log('[Proxy GET] Endpoint:', endpoint);
+        console.log('[Proxy GET] Full URL:', request.url);
+
+        const authHeader = request.headers.get('authorization');
+        console.log('[Proxy GET] Raw Authorization Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'MISSING');
+
         const headers = {
             'Content-Type': 'application/json',
         };
 
-        if (token) {
-            headers['Authorization'] = token;
+        if (authHeader) {
+            headers['Authorization'] = authHeader;
+            console.log('[Proxy GET] Forwarding Authorization header');
+        } else {
+            console.warn('[Proxy GET] No Authorization header found in request!');
         }
 
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        const backendUrl = `${API_BASE_URL}${endpoint}`;
+        console.log('[Proxy GET] Fetching:', backendUrl);
+
+        const response = await fetch(backendUrl, {
             method: 'GET',
             headers,
         });
+
+        console.log('[Proxy GET] Response status:', response.status);
 
         const contentType = response.headers.get('content-type');
         let responseData;
@@ -71,12 +85,15 @@ export async function GET(request) {
             responseData = await response.text();
         }
 
+        console.log('[Proxy GET] Response data type:', typeof responseData);
+
         return NextResponse.json(
             { data: responseData, status: response.status },
             { status: response.status }
         );
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error('[Proxy GET] Error:', error);
+        console.error('[Proxy GET] Error stack:', error.stack);
         return NextResponse.json(
             { error: error.message },
             { status: 500 }

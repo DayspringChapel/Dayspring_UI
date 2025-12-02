@@ -146,9 +146,10 @@ class ApiClient {
         });
     }
 
-    async cancelAppointment(appointmentId) {
+    async cancelAppointment(appointmentId, reason) {
         return this.request(`/api/Appointment/cancel/${appointmentId}`, {
             method: 'PATCH',
+            body: JSON.stringify({ reason }),
         });
     }
 
@@ -159,12 +160,13 @@ class ApiClient {
 
     async createBook(formData) {
         const token = this.getToken();
-        const response = await fetch(`${this.baseUrl}/api/Book`, {
+        const response = await fetch('/api/upload-proxy', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'X-Target-Endpoint': '/api/Book',
             },
-            body: formData, // multipart/form-data
+            body: formData,
         });
 
         if (!response.ok) {
@@ -194,10 +196,12 @@ class ApiClient {
 
     async createEvent(formData) {
         const token = this.getToken();
-        const response = await fetch(`${this.baseUrl}/api/Event`, {
+        // Use proxy route for CORS
+        const response = await fetch('/api/upload-proxy', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'X-Target-Endpoint': '/api/Event',
             },
             body: formData,
         });
@@ -211,12 +215,12 @@ class ApiClient {
 
     async updateEvent(formData) {
         const token = this.getToken();
-        // Check if formData is actually FormData or a plain object
         if (formData instanceof FormData) {
-            const response = await fetch(`${this.baseUrl}/api/Event`, {
-                method: 'PATCH', // Or PUT, depending on backend. Keeping PATCH as per original.
+            const response = await fetch('/api/upload-proxy', {
+                method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    'X-Target-Endpoint': '/api/Event',
                 },
                 body: formData,
             });
@@ -227,7 +231,6 @@ class ApiClient {
 
             return response.json();
         } else {
-            // Fallback for JSON updates if needed (though we'll switch to FormData in panel)
             return this.request('/api/Event', {
                 method: 'PATCH',
                 body: JSON.stringify(formData),
@@ -298,10 +301,11 @@ class ApiClient {
 
     async uploadImage(formData) {
         const token = this.getToken();
-        const response = await fetch(`${this.baseUrl}/api/Image/upload`, {
+        const response = await fetch('/api/upload-proxy', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'X-Target-Endpoint': '/api/Image/upload',
             },
             body: formData,
         });

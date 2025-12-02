@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
-import styles from '../appointments/appointments.module.css';
 
 export default function RequisitionsPage() {
     const [requisitions, setRequisitions] = useState([]);
