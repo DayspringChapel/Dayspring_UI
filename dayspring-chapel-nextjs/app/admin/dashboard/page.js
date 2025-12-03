@@ -52,7 +52,7 @@ export default function AdminDashboard() {
             description: 'Add or edit events, sermons, books, and albums',
             icon: '📝',
             path: '/admin/content',
-            color: '#a78bfa', // Soft purple
+            color: '#D9752C', // Brand orange
         },
         {
             title: 'Appointments',
@@ -82,7 +82,7 @@ export default function AdminDashboard() {
             title: 'Appointments',
             value: stats.appointments,
             icon: '📅',
-            color: '#a78bfa', // Soft purple
+            color: '#D9752C', // Brand orange
         },
         {
             title: 'Events',

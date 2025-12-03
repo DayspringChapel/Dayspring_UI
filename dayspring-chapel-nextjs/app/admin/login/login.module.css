@@ -101,8 +101,8 @@
 
 .inputGroup input:focus {
   outline: none;
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+  border-color: #D9752C;
+  box-shadow: 0 0 0 3px rgba(217, 117, 44, 0.1);
 }
 
 .inputGroup input::placeholder {
@@ -110,7 +110,7 @@
 }
 
 .submitBtn {
-  background: #a78bfa;
+  background: #D9752C;
   color: white;
   border: none;
   padding: 1rem;
@@ -127,9 +127,9 @@
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: #9333ea;
+  background: #c26622;
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 8px 20px rgba(217, 117, 44, 0.3);
 }
 
 .submitBtn:active:not(:disabled) {
@@ -162,7 +162,7 @@
 }
 
 .footer a {
-  color: #a78bfa;
+  color: #D9752C;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -170,7 +170,7 @@
 }
 
 .footer a:hover {
-  color: #9333ea;
+  color: #c26622;
 }
 
 @media (max-width: 640px) {

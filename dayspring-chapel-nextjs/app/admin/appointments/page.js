@@ -104,7 +104,7 @@ export default function AppointmentsPage() {
     if (loading && appointments.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <div className="w-10 h-10 border-4 border-gray-200 border-t-purple-500 rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
                 <p className="text-gray-500 text-sm">Loading appointments...</p>
             </div>
         );
@@ -147,14 +147,14 @@ export default function AppointmentsPage() {
                         placeholder="Search by name or email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                     />
                 </div>
                 <div className="w-full md:w-48">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all bg-white"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all bg-white"
                     >
                         <option value="all">All Status</option>
                         <option value="0">Pending</option>
@@ -167,7 +167,7 @@ export default function AppointmentsPage() {
                         type="date"
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                     />
                 </div>
             </div>
@@ -208,7 +208,7 @@ export default function AppointmentsPage() {
                                         <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{getStatusBadge(appointment.status || 0)}</td>
                                         <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
                                             <button
-                                                className="bg-purple-50 text-purple-700 hover:bg-purple-100 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                                className="bg-orange-50 text-orange-700 hover:bg-orange-100 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                                                 onClick={() => handleViewDetails(appointment)}
                                             >
                                                 View Details

@@ -110,7 +110,7 @@ export default function EventsPanel() {
     if (loading && events.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
-                <div className="w-11 h-11 border-3 border-gray-200 border-t-purple-400 rounded-full animate-spin"></div>
+                <div className="w-11 h-11 border-3 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
                 <p className="text-gray-600 text-sm font-medium">Loading events...</p>
             </div>
         );
@@ -123,7 +123,7 @@ export default function EventsPanel() {
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Events</h2>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg font-medium hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                     + Add Event
                 </button>
@@ -216,7 +216,7 @@ export default function EventsPanel() {
                                     required
                                     rows={4}
                                     placeholder="Enter event description"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none transition-all resize-none text-sm"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none transition-all resize-none text-sm"
                                 />
                             </div>
 
@@ -296,7 +296,7 @@ export default function EventsPanel() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg font-medium hover:from-purple-500 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                 >
                                     {loading ? 'Saving...' : editingEvent ? 'Update' : 'Create'}
                                 </button>

@@ -66,7 +66,7 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                     {/* Applicant Info Section */}
                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                         <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                            <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             Applicant Information
@@ -89,8 +89,8 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Current Status</label>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === 1 ? 'bg-green-100 text-green-800' :
-                                        appointment.status === 2 ? 'bg-red-100 text-red-800' :
-                                            'bg-yellow-100 text-yellow-800'
+                                    appointment.status === 2 ? 'bg-red-100 text-red-800' :
+                                        'bg-yellow-100 text-yellow-800'
                                     }`}>
                                     {appointment.status === 1 ? 'Confirmed' : appointment.status === 2 ? 'Cancelled' : 'Pending'}
                                 </span>
@@ -176,7 +176,7 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                                     required
                                                     value={confirmData.dateOfAppointment}
                                                     onChange={(e) => setConfirmData({ ...confirmData, dateOfAppointment: e.target.value })}
-                                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
                                                 />
                                             </div>
                                             <div>
@@ -239,7 +239,7 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                             <button
                                                 type="submit"
                                                 disabled={loading}
-                                                className="px-5 py-2.5 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {loading ? 'Processing...' : 'Confirm Appointment'}
                                             </button>

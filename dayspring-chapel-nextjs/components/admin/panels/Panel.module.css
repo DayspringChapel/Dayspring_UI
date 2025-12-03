@@ -17,7 +17,7 @@
 }
 
 .addBtn {
-    background: #a78bfa;
+    background: #D9752C;
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -29,9 +29,9 @@
 }
 
 .addBtn:hover {
-    background: #9333ea;
+    background: #c26622;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+    box-shadow: 0 4px 12px rgba(217, 117, 44, 0.3);
 }
 
 .loading {
@@ -47,7 +47,7 @@
     width: 44px;
     height: 44px;
     border: 3px solid #f3f4f6;
-    border-top-color: #a78bfa;
+    border-top-color: #D9752C;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
 }
@@ -241,8 +241,8 @@
 .formGroup label {
     display: block;
     font-weight: 600;
-    border-color: #a78bfa;
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+    border-color: #D9752C;
+    box-shadow: 0 0 0 3px rgba(217, 117, 44, 0.1);
 }
 
 .formGroup textarea {
@@ -278,209 +278,14 @@
 }
 
 .submitBtn {
-    background: #a78bfa;
+    background: #D9752C;
     color: white;
 }
 
 .submitBtn:hover:not(:disabled) {
-    background: #9333ea;
+    background: #c26622;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
-}
-
-.submitBtn:disabled {
-
-    .table thead {
-        background: #fafafa;
-    }
-
-    .table th {
-        text-align: left;
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #6b7280;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .table td {
-        padding: 1rem 1.25rem;
-        border-top: 1px solid #f3f4f6;
-        color: #374151;
-    }
-
-    .table tr:hover {
-        background: #fafafa;
-    }
-
-    .actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .actions button {
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-    }
-
-    .confirmBtn {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .confirmBtn:hover {
-        background: #a7f3d0;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.375rem 0.875rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.025em;
-    }
-
-    .badge.pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .badge.confirmed {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .badge.cancelled {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .badge.admin {
-        background: #e0e7ff;
-        color: #3730a3;
-    }
-
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: slideUp 0.3s ease;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.modalHeader h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin: 0;
-}
-
-.closeBtn {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #9ca3af;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.closeBtn:hover {
-    background: #f9fafb;
-    color: #4b5563;
-}
-
-.form {
-    padding: 2rem;
-}
-
-.formGroup {
-    margin-bottom: 1.5rem;
-}
-
-.formGroup label {
-    display: block;
-    font-weight: 600;
-    border-color: #a78bfa;
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
-}
-
-.formGroup textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-.formActions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 2rem;
-}
-
-.cancelBtn,
-.submitBtn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-}
-
-.cancelBtn {
-    background: #f3f4f6;
-    color: #4b5563;
-}
-
-.cancelBtn:hover {
-    background: #e5e7eb;
-}
-
-.submitBtn {
-    background: #a78bfa;
-    color: white;
-}
-
-.submitBtn:hover:not(:disabled) {
-    background: #9333ea;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+    box-shadow: 0 4px 12px rgba(217, 117, 44, 0.3);
 }
 
 .submitBtn:disabled {

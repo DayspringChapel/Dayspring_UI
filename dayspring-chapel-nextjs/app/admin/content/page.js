@@ -41,8 +41,8 @@ export default function ContentManagement() {
                                 font-semibold text-sm sm:text-base rounded-lg
                                 transition-all duration-200
                                 ${activeTab === tab.id
-                                    ? 'bg-purple-100 text-purple-700'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-purple-600'
+                                    ? 'bg-orange-100 text-orange-700'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600'
                                 }
                             `}
                             onClick={() => setActiveTab(tab.id)}
