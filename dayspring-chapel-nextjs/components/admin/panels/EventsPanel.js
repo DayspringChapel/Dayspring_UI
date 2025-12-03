@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
-import styles from './Panel.module.css';
 
 export default function EventsPanel() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
         description: '',
         eventImage: null,
@@ -27,6 +27,20 @@ export default function EventsPanel() {
             setEvents([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({ ...formData, eventImage: file });
+
+            // Create preview URL
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -82,6 +96,7 @@ export default function EventsPanel() {
             description: event.description || '',
             eventImage: null,
         });
+        setImagePreview(event.eventImage || null);
         setShowModal(true);
     };
 
@@ -89,53 +104,66 @@ export default function EventsPanel() {
         setShowModal(false);
         setEditingEvent(null);
         setFormData({ description: '', eventImage: null });
+        setImagePreview(null);
     };
 
     if (loading && events.length === 0) {
         return (
-            <div className={styles.loading}>
-                <div className={styles.spinner}></div>
-                <p>Loading events...</p>
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
+                <div className="w-11 h-11 border-3 border-gray-200 border-t-purple-400 rounded-full animate-spin"></div>
+                <p className="text-gray-600 text-sm font-medium">Loading events...</p>
             </div>
         );
     }
 
     return (
-        <div className={styles.panel}>
-            <div className={styles.panelHeader}>
-                <h2>Events</h2>
-                <button className={styles.addBtn} onClick={() => setShowModal(true)}>
+        <div className="p-4 sm:p-6">
+            {/* Header - Stacks on mobile */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Events</h2>
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg font-medium hover:from-purple-500 hover:to-purple-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                >
                     + Add Event
                 </button>
             </div>
 
+            {/* Events Grid */}
             {events.length === 0 ? (
-                <div className={styles.empty}>
+                <div className="bg-white rounded-xl p-8 sm:p-16 text-center text-gray-500 italic">
                     <p>No events found. Create your first event!</p>
                 </div>
             ) : (
-                <div className={styles.grid}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {events.map((event) => (
-                        <div key={event.id} className={styles.card}>
+                        <div
+                            key={event.id}
+                            className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-300"
+                        >
                             {event.eventImage && (
-                                <img
-                                    src={event.eventImage}
-                                    alt={event.description}
-                                    className={styles.cardImage}
-                                />
+                                <div className="relative h-48 bg-gray-100">
+                                    <img
+                                        src={event.eventImage}
+                                        alt={event.description}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
                             )}
-                            <div className={styles.cardContent}>
-                                <p className={styles.cardDescription}>{event.description}</p>
-                                <div className={styles.cardActions}>
+                            <div className="p-4">
+                                <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                                    {event.description}
+                                </p>
+                                <div className="flex gap-2">
                                     <button
-                                        className={styles.editBtn}
                                         onClick={() => handleEdit(event)}
+                                        className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
                                     >
                                         Edit
                                     </button>
                                     <button
-                                        className={styles.deleteBtn}
                                         onClick={() => handleDelete(event.id)}
+                                        className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
                                     >
                                         Delete
                                     </button>
@@ -146,22 +174,39 @@ export default function EventsPanel() {
                 </div>
             )}
 
+            {/* Modal */}
             {showModal && (
-                <div className={styles.modal} onClick={handleCloseModal}>
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                    onClick={handleCloseModal}
+                >
                     <div
-                        className={styles.modalContent}
+                        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className={styles.modalHeader}>
-                            <h3>{editingEvent ? 'Edit Event' : 'Add New Event'}</h3>
-                            <button className={styles.closeBtn} onClick={handleCloseModal}>
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                                {editingEvent ? 'Edit Event' : 'Add New Event'}
+                            </h3>
+                            <button
+                                onClick={handleCloseModal}
+                                className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-2"
+                            >
                                 ×
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className={styles.form}>
-                            <div className={styles.formGroup}>
-                                <label htmlFor="description">Description *</label>
+                        {/* Modal Body */}
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+                            {/* Description */}
+                            <div className="mb-6">
+                                <label
+                                    htmlFor="description"
+                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                >
+                                    Description *
+                                </label>
                                 <textarea
                                     id="description"
                                     value={formData.description}
@@ -171,39 +216,88 @@ export default function EventsPanel() {
                                     required
                                     rows={4}
                                     placeholder="Enter event description"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none transition-all resize-none text-sm"
                                 />
                             </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="eventImage">Event Image</label>
-                                <div className={styles.fileInputWrapper}>
+                            {/* Image Upload with Preview */}
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Event Image
+                                </label>
+
+                                {/* Image Preview */}
+                                {imagePreview && (
+                                    <div className="mb-4 relative rounded-lg overflow-hidden border-2 border-gray-200">
+                                        <img
+                                            src={imagePreview}
+                                            alt="Preview"
+                                            className="w-full h-48 sm:h-64 object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setImagePreview(null);
+                                                setFormData({ ...formData, eventImage: null });
+                                            }}
+                                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* File Input - Compact on mobile */}
+                                <div className="relative">
                                     <input
                                         type="file"
                                         id="eventImage"
                                         accept="image/*"
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, eventImage: e.target.files[0] })
-                                        }
-                                        className={styles.fileInput}
+                                        onChange={handleImageChange}
+                                        className="hidden"
                                     />
-                                    <div className={styles.fileInputButton}>
-                                        {formData.eventImage ? 'Change Image' : 'Choose Image'}
-                                    </div>
-                                    <span className={styles.fileName}>
-                                        {formData.eventImage ? formData.eventImage.name : 'No file chosen'}
-                                    </span>
+                                    <label
+                                        htmlFor="eventImage"
+                                        className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-all"
+                                    >
+                                        <svg
+                                            className="w-8 h-8 text-gray-400"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                            />
+                                        </svg>
+                                        <span className="text-sm text-gray-600 text-center">
+                                            {formData.eventImage
+                                                ? formData.eventImage.name
+                                                : imagePreview
+                                                    ? 'Change Image'
+                                                    : 'Click to upload image'}
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div className={styles.formActions}>
+                            {/* Form Actions */}
+                            <div className="flex gap-3 pt-2">
                                 <button
                                     type="button"
-                                    className={styles.cancelBtn}
                                     onClick={handleCloseModal}
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
                                 >
                                     Cancel
                                 </button>
-                                <button type="submit" className={styles.submitBtn} disabled={loading}>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg font-medium hover:from-purple-500 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                >
                                     {loading ? 'Saving...' : editingEvent ? 'Update' : 'Create'}
                                 </button>
                             </div>

@@ -35,6 +35,13 @@ export default function BirthdayWidget() {
             }
         } catch (error) {
             console.error('Failed to load birthdays:', error);
+
+            // Handle 404 gracefully
+            if (error.message?.includes('404')) {
+                console.warn('BioData endpoint not found. Birthday widget will show empty state.');
+            }
+
+            setBirthdays([]);
         } finally {
             setLoading(false);
         }

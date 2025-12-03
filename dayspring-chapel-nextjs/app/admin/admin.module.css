@@ -8,6 +8,10 @@
     flex: 1;
     margin-left: 260px;
     transition: margin-left 0.3s ease;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+    width: 100%;
+    /* Ensure it takes full width */
 }
 
 .mainContent.expanded {
@@ -21,8 +25,8 @@
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    position: sticky;
-    top: 0;
+    position: relative;
+    /* Changed to relative to prevent overlap */
     z-index: 10;
 }
 
@@ -107,6 +111,7 @@
     }
 
     .content {
-        padding: 1.5rem;
+        padding: 1rem;
+        /* Reduced padding on mobile */
     }
 }

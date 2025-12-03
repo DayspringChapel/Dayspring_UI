@@ -29,6 +29,12 @@ export default function MembersPanel() {
             setMembers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to load members:', error);
+
+            // Show user-friendly error message
+            if (error.message?.includes('404')) {
+                console.warn('BioData endpoint not found. The backend may not have this endpoint deployed yet.');
+            }
+
             setMembers([]);
         } finally {
             setLoading(false);

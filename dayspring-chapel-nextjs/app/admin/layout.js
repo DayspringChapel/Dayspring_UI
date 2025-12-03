@@ -10,7 +10,25 @@ export default function AdminLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(true); // Default to true for desktop
+
+    useEffect(() => {
+        // Handle initial responsive state
+        const handleResize = () => {
+            if (window.innerWidth < 1024) {
+                setSidebarOpen(false);
+            } else {
+                setSidebarOpen(true);
+            }
+        };
+
+        // Set initial state
+        handleResize();
+
+        // Add resize listener
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         // Skip auth check on login page
@@ -21,14 +39,10 @@ export default function AdminLayout({ children }) {
 
         // Check if user is authenticated
         const token = apiClient.getToken();
-        console.log('Admin layout - checking auth for path:', pathname);
-        console.log('Admin layout - token found:', token ? 'Yes' : 'No');
 
         if (!token) {
-            console.log('Admin layout - No token, redirecting to login');
             router.push('/admin/login');
         } else {
-            console.log('Admin layout - Token valid, allowing access');
             setLoading(false);
         }
     }, [pathname, router]);

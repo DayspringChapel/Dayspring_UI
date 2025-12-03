@@ -6,7 +6,6 @@ import SermonsPanel from '@/components/admin/panels/SermonsPanel';
 import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
 import SeriesPanel from '@/components/admin/panels/SeriesPanel';
-import styles from './content.module.css';
 
 export default function ContentManagement() {
     const [activeTab, setActiveTab] = useState('events');
@@ -20,26 +19,43 @@ export default function ContentManagement() {
     ];
 
     return (
-        <div className={styles.container}>
-            <div className={styles.header}>
-                <h1>Content Management</h1>
-                <p>Manage all your church content from one place</p>
+        <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    Content Management
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600">
+                    Manage all your church content from one place
+                </p>
             </div>
 
-            <div className={styles.tabs}>
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        <span className={styles.tabIcon}>{tab.icon}</span>
-                        <span className={styles.tabLabel}>{tab.label}</span>
-                    </button>
-                ))}
+            {/* Tabs - Wrap on Mobile */}
+            <div className="mb-6 border-b-2 border-gray-200">
+                <div className="flex flex-wrap gap-2 pb-2">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            className={`
+                                flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3
+                                font-semibold text-sm sm:text-base rounded-lg
+                                transition-all duration-200
+                                ${activeTab === tab.id
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-purple-600'
+                                }
+                            `}
+                            onClick={() => setActiveTab(tab.id)}
+                        >
+                            <span className="text-lg">{tab.icon}</span>
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className={styles.content}>
+            {/* Content Area */}
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 {activeTab === 'events' && <EventsPanel />}
                 {activeTab === 'sermons' && <SermonsPanel />}
                 {activeTab === 'series' && <SeriesPanel />}
