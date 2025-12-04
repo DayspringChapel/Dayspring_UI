@@ -160,7 +160,7 @@ class ApiClient {
 
     async createBook(formData) {
         const token = this.getToken();
-        const response = await fetch('/api/upload-proxy', {
+        const response = await fetch('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -197,7 +197,7 @@ class ApiClient {
     async createEvent(formData) {
         const token = this.getToken();
         // Use proxy route for CORS
-        const response = await fetch('/api/upload-proxy', {
+        const response = await fetch('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -216,7 +216,7 @@ class ApiClient {
     async updateEvent(formData) {
         const token = this.getToken();
         if (formData instanceof FormData) {
-            const response = await fetch('/api/upload-proxy', {
+            const response = await fetch('/api/upload', {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -301,7 +301,7 @@ class ApiClient {
 
     async uploadImage(formData) {
         const token = this.getToken();
-        const response = await fetch('/api/upload-proxy', {
+        const response = await fetch('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
