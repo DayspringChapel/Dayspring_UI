@@ -191,7 +191,7 @@ class ApiClient {
 
     // Events
     async getEvents() {
-        return this.request('/api/Event');
+        return this.request('/api/Events');
     }
 
     async createEvent(formData) {
@@ -201,7 +201,7 @@ class ApiClient {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'X-Target-Endpoint': '/api/Event',
+                'X-Target-Endpoint': '/api/Events',
             },
             body: formData,
         });
@@ -220,7 +220,7 @@ class ApiClient {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'X-Target-Endpoint': '/api/Event',
+                    'X-Target-Endpoint': '/api/Events',
                 },
                 body: formData,
             });
@@ -231,7 +231,7 @@ class ApiClient {
 
             return response.json();
         } else {
-            return this.request('/api/Event', {
+            return this.request('/api/Events', {
                 method: 'PATCH',
                 body: JSON.stringify(formData),
             });
@@ -239,7 +239,7 @@ class ApiClient {
     }
 
     async deleteEvent(eventId) {
-        return this.request(`/api/Event/${eventId}`, {
+        return this.request(`/api/Events/${eventId}`, {
             method: 'DELETE',
         });
     }
