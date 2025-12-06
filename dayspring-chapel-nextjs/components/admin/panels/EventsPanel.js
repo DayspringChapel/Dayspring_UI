@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import { useEvents } from '@/context/EventContext';
 
 export default function EventsPanel() {
+    const { refreshEvents } = useEvents();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -22,8 +24,11 @@ export default function EventsPanel() {
 
     const loadEvents = async () => {
         try {
-            const data = await apiClient.getEvents();
-            setEvents(Array.isArray(data) ? data : []);
+            // We fetch fresh data for admin panel always to ensure accuracy
+            const response = await apiClient.getEvents();
+            // API returns { data: [...] } format
+            const eventsData = response?.data || response || [];
+            setEvents(Array.isArray(eventsData) ? eventsData : []);
         } catch (error) {
             console.error('Failed to load events:', error);
             setEvents([]);
@@ -52,7 +57,7 @@ export default function EventsPanel() {
 
         try {
             if (editingEvent) {
-                // Update existing event
+                // Update existing event logic ...
                 const formDataToSend = new FormData();
                 formDataToSend.append('Id', editingEvent.id);
                 formDataToSend.append('Heading', formData.heading);
@@ -63,22 +68,20 @@ export default function EventsPanel() {
                 }
                 await apiClient.updateEvent(formDataToSend);
             } else {
-                // Create new event
+                // Create new event logic ...
                 const formDataToSend = new FormData();
                 formDataToSend.append('heading', formData.heading);
                 formDataToSend.append('Description', formData.description);
-                // Convert datetime-local to ISO 8601 format
                 const isoDatetime = new Date(formData.datetime).toISOString();
                 formDataToSend.append('Datetime', isoDatetime);
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
                 }
-
-
-
                 await apiClient.createEvent(formDataToSend);
             }
 
+            // Refresh global cache and local list
+            refreshEvents();
             await loadEvents();
             handleCloseModal();
         } catch (error) {
@@ -94,6 +97,7 @@ export default function EventsPanel() {
 
         try {
             await apiClient.deleteEvent(eventId);
+            refreshEvents(); // Refresh global cache
             await loadEvents();
         } catch (error) {
             console.error('Failed to delete event:', error);
@@ -142,48 +146,87 @@ export default function EventsPanel() {
                 </button>
             </div>
 
-            {/* Events Grid */}
+            {/* Events Table */}
             {events.length === 0 ? (
                 <div className="bg-white rounded-xl p-8 sm:p-16 text-center text-gray-500 italic">
                     <p>No events found. Create your first event!</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {events.map((event) => (
-                        <div
-                            key={event.id}
-                            className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-                        >
-                            {event.eventImage && (
-                                <div className="relative h-48 bg-gray-100">
-                                    <img
-                                        src={event.eventImage}
-                                        alt={event.description}
-                                        className="w-full h-full object-cover"
-                                    />
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    {/* Table Header */}
+                    <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        <div className="col-span-1">Image</div>
+                        <div className="col-span-3">Title</div>
+                        <div className="col-span-2">Date</div>
+                        <div className="col-span-4">Description</div>
+                        <div className="col-span-2 text-right">Actions</div>
+                    </div>
+
+                    {/* Table Rows */}
+                    <div className="divide-y divide-gray-100">
+                        {events.map((event) => (
+                            <div
+                                key={event.id}
+                                className="grid grid-cols-1 sm:grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center hover:bg-gray-50 transition-colors"
+                            >
+                                {/* Image */}
+                                <div className="col-span-1">
+                                    {event.eventImage ? (
+                                        <img
+                                            src={event.eventImage}
+                                            alt={event.heading || 'Event'}
+                                            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                                        />
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                            <div className="p-4">
-                                <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                                    {event.description}
-                                </p>
-                                <div className="flex gap-2">
+
+                                {/* Title */}
+                                <div className="col-span-3">
+                                    <p className="font-semibold text-gray-900 truncate">{event.heading || 'Untitled'}</p>
+                                </div>
+
+                                {/* Date */}
+                                <div className="col-span-2">
+                                    <p className="text-sm text-gray-600">
+                                        {event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date'}
+                                    </p>
+                                </div>
+
+                                {/* Description */}
+                                <div className="col-span-4">
+                                    <p className="text-sm text-gray-600 line-clamp-2">{event.description || 'No description'}</p>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="col-span-2 flex gap-2 justify-end">
                                     <button
                                         onClick={() => handleEdit(event)}
-                                        className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
+                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                        title="Edit"
                                     >
-                                        Edit
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
                                     </button>
                                     <button
                                         onClick={() => handleDelete(event.id)}
-                                        className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Delete"
                                     >
-                                        Delete
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             )}
 

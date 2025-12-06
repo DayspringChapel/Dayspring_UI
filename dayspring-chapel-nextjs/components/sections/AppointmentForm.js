@@ -1,17 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import apiClient from '@/lib/apiClient';
 
 export default function AppointmentForm() {
     const [formData, setFormData] = useState({
-        name: '',
+        firstname: '',
+        surname: '',
         email: '',
+        countryCode: '+234',
         phone: '',
+        venue: '0', // 0 = Online, 1 = Office, 2 = Home
         purpose: '',
     });
 
     const [errors, setErrors] = useState({});
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -26,13 +32,18 @@ export default function AppointmentForm() {
                 [name]: ''
             }));
         }
+        setApiError('');
     };
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
+        if (!formData.firstname.trim()) {
+            newErrors.firstname = 'First name is required';
+        }
+
+        if (!formData.surname.trim()) {
+            newErrors.surname = 'Surname is required';
         }
 
         if (!formData.email.trim()) {
@@ -52,26 +63,50 @@ export default function AppointmentForm() {
         return newErrors;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setApiError('');
 
         const newErrors = validateForm();
 
         if (Object.keys(newErrors).length === 0) {
-            // Form is valid - here you would send to backend
-            console.log('Form submitted:', formData);
-            setSubmitted(true);
+            setLoading(true);
+            try {
+                // Build the payload matching the backend API structure
+                const appointmentData = {
+                    firstname: formData.firstname,
+                    surname: formData.surname,
+                    email: formData.email,
+                    phoneNumber: {
+                        countryCode: formData.countryCode,
+                        number: formData.phone,
+                    },
+                    venueOfMeeting: parseInt(formData.venue),
+                    purposeOfAppointment: formData.purpose,
+                };
 
-            // Reset form after 3 seconds
-            setTimeout(() => {
-                setFormData({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    purpose: '',
-                });
-                setSubmitted(false);
-            }, 3000);
+                await apiClient.scheduleAppointment(appointmentData);
+                setSubmitted(true);
+
+                // Reset form after 5 seconds
+                setTimeout(() => {
+                    setFormData({
+                        firstname: '',
+                        surname: '',
+                        email: '',
+                        countryCode: '+234',
+                        phone: '',
+                        venue: '0',
+                        purpose: '',
+                    });
+                    setSubmitted(false);
+                }, 5000);
+            } catch (error) {
+                console.error('Failed to schedule appointment:', error);
+                setApiError('Failed to submit appointment. Please try again.');
+            } finally {
+                setLoading(false);
+            }
         } else {
             setErrors(newErrors);
         }
@@ -102,22 +137,47 @@ export default function AppointmentForm() {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Name */}
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Full Name *
-                                </label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.name ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    placeholder="John Doe"
-                                />
-                                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                            {/* API Error */}
+                            {apiError && (
+                                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                                    {apiError}
+                                </div>
+                            )}
+
+                            {/* Name Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="firstname" className="block text-sm font-semibold text-gray-700 mb-2">
+                                        First Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="firstname"
+                                        name="firstname"
+                                        value={formData.firstname}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.firstname ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="John"
+                                    />
+                                    {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="surname" className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Surname *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="surname"
+                                        name="surname"
+                                        value={formData.surname}
+                                        onChange={handleChange}
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.surname ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="Doe"
+                                    />
+                                    {errors.surname && <p className="text-red-500 text-sm mt-1">{errors.surname}</p>}
+                                </div>
                             </div>
 
                             {/* Email */}
@@ -143,17 +203,47 @@ export default function AppointmentForm() {
                                 <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                                     Phone Number *
                                 </label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    placeholder="+234 800 000 0000"
-                                />
+                                <div className="flex gap-2">
+                                    <select
+                                        name="countryCode"
+                                        value={formData.countryCode}
+                                        onChange={handleChange}
+                                        className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                    >
+                                        <option value="+234">+234</option>
+                                        <option value="+1">+1</option>
+                                        <option value="+44">+44</option>
+                                    </select>
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        placeholder="800 000 0000"
+                                    />
+                                </div>
                                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                            </div>
+
+                            {/* Venue */}
+                            <div>
+                                <label htmlFor="venue" className="block text-sm font-semibold text-gray-700 mb-2">
+                                    Preferred Meeting Venue
+                                </label>
+                                <select
+                                    id="venue"
+                                    name="venue"
+                                    value={formData.venue}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                >
+                                    <option value="0">Online (Virtual)</option>
+                                    <option value="1">Church Office</option>
+                                    <option value="2">Home Visit</option>
+                                </select>
                             </div>
 
                             {/* Purpose */}
@@ -177,9 +267,10 @@ export default function AppointmentForm() {
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                className="w-full py-4 px-6 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-semibold text-lg shadow-lg"
+                                disabled={loading}
+                                className="w-full py-4 px-6 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-semibold text-lg shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                Submit Request
+                                {loading ? 'Submitting...' : 'Submit Request'}
                             </button>
                         </form>
                     )}

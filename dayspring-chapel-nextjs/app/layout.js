@@ -4,12 +4,15 @@ import './globals.css';
 import Navigation from '@/components/layout/Navigation';
 import Footer from '@/components/layout/Footer';
 import { usePathname } from 'next/navigation';
+import { EventProvider } from '@/context/EventContext';
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <EventProvider>
+          <ConditionalLayout>{children}</ConditionalLayout>
+        </EventProvider>
       </body>
     </html>
   );

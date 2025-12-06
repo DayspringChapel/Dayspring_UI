@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import apiClient from '@/lib/apiClient';
+// apiClient is handled by context now, but keeping if needed for other things or removing if unused
+// import apiClient from '@/lib/apiClient';
 
 // Section Header Component - Always displays
 function EventsHeader() {
@@ -173,42 +174,24 @@ function EventsGrid({ events }) {
 }
 
 // Main Events Content Component
+import { useEvents } from '@/context/EventContext';
+
 export default function EventsContent() {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { events, loading, error, refreshEvents } = useEvents();
 
-    useEffect(() => {
-        fetchEvents();
-    }, []);
-
-    const fetchEvents = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await apiClient.getEvents();
-            // API returns { status: true, message: "...", data: [...] }
-            const eventsData = response?.data || response || [];
-            setEvents(Array.isArray(eventsData) ? eventsData : []);
-        } catch (err) {
-            console.error('Failed to fetch events:', err);
-            setError('Failed to load events. Please try again later.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Remove local state and useEffect since it's now managed by Context
 
     // Render content based on state
     const renderContent = () => {
-        if (loading) {
+        if (loading && events.length === 0) {
             return <EventsLoadingSkeleton />;
         }
 
-        if (error) {
-            return <EventsError error={error} onRetry={fetchEvents} />;
+        if (error && events.length === 0) {
+            return <EventsError error={error} onRetry={refreshEvents} />;
         }
 
-        if (events.length === 0) {
+        if (!loading && events.length === 0) {
             return <EventsEmpty />;
         }
 

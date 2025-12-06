@@ -23,8 +23,10 @@ export default function AppointmentsPage() {
 
     const loadAppointments = async () => {
         try {
-            const data = await apiClient.getAppointments();
-            setAppointments(Array.isArray(data) ? data : []);
+            const response = await apiClient.getAppointments();
+            // API returns { data: [...] } format
+            const appointmentsData = response?.data || response || [];
+            setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
         } catch (error) {
             console.error('Failed to load appointments:', error);
             setAppointments([]);
