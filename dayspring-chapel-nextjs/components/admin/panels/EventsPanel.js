@@ -10,7 +10,9 @@ export default function EventsPanel() {
     const [editingEvent, setEditingEvent] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({
+        heading: '',
         description: '',
+        datetime: '',
         eventImage: null,
     });
 
@@ -53,7 +55,9 @@ export default function EventsPanel() {
                 // Update existing event
                 const formDataToSend = new FormData();
                 formDataToSend.append('Id', editingEvent.id);
+                formDataToSend.append('Heading', formData.heading);
                 formDataToSend.append('Description', formData.description);
+                formDataToSend.append('DateTime', formData.datetime);
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
                 }
@@ -61,10 +65,17 @@ export default function EventsPanel() {
             } else {
                 // Create new event
                 const formDataToSend = new FormData();
+                formDataToSend.append('heading', formData.heading);
                 formDataToSend.append('Description', formData.description);
+                // Convert datetime-local to ISO 8601 format
+                const isoDatetime = new Date(formData.datetime).toISOString();
+                formDataToSend.append('Datetime', isoDatetime);
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
                 }
+
+
+
                 await apiClient.createEvent(formDataToSend);
             }
 
@@ -93,7 +104,9 @@ export default function EventsPanel() {
     const handleEdit = (event) => {
         setEditingEvent(event);
         setFormData({
+            heading: event.heading || '',
             description: event.description || '',
+            datetime: event.datetime ? new Date(event.datetime).toISOString().slice(0, 16) : '',
             eventImage: null,
         });
         setImagePreview(event.eventImage || null);
@@ -103,7 +116,7 @@ export default function EventsPanel() {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingEvent(null);
-        setFormData({ description: '', eventImage: null });
+        setFormData({ heading: '', description: '', datetime: '', eventImage: null });
         setImagePreview(null);
     };
 
@@ -177,35 +190,79 @@ export default function EventsPanel() {
             {/* Modal */}
             {showModal && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                    className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300"
                     onClick={handleCloseModal}
                 >
                     <div
-                        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+                        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <h3 className="text-xl font-bold text-gray-900">
                                 {editingEvent ? 'Edit Event' : 'Add New Event'}
                             </h3>
                             <button
                                 onClick={handleCloseModal}
-                                className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-2"
+                                className="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                             >
-                                ×
+                                <span className="text-2xl leading-none">&times;</span>
                             </button>
                         </div>
 
                         {/* Modal Body */}
-                        <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                            {/* Heading */}
+                            <div>
+                                <label
+                                    htmlFor="heading"
+                                    className="block text-sm font-semibold text-gray-700 mb-2"
+                                >
+                                    Event Title <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="heading"
+                                    value={formData.heading}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, heading: e.target.value })
+                                    }
+                                    required
+                                    placeholder="Enter event title"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium"
+                                />
+                            </div>
+
+                            {/* Date and Time */}
+                            <div>
+                                <label
+                                    htmlFor="datetime"
+                                    className="block text-sm font-semibold text-gray-700 mb-2"
+                                >
+                                    Date & Time <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="datetime-local"
+                                        id="datetime"
+                                        value={formData.datetime}
+                                        onChange={(e) =>
+                                            setFormData({ ...formData, datetime: e.target.value })
+                                        }
+                                        required
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium appearance-none"
+                                    />
+                                    {/* The calendar icon is usually provided by the browser, but consistent padding helps */}
+                                </div>
+                            </div>
+
                             {/* Description */}
-                            <div className="mb-6">
+                            <div>
                                 <label
                                     htmlFor="description"
-                                    className="block text-sm font-medium text-gray-700 mb-2"
+                                    className="block text-sm font-semibold text-gray-700 mb-2"
                                 >
-                                    Description *
+                                    Description <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     id="description"
@@ -216,7 +273,7 @@ export default function EventsPanel() {
                                     required
                                     rows={4}
                                     placeholder="Enter event description"
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent outline-none transition-all resize-none text-sm"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all resize-none font-medium"
                                 />
                             </div>
 
@@ -258,47 +315,54 @@ export default function EventsPanel() {
                                     />
                                     <label
                                         htmlFor="eventImage"
-                                        className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-all"
+                                        className="flex flex-col items-center justify-center gap-3 px-4 py-8 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 hover:border-orange-500 transition-all group"
                                     >
-                                        <svg
-                                            className="w-8 h-8 text-gray-400"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                            />
-                                        </svg>
-                                        <span className="text-sm text-gray-600 text-center">
-                                            {formData.eventImage
-                                                ? formData.eventImage.name
-                                                : imagePreview
-                                                    ? 'Change Image'
-                                                    : 'Click to upload image'}
-                                        </span>
+                                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                            <svg
+                                                className="w-6 h-6 text-orange-500"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className="text-center">
+                                            <span className="text-sm font-semibold text-gray-900 block">
+                                                {formData.eventImage
+                                                    ? formData.eventImage.name
+                                                    : imagePreview
+                                                        ? 'Change Image'
+                                                        : 'Click to upload image'}
+                                            </span>
+                                            <span className="text-xs text-gray-500 mt-1">
+                                                SVG, PNG, JPG or GIF (max. 5MB)
+                                            </span>
+                                        </div>
                                     </label>
                                 </div>
                             </div>
 
                             {/* Form Actions */}
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex gap-4 pt-4 border-t border-gray-100">
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
+                                    className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 bg-white rounded-xl font-bold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? 'Saving...' : editingEvent ? 'Update' : 'Create'}
+                                    {loading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
                                 </button>
                             </div>
                         </form>

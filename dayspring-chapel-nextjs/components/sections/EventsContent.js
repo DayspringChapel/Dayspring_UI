@@ -76,29 +76,46 @@ function EventsEmpty() {
 
 // Event Card Component
 function EventCard({ event }) {
+    // Helper to get property case-insensitively or with fallbacks
+    const getHeading = () => event.heading || event.Heading || event.title || 'Event';
+    const getDatetime = () => event.eventDate || event.datetime || event.dateTime || event.DateTime || event.date;
+    const getLocation = () => event.location || event.Location;
+
+    // The image field seems to be eventImage from previous tests
+    const getImage = () => event.eventImage || event.EventImage || '/upcoming-events-1.png';
+    const getDescription = () => event.description || event.Description;
+
+    const heading = getHeading();
+    const datetime = getDatetime();
+    const location = getLocation();
+    const image = getImage();
+    const description = getDescription();
+
+
+
     return (
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 flex flex-col">
             <div className="relative h-64 w-full">
                 <Image
-                    src={event.eventImage || '/upcoming-events-1.png'}
-                    alt={event.title || 'Event'}
+                    src={image}
+                    alt={heading}
                     fill
                     className="object-cover"
                 />
             </div>
             <div className="p-6 flex flex-col flex-grow">
-                {event.title && (
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{event.title}</h3>
+                {heading && (
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{heading}</h3>
                 )}
 
                 <div className="space-y-2 mb-4">
-                    {event.date && (
+                    {datetime && (
                         <div className="flex items-center gap-2 text-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             <span className="text-sm font-medium">
-                                {new Date(event.date).toLocaleDateString('en-US', {
+                                {new Date(datetime).toLocaleDateString('en-US', {
                                     weekday: 'long',
                                     year: 'numeric',
                                     month: 'long',
@@ -107,26 +124,31 @@ function EventCard({ event }) {
                             </span>
                         </div>
                     )}
-                    {event.time && (
+                    {datetime && (
                         <div className="flex items-center gap-2 text-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="text-sm font-medium">{event.time}</span>
+                            <span className="text-sm font-medium">
+                                {new Date(datetime).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </span>
                         </div>
                     )}
-                    {event.location && (
+                    {location && (
                         <div className="flex items-center gap-2 text-gray-600">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span className="text-sm font-medium">{event.location}</span>
+                            <span className="text-sm font-medium">{location}</span>
                         </div>
                     )}
                 </div>
 
-                <p className="text-gray-600 text-sm mb-6 flex-grow">{event.description}</p>
+                <p className="text-gray-600 text-sm mb-6 flex-grow">{description}</p>
 
                 <Link
                     href={`/events/${event.id}`}
