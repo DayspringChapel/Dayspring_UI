@@ -1,9 +1,12 @@
 services:
   - type: web
     name: dayspring-chapel
-    env: docker
-    dockerfilePath: dayspring-chapel-nextjs/Dockerfile
+    env: node
+    buildCommand: cd dayspring-chapel-nextjs && npm install && npm run build
+    startCommand: cd dayspring-chapel-nextjs && npm start
     envVars:
       - key: NODE_ENV
         value: production
-    rootDir: dayspring-chapel-nextjs
+      - key: PORT
+        value: 10000
+    rootDir: .
