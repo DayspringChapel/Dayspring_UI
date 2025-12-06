@@ -1,9 +1,8 @@
 services:
   - type: web
     name: dayspring-chapel
-    env: node
-    buildCommand: npm run build
-    startCommand: npm start
+    env: docker
+    dockerfilePath: dayspring-chapel-nextjs/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
