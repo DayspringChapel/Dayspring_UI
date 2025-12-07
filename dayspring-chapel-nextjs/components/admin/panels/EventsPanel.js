@@ -67,16 +67,19 @@ export default function EventsPanel() {
 
         try {
             if (editingEvent) {
-                // Update existing event logic ...
+                // Update existing event logic
+                // Note: Id is in the URL path, not the body per API docs
+                // Using same casing as create which works
                 const formDataToSend = new FormData();
-                formDataToSend.append('Id', editingEvent.id);
-                formDataToSend.append('Heading', formData.heading);
+                formDataToSend.append('heading', formData.heading);
                 formDataToSend.append('Description', formData.description);
-                formDataToSend.append('DateTime', formData.datetime);
+                // Convert datetime to ISO 8601 format
+                const isoDatetime = formData.datetime ? new Date(formData.datetime).toISOString() : '';
+                formDataToSend.append('Datetime', isoDatetime);
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
                 }
-                await apiClient.updateEvent(formDataToSend);
+                await apiClient.updateEvent(editingEvent.id, formDataToSend);
             } else {
                 // Create new event logic ...
                 const formDataToSend = new FormData();

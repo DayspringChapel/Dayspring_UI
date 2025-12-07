@@ -213,14 +213,14 @@ class ApiClient {
         return response.json();
     }
 
-    async updateEvent(formData) {
+    async updateEvent(eventId, formData) {
         const token = this.getToken();
         if (formData instanceof FormData) {
             const response = await fetch('/api/upload', {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'X-Target-Endpoint': `/api/Events/${formData.get('Id')}/update`,
+                    'X-Target-Endpoint': `/api/Events/${eventId}/update`,
                 },
                 body: formData,
             });
@@ -231,7 +231,7 @@ class ApiClient {
 
             return response.json();
         } else {
-            return this.request(`/api/Events/${formData.Id}/update`, {
+            return this.request(`/api/Events/${eventId}/update`, {
                 method: 'PATCH',
                 body: JSON.stringify(formData),
             });

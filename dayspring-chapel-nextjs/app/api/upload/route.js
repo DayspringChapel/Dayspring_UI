@@ -72,6 +72,9 @@ export async function PATCH(request) {
         const targetEndpoint = request.headers.get('X-Target-Endpoint');
         const authHeader = request.headers.get('Authorization');
 
+        console.log('[Upload PATCH] Target endpoint:', targetEndpoint);
+        console.log('[Upload PATCH] Auth header:', authHeader ? 'Present' : 'Missing');
+
         if (!targetEndpoint) {
             return NextResponse.json(
                 { error: 'Missing X-Target-Endpoint header' },
@@ -81,16 +84,27 @@ export async function PATCH(request) {
 
         const formData = await request.formData();
 
+        // Log FormData entries for debugging
+        console.log('[Upload PATCH] FormData entries:');
+        for (const [key, value] of formData.entries()) {
+            console.log(`  - ${key}:`, typeof value === 'object' ? `File: ${value.name}` : value);
+        }
+
         const headers = {};
         if (authHeader) {
             headers['Authorization'] = authHeader;
         }
 
-        const response = await fetch(`${API_BASE_URL}${targetEndpoint}`, {
+        const backendUrl = `${API_BASE_URL}${targetEndpoint}`;
+        console.log('[Upload PATCH] Sending to:', backendUrl);
+
+        const response = await fetch(backendUrl, {
             method: 'PATCH',
             headers,
             body: formData,
         });
+
+        console.log('[Upload PATCH] Response status:', response.status);
 
         const contentType = response.headers.get('content-type');
         let responseData;
@@ -100,6 +114,8 @@ export async function PATCH(request) {
         } else {
             responseData = await response.text();
         }
+
+        console.log('[Upload PATCH] Response data:', JSON.stringify(responseData).substring(0, 500));
 
         return NextResponse.json(
             responseData,
