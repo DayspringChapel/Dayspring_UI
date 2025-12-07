@@ -29,7 +29,16 @@ export function EventProvider({ children }) {
             const response = await apiClient.getEvents();
             const eventsData = response?.data || response || [];
 
-            setEvents(Array.isArray(eventsData) ? eventsData : []);
+            // Sort events by date (closest first)
+            const sortedEvents = Array.isArray(eventsData)
+                ? eventsData.sort((a, b) => {
+                    const dateA = new Date(a.eventDate || a.datetime || 0);
+                    const dateB = new Date(b.eventDate || b.datetime || 0);
+                    return dateA - dateB; // Ascending order (closest date first)
+                })
+                : [];
+
+            setEvents(sortedEvents);
             setLastFetched(now);
         } catch (err) {
             console.error('Failed to fetch events:', err);
