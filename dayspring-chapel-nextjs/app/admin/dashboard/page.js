@@ -23,7 +23,7 @@ export default function AdminDashboard() {
 
     const loadStats = async () => {
         try {
-            const [appointments, events, books, sermons, requisitions] =
+            const [appointmentsRes, eventsRes, booksRes, sermonsRes, requisitionsRes] =
                 await Promise.all([
                     apiClient.getAppointments().catch(() => []),
                     apiClient.getEvents().catch(() => []),
@@ -32,12 +32,18 @@ export default function AdminDashboard() {
                     apiClient.getRequisitions().catch(() => []),
                 ]);
 
+            // API returns { data: [...] } format
+            const getCount = (response) => {
+                const data = response?.data || response || [];
+                return Array.isArray(data) ? data.length : 0;
+            };
+
             setStats({
-                appointments: Array.isArray(appointments) ? appointments.length : 0,
-                events: Array.isArray(events) ? events.length : 0,
-                books: Array.isArray(books) ? books.length : 0,
-                sermons: Array.isArray(sermons) ? sermons.length : 0,
-                requisitions: Array.isArray(requisitions) ? requisitions.length : 0,
+                appointments: getCount(appointmentsRes),
+                events: getCount(eventsRes),
+                books: getCount(booksRes),
+                sermons: getCount(sermonsRes),
+                requisitions: getCount(requisitionsRes),
             });
         } catch (error) {
             console.error('Failed to load stats:', error);
