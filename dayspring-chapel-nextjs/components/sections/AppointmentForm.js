@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import apiClient from '@/lib/apiClient';
+import PhoneNumberInput from '@/components/ui/PhoneNumberInput';
 
 export default function AppointmentForm() {
     const [formData, setFormData] = useState({
@@ -203,32 +204,24 @@ export default function AppointmentForm() {
                                 <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                                     Phone Number *
                                 </label>
-                                <div className="flex gap-2">
-                                    <select
-                                        name="countryCode"
-                                        value={formData.countryCode}
-                                        onChange={handleChange}
-                                        className="w-28 px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black font-medium bg-white"
-                                    >
-                                        <option value="+234">🇳🇬 +234</option>
-                                        <option value="+1">🇺🇸 +1</option>
-                                        <option value="+44">🇬🇧 +44</option>
-                                        <option value="+233">🇬🇭 +233</option>
-                                        <option value="+254">🇰🇪 +254</option>
-                                        <option value="+27">🇿🇦 +27</option>
-                                    </select>
-                                    <input
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.phone ? 'border-red-500' : 'border-gray-300'
-                                            }`}
-                                        placeholder="800 000 0000"
-                                    />
-                                </div>
-                                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                                <PhoneNumberInput
+                                    value={{
+                                        countryCode: formData.countryCode,
+                                        number: formData.phone
+                                    }}
+                                    onChange={(newPhone) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            countryCode: newPhone.countryCode,
+                                            phone: newPhone.number
+                                        }));
+                                        // Clear error on change
+                                        if (errors.phone) {
+                                            setErrors(prev => ({ ...prev, phone: '' }));
+                                        }
+                                    }}
+                                    error={errors.phone}
+                                />
                             </div>
 
                             {/* Venue */}
