@@ -104,7 +104,19 @@ export default function AppointmentForm() {
                 }, 5000);
             } catch (error) {
                 console.error('Failed to schedule appointment:', error);
-                setApiError('Failed to submit appointment. Please try again.');
+                // Extract the error message from the backend if available
+                const errorMessage = error.message || 'Failed to submit appointment. Please try again.';
+
+                // Provide user-friendly messages for specific errors
+                if (errorMessage.includes('409') || errorMessage.toLowerCase().includes('conflict')) {
+                    setApiError('An appointment with this information already exists. Please check your details or contact us directly.');
+                } else if (errorMessage.includes('400')) {
+                    setApiError('Invalid appointment data. Please check all fields and try again.');
+                } else if (errorMessage.includes('500')) {
+                    setApiError('Server error. Please try again later or contact support.');
+                } else {
+                    setApiError(errorMessage);
+                }
             } finally {
                 setLoading(false);
             }

@@ -387,6 +387,32 @@ class ApiClient {
         });
     }
 
+    // Appointments
+    async getAppointments() {
+        return this.request('/api/Appointment/get-all');
+    }
+
+    async scheduleAppointment(appointmentData) {
+        return this.request('/api/Appointment/schedule-appointment', {
+            method: 'POST',
+            body: JSON.stringify(appointmentData),
+        });
+    }
+
+    async confirmAppointment(confirmData) {
+        return this.request('/api/Appointment/confirm-appointment', {
+            method: 'POST',
+            body: JSON.stringify(confirmData),
+        });
+    }
+
+    async cancelAppointment(appointmentId, reason) {
+        return this.request(`/api/Appointment/cancel/${appointmentId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ reason }),
+        });
+    }
+
     // Roles
     async getRoles() {
         return this.request('/api/Role/get-all');

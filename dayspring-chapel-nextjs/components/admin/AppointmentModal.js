@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { COUNTRIES } from '@/lib/constants';
 
 export default function AppointmentModal({ appointment, onClose, onConfirm, onCancel, loading }) {
     const [confirmData, setConfirmData] = useState({
@@ -27,6 +28,12 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
     if (!appointment) return null;
 
     const isPending = appointment.status === 0;
+    const isConfirmed = appointment.status === 1;
+
+    // Derive Country Name
+    const countryName = appointment.phoneNumber?.countryCode
+        ? (COUNTRIES.find(c => c.dial_code === appointment.phoneNumber.countryCode)?.name || 'Unknown Country')
+        : 'N/A';
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -87,6 +94,15 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                 </p>
                             </div>
                             <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Country</label>
+                                <p className="text-gray-900 font-medium flex items-center gap-2">
+                                    <span className="text-lg leading-none">
+                                        {COUNTRIES.find(c => c.dial_code === appointment.phoneNumber?.countryCode)?.flag}
+                                    </span>
+                                    {countryName}
+                                </p>
+                            </div>
+                            <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Current Status</label>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === 1 ? 'bg-green-100 text-green-800' :
                                     appointment.status === 2 ? 'bg-red-100 text-red-800' :
@@ -97,6 +113,54 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                             </div>
                         </div>
                     </div>
+
+                    {/* Confirmed Details Section (Only if Status is Confirmed) */}
+                    {isConfirmed && (
+                        <div className="bg-green-50 rounded-xl p-6 border border-green-100">
+                            <h4 className="text-sm font-bold text-green-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Confirmation Details
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-xs font-medium text-green-700/70 mb-1">Confirmed Date</label>
+                                    <p className="text-green-900 font-medium">
+                                        {appointment.dateOfAppointment
+                                            ? new Date(appointment.dateOfAppointment).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                                            : 'Not set'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-green-700/70 mb-1">Confirmed Time</label>
+                                    <p className="text-green-900 font-medium">
+                                        {appointment.appointmentTime
+                                            ? new Date(`2000-01-01T${appointment.appointmentTime}`).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                                            : 'Not set'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-green-700/70 mb-1">Confirmed Venue</label>
+                                    <p className="text-green-900 font-medium">
+                                        {appointment.appointmentVenue === 0 ? 'Online' : appointment.appointmentVenue === 1 ? 'Office' : 'Home'}
+                                    </p>
+                                </div>
+                                {appointment.personToAttendToAppintmentId && (
+                                    <div>
+                                        <label className="block text-xs font-medium text-green-700/70 mb-1">Attending Staff</label>
+                                        <p className="text-green-900 font-medium">{appointment.personToAttendToAppintmentId}</p>
+                                    </div>
+                                )}
+                                {appointment.notes && (
+                                    <div className="md:col-span-2">
+                                        <label className="block text-xs font-medium text-green-700/70 mb-1">Notes</label>
+                                        <p className="text-green-900 font-medium">{appointment.notes}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Request Details Section */}
                     <div>

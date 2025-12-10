@@ -17,6 +17,10 @@ export default function AppointmentsPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('');
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         loadAppointments();
     }, []);
@@ -35,8 +39,12 @@ export default function AppointmentsPage() {
         }
     };
 
+    // Sort appointments by latest first
+    // Backend may return oldest first, so we reverse. If createdAt exists, use it.
+    const sortedAppointments = [...appointments].reverse();
+
     // Filter Logic
-    const filteredAppointments = appointments.filter(app => {
+    const filteredAppointments = sortedAppointments.filter(app => {
         const matchesSearch = (
             app.firstname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             app.surname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,6 +57,16 @@ export default function AppointmentsPage() {
 
         return matchesSearch && matchesStatus && matchesDate;
     });
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedAppointments = filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter, dateFilter]);
 
     const handleViewDetails = (appointment) => {
         setSelectedAppointment(appointment);
@@ -180,47 +198,115 @@ export default function AppointmentsPage() {
                         <p>No appointments found matching your filters.</p>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-sm">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Name</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Email</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Phone</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Purpose</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Venue</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Status</th>
-                                    <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAppointments.map((appointment) => (
-                                    <tr key={appointment.id} className="hover:bg-gray-50">
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
-                                            {appointment.firstname} {appointment.surname}
-                                        </td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{appointment.email}</td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
-                                            {appointment.phoneNumber?.countryCode} {appointment.phoneNumber?.number}
-                                        </td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm max-w-xs truncate">{appointment.purposeOfAppointment}</td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
-                                            {appointment.venueOfMeeting === 0 ? 'Online' : appointment.venueOfMeeting === 1 ? 'Office' : 'Home'}
-                                        </td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{getStatusBadge(appointment.status || 0)}</td>
-                                        <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
-                                            <button
-                                                className="bg-orange-50 text-orange-700 hover:bg-orange-100 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                                                onClick={() => handleViewDetails(appointment)}
-                                            >
-                                                View Details
-                                            </button>
-                                        </td>
+                    <>
+                        <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-sm">
+                            <table className="w-full border-collapse">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Name</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Email</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Phone</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Purpose</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Venue</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Status</th>
+                                        <th className="text-left p-4 font-semibold text-gray-600 text-sm uppercase tracking-wider border-b-2 border-gray-200">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {paginatedAppointments.map((appointment) => (
+                                        <tr key={appointment.id} className="hover:bg-gray-50">
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
+                                                {appointment.firstname} {appointment.surname}
+                                            </td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{appointment.email}</td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
+                                                {appointment.phoneNumber?.countryCode} {appointment.phoneNumber?.number}
+                                            </td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm max-w-xs truncate">{appointment.purposeOfAppointment}</td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
+                                                {appointment.venueOfMeeting === 0 ? 'Online' : appointment.venueOfMeeting === 1 ? 'Office' : 'Home'}
+                                            </td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{getStatusBadge(appointment.status || 0)}</td>
+                                            <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
+                                                <button
+                                                    className="bg-orange-50 text-orange-700 hover:bg-orange-100 px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                                                    onClick={() => handleViewDetails(appointment)}
+                                                >
+                                                    View Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-6 bg-white p-4 rounded-xl border border-gray-200">
+                                <div className="text-sm text-gray-600">
+                                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredAppointments.length)} of {filteredAppointments.length} appointments
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(1)}
+                                        disabled={currentPage === 1}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        ««
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        «
+                                    </button>
+
+                                    {/* Page numbers */}
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                                    ? 'bg-orange-500 text-white'
+                                                    : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        »
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(totalPages)}
+                                        disabled={currentPage === totalPages}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        »»
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )
             ) : (
                 <AppointmentCalendar
