@@ -156,7 +156,7 @@ export default function AppointmentForm() {
                                         name="firstname"
                                         value={formData.firstname}
                                         onChange={handleChange}
-                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.firstname ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.firstname ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="John"
                                     />
@@ -172,7 +172,7 @@ export default function AppointmentForm() {
                                         name="surname"
                                         value={formData.surname}
                                         onChange={handleChange}
-                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.surname ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.surname ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Doe"
                                     />
@@ -191,7 +191,7 @@ export default function AppointmentForm() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.email ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="john@example.com"
                                 />
@@ -208,11 +208,14 @@ export default function AppointmentForm() {
                                         name="countryCode"
                                         value={formData.countryCode}
                                         onChange={handleChange}
-                                        className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-28 px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black font-medium bg-white"
                                     >
-                                        <option value="+234">+234</option>
-                                        <option value="+1">+1</option>
-                                        <option value="+44">+44</option>
+                                        <option value="+234">🇳🇬 +234</option>
+                                        <option value="+1">🇺🇸 +1</option>
+                                        <option value="+44">🇬🇧 +44</option>
+                                        <option value="+233">🇬🇭 +233</option>
+                                        <option value="+254">🇰🇪 +254</option>
+                                        <option value="+27">🇿🇦 +27</option>
                                     </select>
                                     <input
                                         type="tel"
@@ -220,7 +223,7 @@ export default function AppointmentForm() {
                                         name="phone"
                                         value={formData.phone}
                                         onChange={handleChange}
-                                        className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                        className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.phone ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="800 000 0000"
                                     />
@@ -238,7 +241,7 @@ export default function AppointmentForm() {
                                     name="venue"
                                     value={formData.venue}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black font-medium bg-white"
                                 >
                                     <option value="0">Online (Virtual)</option>
                                     <option value="1">Church Office</option>
@@ -257,7 +260,7 @@ export default function AppointmentForm() {
                                     value={formData.purpose}
                                     onChange={handleChange}
                                     rows="4"
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${errors.purpose ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.purpose ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="Please briefly describe the purpose of your appointment..."
                                 />

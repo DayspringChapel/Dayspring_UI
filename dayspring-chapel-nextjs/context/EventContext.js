@@ -14,7 +14,7 @@ export function EventProvider({ children }) {
     // Fetch events function with caching logic
     const fetchEvents = useCallback(async (force = false) => {
         const now = Date.now();
-        const cacheDuration = 60 * 1000; // 1 minute cache
+        const cacheDuration = 5 * 60 * 1000; // 5 minutes cache
 
         // If not forced and data is fresh, don't fetch
         if (!force && events.length > 0 && (now - lastFetched < cacheDuration)) {

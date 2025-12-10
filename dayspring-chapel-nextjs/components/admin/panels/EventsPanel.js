@@ -5,9 +5,11 @@ import apiClient from '@/lib/apiClient';
 import { useEvents } from '@/context/EventContext';
 
 export default function EventsPanel() {
-    const { refreshEvents } = useEvents();
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Use context events initially for instant load
+    // Use context events directly
+    const { events, loading: contextLoading, refreshEvents } = useEvents();
+    // Local loading state only for actions
+    const [actionLoading, setActionLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
@@ -18,33 +20,16 @@ export default function EventsPanel() {
         eventImage: null,
     });
 
-    useEffect(() => {
-        loadEvents();
-    }, []);
-
-    const loadEvents = async () => {
-        try {
-            // We fetch fresh data for admin panel always to ensure accuracy
-            const response = await apiClient.getEvents();
-            // API returns { data: [...] } format
-            const eventsData = response?.data || response || [];
-
-            // Sort events by date (closest first)
-            const sortedEvents = Array.isArray(eventsData)
-                ? eventsData.sort((a, b) => {
-                    const dateA = new Date(a.eventDate || a.datetime || 0);
-                    const dateB = new Date(b.eventDate || b.datetime || 0);
-                    return dateA - dateB; // Ascending order (closest date first)
-                })
-                : [];
-
-            setEvents(sortedEvents);
-        } catch (error) {
-            console.error('Failed to load events:', error);
-            setEvents([]);
-        } finally {
-            setLoading(false);
-        }
+    // Helper to clear form
+    const resetForm = () => {
+        setFormData({
+            heading: '',
+            description: '',
+            datetime: '',
+            eventImage: null,
+        });
+        setImagePreview(null);
+        setEditingEvent(null);
     };
 
     const handleImageChange = (e) => {
@@ -63,7 +48,7 @@ export default function EventsPanel() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setActionLoading(true);
 
         try {
             if (editingEvent) {
@@ -94,13 +79,13 @@ export default function EventsPanel() {
 
             // Refresh global cache and local list
             refreshEvents();
-            await loadEvents();
+            // loadEvents() removed - context handles it
             handleCloseModal();
         } catch (error) {
             console.error('Failed to save event:', error);
             alert('Failed to save event. Please try again.');
         } finally {
-            setLoading(false);
+            setActionLoading(false);
         }
     };
 
@@ -110,7 +95,7 @@ export default function EventsPanel() {
         try {
             await apiClient.deleteEvent(eventId);
             refreshEvents(); // Refresh global cache
-            await loadEvents();
+            // loadEvents() removed - context handles it
         } catch (error) {
             console.error('Failed to delete event:', error);
             alert('Failed to delete event. Please try again.');
@@ -136,7 +121,7 @@ export default function EventsPanel() {
         setImagePreview(null);
     };
 
-    if (loading && events.length === 0) {
+    if (contextLoading && events.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] gap-5">
                 <div className="w-11 h-11 border-3 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
@@ -414,10 +399,10 @@ export default function EventsPanel() {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={actionLoading}
                                     className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
+                                    {actionLoading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
                                 </button>
                             </div>
                         </form>
