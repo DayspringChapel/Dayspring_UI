@@ -1,4 +1,4 @@
-import PageHero from '@/components/sections/PageHero';
+import EventsSlideshowHero from '@/components/sections/EventsSlideshowHero';
 import EventsContent from '@/components/sections/EventsContent';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 
@@ -10,11 +10,7 @@ export const metadata = {
 export default function EventsPage() {
     return (
         <main>
-            <PageHero
-                title="EVENTS"
-                subtitle="Join us for these life-changing events and encounters."
-                bgImage="/about-cover.png"
-            />
+            <EventsSlideshowHero />
 
             <EventsContent />
 
