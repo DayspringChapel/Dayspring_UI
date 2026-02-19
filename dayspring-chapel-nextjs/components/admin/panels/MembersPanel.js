@@ -188,7 +188,7 @@ export default function MembersPanel() {
                         <form onSubmit={handleSubmit} className={styles.form}>
                             <div className={styles.grid}>
                                 <div className={styles.formGroup}>
-                                    <label htmlFor="firstName">First Name *</label>
+                                    <label htmlFor="firstName">First Name: *</label>
                                     <input
                                         type="text"
                                         id="firstName"

@@ -241,13 +241,32 @@
 .formGroup label {
     display: block;
     font-weight: 600;
-    border-color: #D9752C;
-    box-shadow: 0 0 0 3px rgba(217, 117, 44, 0.1);
+    color: black;
+    /* border-color: #D9752C; */
+    /* box-shadow: 0 0 0 3px rgba(217, 117, 44, 0.1); */
 }
 
 .formGroup textarea {
     resize: vertical;
     min-height: 100px;
+}
+
+.formGroup input{
+    width: 90%;
+    border: 2px solid rgb(247, 171, 163);
+    border-radius: 5px;
+    padding: 5px 10px;
+    color: rgb(252, 101, 85);
+}
+
+.formGroup select{
+    width: 50%;
+    color: salmon;
+    padding: 5px;
+}
+
+.formGroup option{
+    border: salmon;
 }
 
 .formActions {
