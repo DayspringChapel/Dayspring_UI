@@ -129,25 +129,25 @@ class ApiClient {
 
     // Appointments
     async getAppointments() {
-        return this.request('/api/Appointment/get-all');
+        return this.request('/api/Appointments/get-all');
     }
 
     async scheduleAppointment(appointmentData) {
-        return this.request('/api/Appointment/schedule-appointment', {
+        return this.request('/api/Appointments/schedule-appointment', {
             method: 'POST',
             body: JSON.stringify(appointmentData),
         });
     }
 
     async confirmAppointment(confirmData) {
-        return this.request('/api/Appointment/confirm-appointment', {
+        return this.request('/api/Appointments/confirm-appointment', {
             method: 'POST',
             body: JSON.stringify(confirmData),
         });
     }
 
     async cancelAppointment(appointmentId, reason) {
-        return this.request(`/api/Appointment/cancel/${appointmentId}`, {
+        return this.request(`/api/Appointments/cancel/${appointmentId}`, {
             method: 'PATCH',
             body: JSON.stringify({ reason }),
         });
