@@ -1,10 +1,31 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://dayspring-backend-4ar8.onrender.com';
+const API_BASE_URL = (process.env.BACKEND_API_URL || 'https://dayspring-backend-4ar8.onrender.com').replace(/\/$/, '');
+
+function normalizeEndpoint(endpoint) {
+    if (!endpoint || typeof endpoint !== 'string') return null;
+    return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+}
+
+async function readResponseData(response) {
+    const text = await response.text();
+    if (!text) return null;
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text;
+        }
+    }
+
+    return text;
+}
 
 export async function POST(request) {
     try {
-        const targetEndpoint = request.headers.get('X-Target-Endpoint');
+        const targetEndpoint = normalizeEndpoint(request.headers.get('X-Target-Endpoint'));
         const authHeader = request.headers.get('Authorization');
 
         console.log('[Upload POST] Target endpoint:', targetEndpoint);
@@ -43,14 +64,7 @@ export async function POST(request) {
 
         console.log('[Upload POST] Response status:', response.status);
 
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
+        const responseData = await readResponseData(response);
 
         console.log('[Upload POST] Response data:', JSON.stringify(responseData).substring(0, 500));
 
@@ -69,7 +83,7 @@ export async function POST(request) {
 
 export async function PATCH(request) {
     try {
-        const targetEndpoint = request.headers.get('X-Target-Endpoint');
+        const targetEndpoint = normalizeEndpoint(request.headers.get('X-Target-Endpoint'));
         const authHeader = request.headers.get('Authorization');
 
         console.log('[Upload PATCH] Target endpoint:', targetEndpoint);
@@ -106,14 +120,7 @@ export async function PATCH(request) {
 
         console.log('[Upload PATCH] Response status:', response.status);
 
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
+        const responseData = await readResponseData(response);
 
         console.log('[Upload PATCH] Response data:', JSON.stringify(responseData).substring(0, 500));
 
