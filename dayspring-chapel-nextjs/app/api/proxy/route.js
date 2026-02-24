@@ -7,6 +7,9 @@ export async function POST(request) {
         const body = await request.json();
         const { endpoint, method = 'GET', data, headers = {} } = body;
 
+        console.log(`[Proxy POST] Forwarding ${method} request to: ${API_BASE_URL}${endpoint}`);
+        console.log(`[Proxy POST] Request Data:`, JSON.stringify(data).substring(0, 500));
+
         const fetchOptions = {
             method,
             headers: {
@@ -20,6 +23,7 @@ export async function POST(request) {
         }
 
         const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
+        console.log(`[Proxy POST] Response status from backend: ${response.status}`);
 
         const contentType = response.headers.get('content-type');
         let responseData;
@@ -35,7 +39,8 @@ export async function POST(request) {
             { status: response.status }
         );
     } catch (error) {
-        console.error('Proxy error:', error);
+        console.error('[Proxy POST] Error occurred:', error);
+        console.error('[Proxy POST] Stack trace:', error.stack);
         return NextResponse.json(
             { error: error.message },
             { status: 500 }
