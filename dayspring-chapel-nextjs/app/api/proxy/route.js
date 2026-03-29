@@ -1,148 +1,116 @@
 import { NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://dayspring-backend-4ar8.onrender.com';
+const API_BASE_URL = (process.env.BACKEND_API_URL || 'https://dayspring-backend-4ar8.onrender.com').replace(/\/$/, '');
+
+function normalizeEndpoint(endpoint) {
+    if (!endpoint || typeof endpoint !== 'string') return null;
+    return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+}
+
+async function readResponseData(response) {
+    const text = await response.text();
+    if (!text) return null;
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        try {
+            return JSON.parse(text);
+        } catch {
+            return text;
+        }
+    }
+
+    return text;
+}
+
+async function proxyToBackend({ endpoint, method = 'GET', data, headers = {} }) {
+    const normalizedMethod = method.toUpperCase();
+    const fetchOptions = {
+        method: normalizedMethod,
+        headers: { ...headers },
+        cache: 'no-store',
+    };
+
+    if (data !== undefined && ['POST', 'PUT', 'PATCH'].includes(normalizedMethod)) {
+        fetchOptions.body = JSON.stringify(data);
+        if (!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']) {
+            fetchOptions.headers['Content-Type'] = 'application/json';
+        }
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
+    const responseData = await readResponseData(response);
+
+    return NextResponse.json({ data: responseData, status: response.status }, { status: response.status });
+}
 
 export async function POST(request) {
     try {
-        const body = await request.json();
-        const { endpoint, method = 'GET', data, headers = {} } = body;
+        let body = {};
+        try {
+            body = await request.json();
+        } catch {
+            body = {};
+        }
 
-        console.log(`[Proxy POST] Forwarding ${method} request to: ${API_BASE_URL}${endpoint}`);
-        console.log(`[Proxy POST] Request Data:`, JSON.stringify(data).substring(0, 500));
+        const { endpoint, method = 'GET', data, headers = {} } = body || {};
+        const normalizedEndpoint = normalizeEndpoint(endpoint);
+        if (!normalizedEndpoint) {
+            return NextResponse.json({ error: 'Missing or invalid endpoint' }, { status: 400 });
+        }
 
-        const fetchOptions = {
+        const authHeader = request.headers.get('authorization');
+        const forwardedHeaders = { ...headers };
+        if (authHeader && !forwardedHeaders.Authorization && !forwardedHeaders.authorization) {
+            forwardedHeaders.Authorization = authHeader;
+        }
+
+        return proxyToBackend({
+            endpoint: normalizedEndpoint,
             method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...headers,
-            },
-        };
-
-        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-            fetchOptions.body = JSON.stringify(data);
-        }
-
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
-        console.log(`[Proxy POST] Response status from backend: ${response.status}`);
-
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
-
-        return NextResponse.json(
-            { data: responseData, status: response.status },
-            { status: response.status }
-        );
+            data,
+            headers: forwardedHeaders,
+        });
     } catch (error) {
-        console.error('[Proxy POST] Error occurred:', error);
-        console.error('[Proxy POST] Stack trace:', error.stack);
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        console.error('[Proxy POST] Error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const endpoint = searchParams.get('endpoint');
-        const token = request.headers.get('authorization');
-
-        console.log('[Proxy GET] Endpoint:', endpoint);
-        console.log('[Proxy GET] Full URL:', request.url);
+        const normalizedEndpoint = normalizeEndpoint(searchParams.get('endpoint'));
+        if (!normalizedEndpoint) {
+            return NextResponse.json({ error: 'Missing or invalid endpoint' }, { status: 400 });
+        }
 
         const authHeader = request.headers.get('authorization');
-        console.log('[Proxy GET] Raw Authorization Header:', authHeader ? `${authHeader.substring(0, 20)}...` : 'MISSING');
+        const headers = { 'Content-Type': 'application/json' };
+        if (authHeader) headers.Authorization = authHeader;
 
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-
-        if (authHeader) {
-            headers['Authorization'] = authHeader;
-            console.log('[Proxy GET] Forwarding Authorization header');
-        } else {
-            console.warn('[Proxy GET] No Authorization header found in request!');
-        }
-
-        const backendUrl = `${API_BASE_URL}${endpoint}`;
-        console.log('[Proxy GET] Fetching:', backendUrl);
-
-        const response = await fetch(backendUrl, {
-            method: 'GET',
-            headers,
-        });
-
-        console.log('[Proxy GET] Response status:', response.status);
-
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
-
-        console.log('[Proxy GET] Response data type:', typeof responseData);
-
-        return NextResponse.json(
-            { data: responseData, status: response.status },
-            { status: response.status }
-        );
+        return proxyToBackend({ endpoint: normalizedEndpoint, method: 'GET', headers });
     } catch (error) {
         console.error('[Proxy GET] Error:', error);
-        console.error('[Proxy GET] Error stack:', error.stack);
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
 export async function DELETE(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const endpoint = searchParams.get('endpoint');
-        const token = request.headers.get('authorization');
-
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-
-        if (token) {
-            headers['Authorization'] = token;
+        const normalizedEndpoint = normalizeEndpoint(searchParams.get('endpoint'));
+        if (!normalizedEndpoint) {
+            return NextResponse.json({ error: 'Missing or invalid endpoint' }, { status: 400 });
         }
 
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'DELETE',
-            headers,
-        });
+        const authHeader = request.headers.get('authorization');
+        const headers = { 'Content-Type': 'application/json' };
+        if (authHeader) headers.Authorization = authHeader;
 
-        const contentType = response.headers.get('content-type');
-        let responseData;
-
-        if (contentType && contentType.includes('application/json')) {
-            responseData = await response.json();
-        } else {
-            responseData = await response.text();
-        }
-
-        return NextResponse.json(
-            { data: responseData, status: response.status },
-            { status: response.status }
-        );
+        return proxyToBackend({ endpoint: normalizedEndpoint, method: 'DELETE', headers });
     } catch (error) {
-        console.error('Proxy error:', error);
-        return NextResponse.json(
-            { error: error.message },
-            { status: 500 }
-        );
+        console.error('[Proxy DELETE] Error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

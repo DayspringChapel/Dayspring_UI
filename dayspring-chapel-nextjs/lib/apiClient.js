@@ -5,6 +5,45 @@ class ApiClient {
     constructor() {
         this.baseUrl = API_BASE_URL;
         this.backendUrl = 'https://dayspring-backend-4ar8.onrender.com';
+        this.maxRetries = 3;
+        this.inFlightGetRequests = new Map();
+    }
+
+    sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    getRetryDelay(response, attempt) {
+        const retryAfter = response.headers.get('retry-after');
+        if (retryAfter) {
+            const asNumber = Number(retryAfter);
+            if (Number.isFinite(asNumber)) {
+                return asNumber * 1000;
+            }
+        }
+        // Exponential backoff with a small jitter.
+        const jitter = Math.floor(Math.random() * 250);
+        return Math.min(1000 * 2 ** attempt + jitter, 10000);
+    }
+
+    async parseResponseJson(response) {
+        const text = await response.text();
+        if (!text) return {};
+        try {
+            return JSON.parse(text);
+        } catch {
+            return { error: text };
+        }
+    }
+
+    async fetchWith429Retry(url, fetchOptions, attempt = 0) {
+        const response = await fetch(url, fetchOptions);
+        if (response.status === 429 && attempt < this.maxRetries) {
+            const delay = this.getRetryDelay(response, attempt);
+            await this.sleep(delay);
+            return this.fetchWith429Retry(url, fetchOptions, attempt + 1);
+        }
+        return response;
     }
 
     getToken() {
@@ -44,14 +83,15 @@ class ApiClient {
     async request(endpoint, options = {}) {
         const token = this.getToken();
         const method = options.method || 'GET';
+        const requestKey = method === 'GET' ? `${method}:${endpoint}` : null;
 
-        try {
+        const execute = async () => {
             let response;
 
             if (method === 'GET' || method === 'DELETE') {
                 // For GET and DELETE, use query params
                 const url = `${this.baseUrl}?endpoint=${encodeURIComponent(endpoint)}`;
-                response = await fetch(url, {
+                response = await this.fetchWith429Retry(url, {
                     method,
                     headers: {
                         'Content-Type': 'application/json',
@@ -60,7 +100,7 @@ class ApiClient {
                 });
             } else {
                 // For POST, PUT, PATCH, send data in body
-                response = await fetch(this.baseUrl, {
+                response = await this.fetchWith429Retry(this.baseUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -83,7 +123,7 @@ class ApiClient {
                 throw new Error('Unauthorized');
             }
 
-            const result = await response.json();
+            const result = await this.parseResponseJson(response);
 
             if (!response.ok) {
                 throw new Error(result.error || `HTTP error! status: ${response.status}`);
@@ -91,6 +131,22 @@ class ApiClient {
 
             // Return the actual data from the proxy response
             return result.data || result;
+        };
+
+        if (requestKey) {
+            if (this.inFlightGetRequests.has(requestKey)) {
+                return this.inFlightGetRequests.get(requestKey);
+            }
+
+            const requestPromise = execute().finally(() => {
+                this.inFlightGetRequests.delete(requestKey);
+            });
+            this.inFlightGetRequests.set(requestKey, requestPromise);
+            return requestPromise;
+        }
+
+        try {
+            return await execute();
         } catch (error) {
             console.error('API request failed:', error);
             throw error;
@@ -160,7 +216,7 @@ class ApiClient {
 
     async createBook(formData) {
         const token = this.getToken();
-        const response = await fetch('/api/upload', {
+        const response = await this.fetchWith429Retry('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -197,7 +253,7 @@ class ApiClient {
     async createEvent(formData) {
         const token = this.getToken();
         // Use proxy route for CORS
-        const response = await fetch('/api/upload', {
+        const response = await this.fetchWith429Retry('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -216,7 +272,7 @@ class ApiClient {
     async updateEvent(eventId, formData) {
         const token = this.getToken();
         if (formData instanceof FormData) {
-            const response = await fetch('/api/upload', {
+            const response = await this.fetchWith429Retry('/api/upload', {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -301,7 +357,7 @@ class ApiClient {
 
     async uploadImage(formData) {
         const token = this.getToken();
-        const response = await fetch('/api/upload', {
+        const response = await this.fetchWith429Retry('/api/upload', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

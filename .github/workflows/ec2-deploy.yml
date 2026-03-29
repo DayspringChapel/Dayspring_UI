@@ -1,0 +1,118 @@
+name: EC2 CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  APP_DIR: dayspring-chapel-nextjs
+  NODE_VERSION: 22
+  ARCHIVE_NAME: release.tar.gz
+  REMOTE_APP_NAME: dayspring-chapel-nextjs
+  REMOTE_APP_PORT: 3000
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.APP_DIR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+
+      - name: Create production environment file
+        if: ${{ secrets.APP_ENV_PRODUCTION != '' }}
+        run: printf '%s' "${{ secrets.APP_ENV_PRODUCTION }}" > .env.production
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build standalone app
+        run: npm run build
+
+      - name: Package deployable artifact
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p deploy-package
+          cp -R "${APP_DIR}/.next/standalone/${APP_DIR}/." deploy-package/
+          mkdir -p deploy-package/.next
+          cp -R "${APP_DIR}/.next/static" deploy-package/.next/static
+          cp -R "${APP_DIR}/public" deploy-package/public
+          if [ -f "${APP_DIR}/.env.production" ]; then cp "${APP_DIR}/.env.production" deploy-package/.env.production; fi
+          tar -czf "${ARCHIVE_NAME}" -C deploy-package .
+
+      - name: Upload deployable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-standalone-build
+          path: ${{ github.workspace }}/${{ env.ARCHIVE_NAME }}
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+
+    steps:
+      - name: Download deployable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: next-standalone-build
+
+      - name: Copy artifact to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || '22' }}
+          source: ${{ env.ARCHIVE_NAME }}
+          target: /tmp
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || '22' }}
+          script_stop: true
+          envs: REMOTE_APP_NAME,REMOTE_APP_PORT
+          script: |
+            set -e
+
+            APP_ROOT="${{ secrets.EC2_DEPLOY_PATH }}"
+            RELEASE_DIR="$APP_ROOT/current"
+
+            mkdir -p "$APP_ROOT"
+            rm -rf "$RELEASE_DIR"
+            mkdir -p "$RELEASE_DIR"
+
+            tar -xzf "/tmp/${{ env.ARCHIVE_NAME }}" -C "$RELEASE_DIR"
+            rm -f "/tmp/${{ env.ARCHIVE_NAME }}"
+
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 describe "$REMOTE_APP_NAME" >/dev/null 2>&1 \
+                && pm2 restart "$REMOTE_APP_NAME" --update-env \
+                || pm2 start "$RELEASE_DIR/server.js" --name "$REMOTE_APP_NAME" --cwd "$RELEASE_DIR"
+              pm2 save
+            else
+              echo "pm2 is required on the EC2 instance but was not found."
+              exit 1
+            fi
