@@ -35,10 +35,6 @@ jobs:
           cache: npm
           cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
 
-      - name: Create production environment file
-        if: ${{ secrets.APP_ENV_PRODUCTION != '' }}
-        run: printf '%s' "${{ secrets.APP_ENV_PRODUCTION }}" > .env.production
-
       - name: Install dependencies
         run: npm ci
 
@@ -53,7 +49,6 @@ jobs:
           mkdir -p deploy-package/.next
           cp -R "${APP_DIR}/.next/static" deploy-package/.next/static
           cp -R "${APP_DIR}/public" deploy-package/public
-          if [ -f "${APP_DIR}/.env.production" ]; then cp "${APP_DIR}/.env.production" deploy-package/.env.production; fi
           tar -czf "${ARCHIVE_NAME}" -C deploy-package .
 
       - name: Upload deployable artifact

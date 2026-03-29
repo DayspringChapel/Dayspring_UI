@@ -12,12 +12,12 @@ Add these GitHub repository secrets before enabling the pipeline:
 - `EC2_SSH_KEY`: private key contents used by GitHub Actions to connect
 - `EC2_DEPLOY_PATH`: absolute path on the server where the app should live, for example `/var/www/dayspring-chapel-nextjs`
 - `EC2_PORT`: optional SSH port if not `22`
-- `APP_ENV_PRODUCTION`: optional multiline `.env.production` contents used during build and copied with the release
 
 Server prerequisites:
 
 - Node.js installed
 - `pm2` installed globally
 - A reverse proxy such as Nginx pointing to port `3000`
+- Application environment variables configured on the EC2 server before starting `pm2`
 
 The workflow runs on pushes to `main` and can also be triggered manually from GitHub Actions.
