@@ -1,29 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { COUNTRIES } from '@/lib/constants';
 
 export default function AppointmentModal({ appointment, onClose, onConfirm, onCancel, loading }) {
     const [confirmData, setConfirmData] = useState({
         appointmentVenue: 0,
-        dateOfAppointment: '',
+        dateOfAppointment: new Date().toISOString().split('T')[0],
         appointmentTime: '',
-        personToAttendToAppintmentId: '',
-        notes: '',
+        attendingPersonnelId: '',
     });
     const [isRejecting, setIsRejecting] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
-
-    useEffect(() => {
-        if (appointment) {
-            setConfirmData(prev => ({
-                ...prev,
-                dateOfAppointment: new Date().toISOString().split('T')[0]
-            }));
-            setIsRejecting(false);
-            setRejectionReason('');
-        }
-    }, [appointment]);
 
     if (!appointment) return null;
 
@@ -42,7 +30,7 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
 
     const handleReject = (e) => {
         e.preventDefault();
-        onCancel(appointment.id, rejectionReason);
+        onCancel(appointment.id);
     };
 
     return (
@@ -146,16 +134,10 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                         {appointment.appointmentVenue === 0 ? 'Online' : appointment.appointmentVenue === 1 ? 'Office' : 'Home'}
                                     </p>
                                 </div>
-                                {appointment.personToAttendToAppintmentId && (
+                                {appointment.attendingPersonnelId && (
                                     <div>
                                         <label className="block text-xs font-medium text-green-700/70 mb-1">Attending Staff</label>
-                                        <p className="text-green-900 font-medium">{appointment.personToAttendToAppintmentId}</p>
-                                    </div>
-                                )}
-                                {appointment.notes && (
-                                    <div className="md:col-span-2">
-                                        <label className="block text-xs font-medium text-green-700/70 mb-1">Notes</label>
-                                        <p className="text-green-900 font-medium">{appointment.notes}</p>
+                                        <p className="text-green-900 font-medium">{appointment.attendingPersonnelId}</p>
                                     </div>
                                 )}
                             </div>
@@ -270,26 +252,16 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Attending Staff ID</label>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Attending Staff ID *</label>
                                                 <input
                                                     type="text"
-                                                    placeholder="Optional"
-                                                    value={confirmData.personToAttendToAppintmentId}
-                                                    onChange={(e) => setConfirmData({ ...confirmData, personToAttendToAppintmentId: e.target.value })}
+                                                    placeholder="Enter a valid staff user ID"
+                                                    value={confirmData.attendingPersonnelId}
+                                                    onChange={(e) => setConfirmData({ ...confirmData, attendingPersonnelId: e.target.value })}
+                                                    required
                                                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
                                                 />
                                             </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Instructions</label>
-                                            <textarea
-                                                rows={2}
-                                                value={confirmData.notes}
-                                                onChange={(e) => setConfirmData({ ...confirmData, notes: e.target.value })}
-                                                placeholder="Additional details for the applicant..."
-                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                                            />
                                         </div>
 
                                         <div className="flex gap-3 justify-end pt-4">

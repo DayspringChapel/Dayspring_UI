@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import styles from './requisitions.module.css';
 
 export default function RequisitionsPage() {
     const [requisitions, setRequisitions] = useState([]);
@@ -89,7 +90,7 @@ export default function RequisitionsPage() {
                                 return (
                                     <tr key={req.id}>
                                         <td>{req.requestorName}</td>
-                                        <td>{req.department}</td>
+                                        <td>{req.department || req.unit || 'N/A'}</td>
                                         <td>{req.description}</td>
                                         <td>{req.items?.length || 0} items</td>
                                         <td>${total.toFixed(2)}</td>

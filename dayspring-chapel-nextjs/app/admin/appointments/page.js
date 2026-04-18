@@ -76,10 +76,13 @@ export default function AppointmentsPage() {
     const handleConfirm = async (appointmentId, confirmData) => {
         setLoading(true);
         try {
-            await apiClient.confirmAppointment({
-                appointmentId,
-                ...confirmData,
-            });
+            const formData = new FormData();
+            formData.append('AppointmentId', appointmentId);
+            formData.append('AppointmentVenue', String(confirmData.appointmentVenue));
+            formData.append('DateOfAppointment', `${confirmData.dateOfAppointment}T${confirmData.appointmentTime}`);
+            formData.append('AttendingPersonnelId', confirmData.attendingPersonnelId);
+
+            await apiClient.confirmAppointment(formData);
 
             await loadAppointments();
             handleCloseModal();
@@ -91,9 +94,9 @@ export default function AppointmentsPage() {
         }
     };
 
-    const handleCancel = async (appointmentId, reason) => {
+    const handleCancel = async (appointmentId) => {
         try {
-            await apiClient.cancelAppointment(appointmentId, reason);
+            await apiClient.cancelAppointment(appointmentId);
             await loadAppointments();
             handleCloseModal();
         } catch (error) {

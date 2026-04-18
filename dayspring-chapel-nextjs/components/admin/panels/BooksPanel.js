@@ -10,7 +10,12 @@ export default function BooksPanel() {
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
+        author: '',
+        description: '',
+        publisher: '',
+        isbn: '',
         bookImage: null,
+        bookPdf: null,
     });
 
     useEffect(() => {
@@ -36,8 +41,15 @@ export default function BooksPanel() {
         try {
             const formDataToSend = new FormData();
             formDataToSend.append('Title', formData.title);
+            formDataToSend.append('Author', formData.author);
+            formDataToSend.append('Description', formData.description);
+            formDataToSend.append('Publisher', formData.publisher);
+            formDataToSend.append('ISBN', formData.isbn);
             if (formData.bookImage) {
                 formDataToSend.append('BookImage', formData.bookImage);
+            }
+            if (formData.bookPdf) {
+                formDataToSend.append('BookPdf', formData.bookPdf);
             }
             await apiClient.createBook(formDataToSend);
 
@@ -65,7 +77,15 @@ export default function BooksPanel() {
 
     const handleCloseModal = () => {
         setShowModal(false);
-        setFormData({ title: '', bookImage: null });
+        setFormData({
+            title: '',
+            author: '',
+            description: '',
+            publisher: '',
+            isbn: '',
+            bookImage: null,
+            bookPdf: null,
+        });
     };
 
     if (loading && books.length === 0) {
@@ -101,9 +121,10 @@ export default function BooksPanel() {
                                     className={styles.cardImage}
                                 />
                             )}
-                            <div className={styles.cardContent}>
-                                <h3 className={styles.cardTitle}>{book.title}</h3>
-                                <div className={styles.cardActions}>
+                                <div className={styles.cardContent}>
+                                    <h3 className={styles.cardTitle}>{book.title}</h3>
+                                    <p className={styles.cardDescription}>{book.author}</p>
+                                    <div className={styles.cardActions}>
                                     <button
                                         className={styles.deleteBtn}
                                         onClick={() => handleDelete(book.id)}
@@ -146,6 +167,59 @@ export default function BooksPanel() {
                             </div>
 
                             <div className={styles.formGroup}>
+                                <label htmlFor="author">Author *</label>
+                                <input
+                                    type="text"
+                                    id="author"
+                                    value={formData.author}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, author: e.target.value })
+                                    }
+                                    required
+                                    placeholder="Enter author name"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="description">Description</label>
+                                <textarea
+                                    id="description"
+                                    value={formData.description}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, description: e.target.value })
+                                    }
+                                    rows={3}
+                                    placeholder="Short description"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="publisher">Publisher</label>
+                                <input
+                                    type="text"
+                                    id="publisher"
+                                    value={formData.publisher}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, publisher: e.target.value })
+                                    }
+                                    placeholder="Publisher"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="isbn">ISBN</label>
+                                <input
+                                    type="text"
+                                    id="isbn"
+                                    value={formData.isbn}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, isbn: e.target.value })
+                                    }
+                                    placeholder="ISBN"
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
                                 <label htmlFor="bookImage">Book Cover Image *</label>
                                 <input
                                     type="file"
@@ -153,6 +227,19 @@ export default function BooksPanel() {
                                     accept="image/*"
                                     onChange={(e) =>
                                         setFormData({ ...formData, bookImage: e.target.files[0] })
+                                    }
+                                    required
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="bookPdf">Book PDF *</label>
+                                <input
+                                    type="file"
+                                    id="bookPdf"
+                                    accept="application/pdf"
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, bookPdf: e.target.files[0] })
                                     }
                                     required
                                 />

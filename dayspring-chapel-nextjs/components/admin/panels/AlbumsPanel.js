@@ -12,6 +12,7 @@ export default function AlbumsPanel() {
         albumName: '',
         description: '',
         albumYear: new Date().toISOString().split('T')[0],
+        albumImage: null,
     });
 
     useEffect(() => {
@@ -35,7 +36,15 @@ export default function AlbumsPanel() {
         setLoading(true);
 
         try {
-            await apiClient.createAlbum(formData);
+            const formDataToSend = new FormData();
+            formDataToSend.append('AlbumName', formData.albumName);
+            formDataToSend.append('Description', formData.description);
+            formDataToSend.append('AlbumYear', formData.albumYear);
+            if (formData.albumImage) {
+                formDataToSend.append('AlbumImage', formData.albumImage);
+            }
+
+            await apiClient.createAlbum(formDataToSend);
             await loadAlbums();
             handleCloseModal();
         } catch (error) {
@@ -64,6 +73,7 @@ export default function AlbumsPanel() {
             albumName: '',
             description: '',
             albumYear: new Date().toISOString().split('T')[0],
+            albumImage: null,
         });
     };
 
@@ -165,6 +175,18 @@ export default function AlbumsPanel() {
                                         setFormData({ ...formData, albumYear: e.target.value })
                                     }
                                     required
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="albumImage">Album Cover</label>
+                                <input
+                                    type="file"
+                                    id="albumImage"
+                                    accept="image/*"
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, albumImage: e.target.files?.[0] || null })
+                                    }
                                 />
                             </div>
 

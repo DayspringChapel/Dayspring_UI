@@ -1,0 +1,111 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.25rem;
+}
+
+.header p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.loading,
+.empty {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 auto 1rem;
+    border: 4px solid #e5e7eb;
+    border-top-color: #f97316;
+    border-radius: 9999px;
+    animation: spin 1s linear infinite;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    text-align: left;
+    vertical-align: top;
+}
+
+.table th {
+    background: #f9fafb;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.confirmBtn {
+    border: 0;
+    border-radius: 0.75rem;
+    background: #ea580c;
+    color: #ffffff;
+    padding: 0.625rem 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.confirmed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import styles from '../panels/Panel.module.css';
 
 export default function MembersPanel() {
+    const memberWritesSupported = false;
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -29,12 +30,6 @@ export default function MembersPanel() {
             setMembers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to load members:', error);
-
-            // Show user-friendly error message
-            if (error.message?.includes('404')) {
-                console.warn('BioData endpoint not found. The backend may not have this endpoint deployed yet.');
-            }
-
             setMembers([]);
         } finally {
             setLoading(false);
@@ -115,9 +110,9 @@ export default function MembersPanel() {
         <div className={styles.panel}>
             <div className={styles.panelHeader}>
                 <h2>Members Directory</h2>
-                <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-                    + Add Member
-                </button>
+                {!memberWritesSupported && (
+                    <p className={styles.cardDescription}>Read-only: the backend requires a fuller user and biodata flow than this form currently captures.</p>
+                )}
             </div>
 
             {members.length === 0 ? (
@@ -151,18 +146,22 @@ export default function MembersPanel() {
                                     </td>
                                     <td>
                                         <div className={styles.actions}>
-                                            <button
-                                                className={styles.editBtn}
-                                                onClick={() => handleEdit(member)}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                className={styles.deleteBtn}
-                                                onClick={() => handleDelete(member.id)}
-                                            >
-                                                Delete
-                                            </button>
+                                            {memberWritesSupported && (
+                                                <>
+                                                    <button
+                                                        className={styles.editBtn}
+                                                        onClick={() => handleEdit(member)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className={styles.deleteBtn}
+                                                        onClick={() => handleDelete(member.id)}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -172,7 +171,7 @@ export default function MembersPanel() {
                 </div>
             )}
 
-            {showModal && (
+            {memberWritesSupported && showModal && (
                 <div className={styles.modal} onClick={handleCloseModal}>
                     <div
                         className={styles.modalContent}

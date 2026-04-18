@@ -11,11 +11,11 @@ export default function SermonsPanel() {
     const [editingSermon, setEditingSermon] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
-        image: '',
+        image: null,
         seriesTitle: '',
         preacherName: '',
         sermonDate: '',
-        audioFile: '',
+        audioFile: null,
     });
 
     useEffect(() => {
@@ -40,9 +40,26 @@ export default function SermonsPanel() {
 
         try {
             if (editingSermon) {
-                await apiClient.updateSermon(editingSermon.id, formData);
+                await apiClient.updateSermon(editingSermon.id, {
+                    title: formData.title,
+                    seriesTitle: formData.seriesTitle,
+                    preacherName: formData.preacherName,
+                    sermonDate: formData.sermonDate,
+                });
             } else {
-                await apiClient.createSermon(formData);
+                const formDataToSend = new FormData();
+                formDataToSend.append('Title', formData.title);
+                formDataToSend.append('SeriesTitle', formData.seriesTitle);
+                formDataToSend.append('PreacherName', formData.preacherName);
+                formDataToSend.append('SermonDate', formData.sermonDate);
+                if (formData.image) {
+                    formDataToSend.append('Image', formData.image);
+                }
+                if (formData.audioFile) {
+                    formDataToSend.append('AudioFile', formData.audioFile);
+                }
+
+                await apiClient.createSermon(formDataToSend);
             }
 
             await loadSermons();
@@ -71,11 +88,11 @@ export default function SermonsPanel() {
         setEditingSermon(sermon);
         setFormData({
             title: sermon.title || '',
-            image: sermon.image || '',
+            image: null,
             seriesTitle: sermon.seriesTitle || '',
             preacherName: sermon.preacherName || '',
             sermonDate: sermon.sermonDate ? sermon.sermonDate.split('T')[0] : '',
-            audioFile: sermon.audioFile || '',
+            audioFile: null,
         });
         setShowModal(true);
     };
@@ -85,11 +102,11 @@ export default function SermonsPanel() {
         setEditingSermon(null);
         setFormData({
             title: '',
-            image: '',
+            image: null,
             seriesTitle: '',
             preacherName: '',
             sermonDate: '',
-            audioFile: '',
+            audioFile: null,
         });
     };
 
@@ -220,28 +237,27 @@ export default function SermonsPanel() {
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="image">Image URL</label>
+                                <label htmlFor="image">Image</label>
                                 <input
-                                    type="url"
+                                    type="file"
                                     id="image"
-                                    value={formData.image}
+                                    accept="image/*"
                                     onChange={(e) =>
-                                        setFormData({ ...formData, image: e.target.value })
+                                        setFormData({ ...formData, image: e.target.files?.[0] || null })
                                     }
-                                    placeholder="https://example.com/image.jpg"
                                 />
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="audioFile">Audio File URL</label>
+                                <label htmlFor="audioFile">{editingSermon ? 'Audio File' : 'Audio File *'}</label>
                                 <input
-                                    type="url"
+                                    type="file"
                                     id="audioFile"
-                                    value={formData.audioFile}
+                                    accept="audio/*"
                                     onChange={(e) =>
-                                        setFormData({ ...formData, audioFile: e.target.value })
+                                        setFormData({ ...formData, audioFile: e.target.files?.[0] || null })
                                     }
-                                    placeholder="https://example.com/audio.mp3"
+                                    required={!editingSermon}
                                 />
                             </div>
 
