@@ -1,7 +1,9 @@
 .adminLayout {
     display: flex;
     min-height: 100vh;
-    background: #f7fafc;
+    background:
+        radial-gradient(circle at top left, rgba(217, 117, 44, 0.12), transparent 28rem),
+        linear-gradient(135deg, #fff7ed 0%, #f8fafc 42%, #eef6f2 100%);
 }
 
 .mainContent {
@@ -19,22 +21,24 @@
 }
 
 .header {
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
+    background: rgba(255, 255, 255, 0.86);
+    border-bottom: 1px solid rgba(23, 32, 51, 0.09);
     padding: 1.25rem 2rem;
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    position: relative;
-    /* Changed to relative to prevent overlap */
+    position: sticky;
+    top: 0;
     z-index: 10;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px rgba(23, 32, 51, 0.06);
 }
 
 .menuToggle {
-    background: none;
-    border: none;
+    background: #fff7ed;
+    border: 1px solid rgba(217, 117, 44, 0.22);
     cursor: pointer;
-    color: #4a5568;
+    color: #8f3f12;
     padding: 0.5rem;
     border-radius: 8px;
     transition: all 0.2s ease;
@@ -45,19 +49,38 @@
 }
 
 .menuToggle:hover {
-    background: #f7fafc;
-    color: #2d3748;
+    background: #ffedd5;
+    color: #7c2d12;
 }
 
 .pageTitle {
     font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a202c;
+    font-weight: 900;
+    color: #172033;
     margin: 0;
+    letter-spacing: -0.03em;
 }
 
 .content {
-    padding: 2rem;
+    padding: 0;
+}
+
+.adminLayout input,
+.adminLayout select,
+.adminLayout textarea {
+    color: #111827;
+    background-color: #ffffff;
+}
+
+.adminLayout input::placeholder,
+.adminLayout textarea::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+}
+
+.adminLayout option {
+    color: #111827;
+    background-color: #ffffff;
 }
 
 .loadingContainer {
@@ -67,7 +90,7 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    background: #f7fafc;
+    background: linear-gradient(135deg, #fff7ed, #f8fafc);
 }
 
 .loadingContainer .spinner {

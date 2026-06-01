@@ -7,11 +7,9 @@ import styles from './BirthdayWidget.module.css';
 export default function BirthdayWidget() {
     const [birthdays, setBirthdays] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentMonth, setCurrentMonth] = useState('');
+    const [currentMonth] = useState(() => new Date().toLocaleString('default', { month: 'long' }));
 
     useEffect(() => {
-        const date = new Date();
-        setCurrentMonth(date.toLocaleString('default', { month: 'long' }));
         loadBirthdays();
     }, []);
 
@@ -35,12 +33,6 @@ export default function BirthdayWidget() {
             }
         } catch (error) {
             console.error('Failed to load birthdays:', error);
-
-            // Handle 404 gracefully
-            if (error.message?.includes('404')) {
-                console.warn('BioData endpoint not found. Birthday widget will show empty state.');
-            }
-
             setBirthdays([]);
         } finally {
             setLoading(false);
@@ -50,10 +42,10 @@ export default function BirthdayWidget() {
     const getDaySuffix = (day) => {
         if (day > 3 && day < 21) return 'th';
         switch (day % 10) {
-            case 1: return "st";
-            case 2: return "nd";
-            case 3: return "rd";
-            default: return "th";
+            case 1: return 'st';
+            case 2: return 'nd';
+            case 3: return 'rd';
+            default: return 'th';
         }
     };
 
@@ -70,7 +62,7 @@ export default function BirthdayWidget() {
     return (
         <div className={styles.widget}>
             <div className={styles.header}>
-                <h3>🎂 {currentMonth} Birthdays</h3>
+                <h3>{currentMonth} Birthdays</h3>
                 <span className={styles.count}>{birthdays.length}</span>
             </div>
 
@@ -83,7 +75,7 @@ export default function BirthdayWidget() {
                     {birthdays.map(member => (
                         <div key={member.id} className={styles.item}>
                             <div className={styles.avatar}>
-                                {member.firstName[0]}{member.lastName[0]}
+                                {member.firstName?.[0]}{member.lastName?.[0]}
                             </div>
                             <div className={styles.info}>
                                 <span className={styles.name}>
@@ -98,7 +90,7 @@ export default function BirthdayWidget() {
                                 title="Send Birthday Wish"
                                 onClick={() => alert(`Sending wish to ${member.firstName}...`)}
                             >
-                                💌
+                                Wish
                             </button>
                         </div>
                     ))}

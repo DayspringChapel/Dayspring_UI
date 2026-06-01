@@ -1,5 +1,16 @@
 'use client';
 
+export const APPOINTMENT_VENUES = [
+    { value: 0, label: 'Physical' },
+    { value: 1, label: 'Virtual' },
+    { value: 2, label: 'Admin to decide' },
+];
+
+export const getAppointmentVenueLabel = (venue) => {
+    const normalizedVenue = typeof venue === 'string' ? parseInt(venue, 10) : venue;
+    return APPOINTMENT_VENUES.find((option) => option.value === normalizedVenue)?.label || 'Not set';
+};
+
 export const COUNTRIES = [
     { code: 'AF', name: 'Afghanistan', dial_code: '+93', flag: '🇦🇫' },
     { code: 'AL', name: 'Albania', dial_code: '+355', flag: '🇦🇱' },

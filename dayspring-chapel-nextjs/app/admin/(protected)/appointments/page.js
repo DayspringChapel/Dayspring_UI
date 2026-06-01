@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import AppointmentModal from '@/components/admin/AppointmentModal';
 import AppointmentCalendar from '@/components/admin/AppointmentCalendar';
+import { getAppointmentVenueLabel } from '@/lib/constants';
 
 export default function AppointmentsPage() {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [churchOfficials, setChurchOfficials] = useState([]);
+    const [officialsLoading, setOfficialsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
@@ -23,6 +26,7 @@ export default function AppointmentsPage() {
 
     useEffect(() => {
         loadAppointments();
+        loadChurchOfficials();
     }, []);
 
     const loadAppointments = async () => {
@@ -39,9 +43,29 @@ export default function AppointmentsPage() {
         }
     };
 
-    // Sort appointments by latest first
-    // Backend may return oldest first, so we reverse. If createdAt exists, use it.
-    const sortedAppointments = [...appointments].reverse();
+    const loadChurchOfficials = async () => {
+        try {
+            const officials = await apiClient.getChurchOfficials();
+            setChurchOfficials(Array.isArray(officials) ? officials : []);
+        } catch (error) {
+            console.error('Failed to load church officials:', error);
+            setChurchOfficials([]);
+        } finally {
+            setOfficialsLoading(false);
+        }
+    };
+
+    // Show pending appointments first, then sort each group by latest appointment date.
+    const sortedAppointments = [...appointments].sort((a, b) => {
+        const pendingDelta = Number(a.status === 0) - Number(b.status === 0);
+        if (pendingDelta !== 0) {
+            return -pendingDelta;
+        }
+
+        const dateA = new Date(a.appointmentDate || a.dateOfAppointment || 0).getTime();
+        const dateB = new Date(b.appointmentDate || b.dateOfAppointment || 0).getTime();
+        return dateB - dateA;
+    });
 
     // Filter Logic
     const filteredAppointments = sortedAppointments.filter(app => {
@@ -94,14 +118,35 @@ export default function AppointmentsPage() {
         }
     };
 
-    const handleCancel = async (appointmentId) => {
+    const handleCancel = async (appointmentId, reason) => {
+        setLoading(true);
         try {
-            await apiClient.cancelAppointment(appointmentId);
+            await apiClient.cancelAppointment(appointmentId, reason);
             await loadAppointments();
             handleCloseModal();
         } catch (error) {
             console.error('Failed to cancel appointment:', error);
             alert('Failed to cancel appointment. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateVenue = async (appointmentId, appointmentVenue) => {
+        setLoading(true);
+        try {
+            await apiClient.updateAppointmentVenue(appointmentId, appointmentVenue);
+            setSelectedAppointment((current) => (
+                current?.id === appointmentId
+                    ? { ...current, venueOfMeeting: appointmentVenue }
+                    : current
+            ));
+            await loadAppointments();
+        } catch (error) {
+            console.error('Failed to update appointment venue:', error);
+            alert('Failed to update appointment venue. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -114,7 +159,8 @@ export default function AppointmentsPage() {
         const statusMap = {
             0: { label: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
             1: { label: 'Confirmed', className: 'bg-green-100 text-green-800' },
-            2: { label: 'Cancelled', className: 'bg-red-100 text-red-800' },
+            2: { label: 'Completed', className: 'bg-blue-100 text-blue-800' },
+            3: { label: 'Cancelled', className: 'bg-red-100 text-red-800' },
         };
         const statusInfo = statusMap[status] || statusMap[0];
         return (
@@ -182,7 +228,8 @@ export default function AppointmentsPage() {
                         <option value="all">All Status</option>
                         <option value="0">Pending</option>
                         <option value="1">Confirmed</option>
-                        <option value="2">Cancelled</option>
+                        <option value="2">Completed</option>
+                        <option value="3">Cancelled</option>
                     </select>
                 </div>
                 <div className="w-full md:w-48">
@@ -227,7 +274,7 @@ export default function AppointmentsPage() {
                                             </td>
                                             <td className="p-4 border-t border-gray-200 text-gray-700 text-sm max-w-xs truncate">{appointment.purposeOfAppointment}</td>
                                             <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
-                                                {appointment.venueOfMeeting === 0 ? 'Online' : appointment.venueOfMeeting === 1 ? 'Office' : 'Home'}
+                                                {getAppointmentVenueLabel(appointment.venueOfMeeting)}
                                             </td>
                                             <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">{getStatusBadge(appointment.status || 0)}</td>
                                             <td className="p-4 border-t border-gray-200 text-gray-700 text-sm">
@@ -321,9 +368,12 @@ export default function AppointmentsPage() {
             {showModal && selectedAppointment && (
                 <AppointmentModal
                     appointment={selectedAppointment}
+                    churchOfficials={churchOfficials}
+                    officialsLoading={officialsLoading}
                     onClose={handleCloseModal}
                     onConfirm={handleConfirm}
                     onCancel={handleCancel}
+                    onUpdateVenue={handleUpdateVenue}
                     loading={loading}
                 />
             )}

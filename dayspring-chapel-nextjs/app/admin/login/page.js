@@ -54,7 +54,7 @@ export default function AdminLogin() {
                 console.log('Token saved successfully:', savedToken ? 'Yes' : 'No');
 
                 // Redirect to dashboard
-                router.push('/admin/dashboard');
+                router.replace('/admin/dashboard');
             } else {
                 setError('Login failed. Please check your credentials.');
             }

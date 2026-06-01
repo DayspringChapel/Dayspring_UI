@@ -1,15 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { COUNTRIES } from '@/lib/constants';
+import { APPOINTMENT_VENUES, COUNTRIES, getAppointmentVenueLabel } from '@/lib/constants';
 
-export default function AppointmentModal({ appointment, onClose, onConfirm, onCancel, loading }) {
+export default function AppointmentModal({
+    appointment,
+    churchOfficials = [],
+    officialsLoading = false,
+    onClose,
+    onConfirm,
+    onCancel,
+    onUpdateVenue,
+    loading,
+}) {
     const [confirmData, setConfirmData] = useState({
-        appointmentVenue: 0,
+        appointmentVenue: appointment?.venueOfMeeting ?? 0,
         dateOfAppointment: new Date().toISOString().split('T')[0],
         appointmentTime: '',
-        attendingPersonnelId: '',
+        attendingPersonnelId: appointment?.attendingPersonnelId || appointment?.attendedToBy || '',
     });
+    const [venueData, setVenueData] = useState(appointment?.venueOfMeeting ?? 0);
     const [isRejecting, setIsRejecting] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
 
@@ -17,6 +27,12 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
 
     const isPending = appointment.status === 0;
     const isConfirmed = appointment.status === 1;
+    const venueChanged = venueData !== appointment.venueOfMeeting;
+    const selectedOfficial = churchOfficials.find((official) => official.userId === confirmData.attendingPersonnelId);
+    const attendingOfficial = churchOfficials.find((official) => (
+        official.userId === appointment.attendingPersonnelId ||
+        official.userId === appointment.attendedToBy
+    ));
 
     // Derive Country Name
     const countryName = appointment.phoneNumber?.countryCode
@@ -30,7 +46,12 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
 
     const handleReject = (e) => {
         e.preventDefault();
-        onCancel(appointment.id);
+        onCancel(appointment.id, rejectionReason.trim());
+    };
+
+    const handleVenueUpdate = (e) => {
+        e.preventDefault();
+        onUpdateVenue(appointment.id, venueData);
     };
 
     return (
@@ -93,10 +114,11 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                             <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Current Status</label>
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${appointment.status === 1 ? 'bg-green-100 text-green-800' :
-                                    appointment.status === 2 ? 'bg-red-100 text-red-800' :
+                                    appointment.status === 2 ? 'bg-blue-100 text-blue-800' :
+                                        appointment.status === 3 ? 'bg-red-100 text-red-800' :
                                         'bg-yellow-100 text-yellow-800'
                                     }`}>
-                                    {appointment.status === 1 ? 'Confirmed' : appointment.status === 2 ? 'Cancelled' : 'Pending'}
+                                    {appointment.status === 1 ? 'Confirmed' : appointment.status === 2 ? 'Completed' : appointment.status === 3 ? 'Cancelled' : 'Pending'}
                                 </span>
                             </div>
                         </div>
@@ -131,13 +153,17 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                 <div>
                                     <label className="block text-xs font-medium text-green-700/70 mb-1">Confirmed Venue</label>
                                     <p className="text-green-900 font-medium">
-                                        {appointment.appointmentVenue === 0 ? 'Online' : appointment.appointmentVenue === 1 ? 'Office' : 'Home'}
+                                        {getAppointmentVenueLabel(appointment.venueOfMeeting)}
                                     </p>
                                 </div>
                                 {appointment.attendingPersonnelId && (
                                     <div>
                                         <label className="block text-xs font-medium text-green-700/70 mb-1">Attending Staff</label>
-                                        <p className="text-green-900 font-medium">{appointment.attendingPersonnelId}</p>
+                                        <p className="text-green-900 font-medium">
+                                            {attendingOfficial
+                                                ? `${attendingOfficial.officialType} ${attendingOfficial.name}`
+                                                : appointment.attendingPersonnelId}
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -160,11 +186,45 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                             <div className="bg-white border border-gray-200 rounded-xl p-4">
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Preferred Venue</label>
                                 <p className="text-gray-900 font-medium">
-                                    {appointment.venueOfMeeting === 0 ? 'Online' : appointment.venueOfMeeting === 1 ? 'Office' : 'Home'}
+                                    {getAppointmentVenueLabel(appointment.venueOfMeeting)}
                                 </p>
                             </div>
                         </div>
                     </div>
+
+                    {!isPending && (
+                        <form onSubmit={handleVenueUpdate} className="border-t border-gray-100 pt-6">
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                </svg>
+                                Change Appointment Venue
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Venue</label>
+                                    <select
+                                        value={venueData}
+                                        onChange={(e) => setVenueData(parseInt(e.target.value, 10))}
+                                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-white"
+                                    >
+                                        {APPOINTMENT_VENUES.map((venue) => (
+                                            <option key={venue.value} value={venue.value}>
+                                                {venue.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={loading || !venueChanged}
+                                    className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Saving...' : 'Save Venue'}
+                                </button>
+                            </div>
+                        </form>
+                    )}
 
                     {/* Action Section - Only show if Pending */}
                     {isPending && (
@@ -243,24 +303,43 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                                 <select
                                                     required
                                                     value={confirmData.appointmentVenue}
-                                                    onChange={(e) => setConfirmData({ ...confirmData, appointmentVenue: parseInt(e.target.value) })}
+                                                    onChange={(e) => setConfirmData({ ...confirmData, appointmentVenue: parseInt(e.target.value, 10) })}
                                                     className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white"
                                                 >
-                                                    <option value={0}>Online</option>
-                                                    <option value={1}>Office</option>
-                                                    <option value={2}>Home</option>
+                                                    {APPOINTMENT_VENUES.map((venue) => (
+                                                        <option key={venue.value} value={venue.value}>
+                                                            {venue.label}
+                                                        </option>
+                                                    ))}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Attending Staff ID *</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Enter a valid staff user ID"
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Attending Minister/Pastor *</label>
+                                                <select
                                                     value={confirmData.attendingPersonnelId}
                                                     onChange={(e) => setConfirmData({ ...confirmData, attendingPersonnelId: e.target.value })}
                                                     required
-                                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-                                                />
+                                                    disabled={officialsLoading || churchOfficials.length === 0}
+                                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                                                >
+                                                    <option value="">
+                                                        {officialsLoading
+                                                            ? 'Loading ministers and pastors...'
+                                                            : churchOfficials.length === 0
+                                                                ? 'No ministers or pastors found'
+                                                                : 'Select minister or pastor'}
+                                                    </option>
+                                                    {churchOfficials.map((official) => (
+                                                        <option key={official.userId} value={official.userId}>
+                                                            {official.officialType} {official.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {selectedOfficial && (
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        Appointment will be assigned to {selectedOfficial.officialType} {selectedOfficial.name}.
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
 
@@ -274,7 +353,7 @@ export default function AppointmentModal({ appointment, onClose, onConfirm, onCa
                                             </button>
                                             <button
                                                 type="submit"
-                                                disabled={loading}
+                                                disabled={loading || officialsLoading || churchOfficials.length === 0}
                                                 className="px-5 py-2.5 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 shadow-lg shadow-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 {loading ? 'Processing...' : 'Confirm Appointment'}

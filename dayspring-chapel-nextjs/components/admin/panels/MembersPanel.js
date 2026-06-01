@@ -1,59 +1,148 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from '../panels/Panel.module.css';
 
+const INITIAL_FORM_DATA = {
+    userId: '',
+    apellation: 0,
+    firstName: '',
+    lastName: '',
+    countryCode: '',
+    phoneNumber: '',
+    alternativeCountryCode: '',
+    alternativePhoneNumber: '',
+    dateOfBirth: '',
+    occupation: '',
+    street: '',
+    city: '',
+    state: '',
+    country: '',
+    maritalStatus: 0,
+    gender: 1,
+    nextOfKinName: '',
+    nextOfKinCountryCode: '',
+    nextOfKinPhoneNumber: '',
+};
+
 export default function MembersPanel() {
-    const memberWritesSupported = false;
     const [members, setMembers] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingMember, setEditingMember] = useState(null);
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phoneNumber: '',
-        dateOfBirth: '',
-        address: '',
-        role: 'Member',
-    });
+    const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
     useEffect(() => {
-        loadMembers();
+        loadData();
     }, []);
 
-    const loadMembers = async () => {
+    const loadData = async () => {
         try {
-            const data = await apiClient.getBioData();
-            setMembers(Array.isArray(data) ? data : []);
+            const [bioData, allUsers] = await Promise.all([
+                apiClient.getBioData().catch(() => []),
+                apiClient.getUsers().catch(() => []),
+            ]);
+
+            setMembers(Array.isArray(bioData) ? bioData : []);
+            setUsers(Array.isArray(allUsers) ? allUsers : []);
         } catch (error) {
-            console.error('Failed to load members:', error);
+            console.error('Failed to load member data:', error);
             setMembers([]);
+            setUsers([]);
         } finally {
             setLoading(false);
         }
     };
 
+    const usersById = useMemo(
+        () => new Map(users.map((user) => [user.id, user])),
+        [users]
+    );
+
+    const availableUsersForCreate = useMemo(() => {
+        const existingUserIds = new Set(members.map((member) => member.userId).filter(Boolean));
+        return users.filter((user) => user.id && !existingUserIds.has(user.id));
+    }, [members, users]);
+
+    const buildPayload = () => ({
+        userId: formData.userId,
+        apellation: Number(formData.apellation),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        address: {
+            street: formData.street.trim(),
+            city: formData.city.trim(),
+            state: formData.state.trim(),
+            country: formData.country.trim(),
+        },
+        phoneNumber: formData.phoneNumber.trim()
+            ? {
+                countryCode: formData.countryCode.trim(),
+                number: formData.phoneNumber.trim(),
+            }
+            : null,
+        alernativePhoneNumber: formData.alternativePhoneNumber.trim()
+            ? {
+                countryCode: formData.alternativeCountryCode.trim(),
+                number: formData.alternativePhoneNumber.trim(),
+            }
+            : null,
+        dateOfBirth: formData.dateOfBirth || null,
+        occupation: formData.occupation.trim() || null,
+        maritalStatus: Number(formData.maritalStatus),
+        gender: Number(formData.gender),
+        fUllNameOfNextOfKin: formData.nextOfKinName.trim() || null,
+        nextOfKinPhonenumber: formData.nextOfKinPhoneNumber.trim()
+            ? {
+                countryCode: formData.nextOfKinCountryCode.trim(),
+                number: formData.nextOfKinPhoneNumber.trim(),
+            }
+            : null,
+    });
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setSaving(true);
 
         try {
+            const payload = buildPayload();
+
             if (editingMember) {
-                await apiClient.updateBioData({ ...formData, id: editingMember.id });
+                await apiClient.updateBioData(payload);
             } else {
-                await apiClient.createBioData(formData);
+                await apiClient.createBioData(payload);
+
+                const currentUser = apiClient.getUserData();
+                const modifier =
+                    currentUser?.userName ||
+                    currentUser?.UserName ||
+                    currentUser?.email ||
+                    currentUser?.Email ||
+                    'admin';
+
+                try {
+                    await apiClient.createMember({
+                        userId: formData.userId,
+                        children: [],
+                        modifier,
+                        smallGroupId: null,
+                        unitId: null,
+                    });
+                } catch (memberError) {
+                    console.error('Failed to create member record:', memberError);
+                }
             }
 
-            await loadMembers();
+            await loadData();
             handleCloseModal();
         } catch (error) {
             console.error('Failed to save member:', error);
-            alert('Failed to save member. Please try again.');
+            alert(error.message || 'Failed to save member. Please try again.');
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
@@ -62,23 +151,41 @@ export default function MembersPanel() {
 
         try {
             await apiClient.deleteBioData(memberId);
-            await loadMembers();
+            await loadData();
         } catch (error) {
             console.error('Failed to delete member:', error);
             alert('Failed to delete member. Please try again.');
         }
     };
 
+    const handleCreate = () => {
+        setEditingMember(null);
+        setFormData(INITIAL_FORM_DATA);
+        setShowModal(true);
+    };
+
     const handleEdit = (member) => {
         setEditingMember(member);
         setFormData({
+            userId: member.userId || '',
+            apellation: member.apellation ?? 0,
             firstName: member.firstName || '',
             lastName: member.lastName || '',
-            email: member.email || '',
-            phoneNumber: member.phoneNumber || '',
-            dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split('T')[0] : '',
-            address: member.address || '',
-            role: member.role || 'Member',
+            countryCode: member.phoneNumberObject?.countryCode || '',
+            phoneNumber: member.phoneNumberObject?.number || '',
+            alternativeCountryCode: member.alternativePhoneNumberObject?.countryCode || '',
+            alternativePhoneNumber: member.alternativePhoneNumberObject?.number || '',
+            dateOfBirth: member.dateOfBirth ? String(member.dateOfBirth).split('T')[0] : '',
+            occupation: member.occupation || '',
+            street: member.addressObject?.street || '',
+            city: member.addressObject?.city || '',
+            state: member.addressObject?.state || '',
+            country: member.addressObject?.country || '',
+            maritalStatus: member.maritalStatus ?? 0,
+            gender: member.gender ?? 1,
+            nextOfKinName: member.fullNameOfNextOfKin || '',
+            nextOfKinCountryCode: member.nextOfKinPhoneNumberObject?.countryCode || '',
+            nextOfKinPhoneNumber: member.nextOfKinPhoneNumberObject?.number || '',
         });
         setShowModal(true);
     };
@@ -86,15 +193,11 @@ export default function MembersPanel() {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingMember(null);
-        setFormData({
-            firstName: '',
-            lastName: '',
-            email: '',
-            phoneNumber: '',
-            dateOfBirth: '',
-            address: '',
-            role: 'Member',
-        });
+        setFormData(INITIAL_FORM_DATA);
+    };
+
+    const updateField = (field, value) => {
+        setFormData((current) => ({ ...current, [field]: value }));
     };
 
     if (loading && members.length === 0) {
@@ -109,15 +212,25 @@ export default function MembersPanel() {
     return (
         <div className={styles.panel}>
             <div className={styles.panelHeader}>
-                <h2>Members Directory</h2>
-                {!memberWritesSupported && (
-                    <p className={styles.cardDescription}>Read-only: the backend requires a fuller user and biodata flow than this form currently captures.</p>
-                )}
+                <div>
+                    <h2>Members Directory</h2>
+                    <p className={styles.cardDescription}>
+                        Create biodata for existing users and edit current member records.
+                    </p>
+                </div>
+                <button
+                    className={styles.addBtn}
+                    onClick={handleCreate}
+                    disabled={availableUsersForCreate.length === 0}
+                    title={availableUsersForCreate.length === 0 ? 'No unassigned users available' : 'Add member'}
+                >
+                    Add Member
+                </button>
             </div>
 
             {members.length === 0 ? (
                 <div className={styles.empty}>
-                    <p>No members found. Add your first member!</p>
+                    <p>No members found.</p>
                 </div>
             ) : (
                 <div className={styles.tableContainer}>
@@ -133,70 +246,121 @@ export default function MembersPanel() {
                             </tr>
                         </thead>
                         <tbody>
-                            {members.map((member) => (
-                                <tr key={member.id}>
-                                    <td>{member.firstName} {member.lastName}</td>
-                                    <td>{member.email}</td>
-                                    <td>{member.phoneNumber}</td>
-                                    <td>{member.dateOfBirth}</td>
-                                    <td>
-                                        <span className={`${styles.badge} ${member.role === 'Admin' ? styles.admin : styles.member}`}>
-                                            {member.role}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className={styles.actions}>
-                                            {memberWritesSupported && (
-                                                <>
-                                                    <button
-                                                        className={styles.editBtn}
-                                                        onClick={() => handleEdit(member)}
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        className={styles.deleteBtn}
-                                                        onClick={() => handleDelete(member.id)}
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            {members.map((member) => {
+                                const user = usersById.get(member.userId);
+
+                                return (
+                                    <tr key={member.id}>
+                                        <td>{member.firstName} {member.lastName}</td>
+                                        <td>{user?.email || member.email || 'N/A'}</td>
+                                        <td>{member.phoneNumber || 'N/A'}</td>
+                                        <td>{member.dateOfBirth || 'N/A'}</td>
+                                        <td>
+                                            <span className={`${styles.badge} ${user?.role === 'Admin' ? styles.admin : styles.member}`}>
+                                                {user?.role || member.role}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className={styles.actions}>
+                                                <button
+                                                    className={styles.editBtn}
+                                                    onClick={() => handleEdit(member)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    className={styles.deleteBtn}
+                                                    onClick={() => handleDelete(member.id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
             )}
 
-            {memberWritesSupported && showModal && (
+            {showModal && (
                 <div className={styles.modal} onClick={handleCloseModal}>
                     <div
                         className={styles.modalContent}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className={styles.modalHeader}>
-                            <h3>{editingMember ? 'Edit Member' : 'Add New Member'}</h3>
+                            <h3>{editingMember ? 'Edit Member' : 'Create Member'}</h3>
                             <button className={styles.closeBtn} onClick={handleCloseModal}>
-                                ×
+                                x
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className={styles.form}>
+                            {!editingMember && (
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="userId">User Account *</label>
+                                    <select
+                                        id="userId"
+                                        value={formData.userId}
+                                        onChange={(e) => updateField('userId', e.target.value)}
+                                        required
+                                    >
+                                        <option value="">Select a user</option>
+                                        {availableUsersForCreate.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.userName} - {user.email}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
                             <div className={styles.grid}>
                                 <div className={styles.formGroup}>
-                                    <label htmlFor="firstName">First Name: *</label>
+                                    <label htmlFor="apellation">Title</label>
+                                    <select
+                                        id="apellation"
+                                        value={formData.apellation}
+                                        onChange={(e) => updateField('apellation', e.target.value)}
+                                    >
+                                        <option value={0}>Mr</option>
+                                        <option value={1}>Mrs</option>
+                                        <option value={2}>Ms</option>
+                                        <option value={3}>Dr</option>
+                                        <option value={4}>Prof</option>
+                                        <option value={5}>Rev</option>
+                                        <option value={6}>Pastor</option>
+                                        <option value={7}>Elder</option>
+                                        <option value={8}>Deacon</option>
+                                        <option value={9}>Deaconess</option>
+                                        <option value={10}>Minister</option>
+                                        <option value={11}>Engr</option>
+                                    </select>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="gender">Gender</label>
+                                    <select
+                                        id="gender"
+                                        value={formData.gender}
+                                        onChange={(e) => updateField('gender', e.target.value)}
+                                    >
+                                        <option value={1}>Male</option>
+                                        <option value={2}>Female</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="firstName">First Name *</label>
                                     <input
                                         type="text"
                                         id="firstName"
                                         value={formData.firstName}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, firstName: e.target.value })
-                                        }
+                                        onChange={(e) => updateField('firstName', e.target.value)}
                                         required
-                                        placeholder="John"
                                     />
                                 </div>
                                 <div className={styles.formGroup}>
@@ -205,67 +369,166 @@ export default function MembersPanel() {
                                         type="text"
                                         id="lastName"
                                         value={formData.lastName}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, lastName: e.target.value })
-                                        }
+                                        onChange={(e) => updateField('lastName', e.target.value)}
                                         required
-                                        placeholder="Doe"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="countryCode">Phone Country Code</label>
+                                    <input
+                                        type="text"
+                                        id="countryCode"
+                                        value={formData.countryCode}
+                                        onChange={(e) => updateField('countryCode', e.target.value)}
+                                        placeholder="+234"
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="phoneNumber">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        id="phoneNumber"
+                                        value={formData.phoneNumber}
+                                        onChange={(e) => updateField('phoneNumber', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="alternativeCountryCode">Alt. Country Code</label>
+                                    <input
+                                        type="text"
+                                        id="alternativeCountryCode"
+                                        value={formData.alternativeCountryCode}
+                                        onChange={(e) => updateField('alternativeCountryCode', e.target.value)}
+                                        placeholder="+234"
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="alternativePhoneNumber">Alternative Phone</label>
+                                    <input
+                                        type="tel"
+                                        id="alternativePhoneNumber"
+                                        value={formData.alternativePhoneNumber}
+                                        onChange={(e) => updateField('alternativePhoneNumber', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="dateOfBirth">Date of Birth</label>
+                                    <input
+                                        type="date"
+                                        id="dateOfBirth"
+                                        value={formData.dateOfBirth}
+                                        onChange={(e) => updateField('dateOfBirth', e.target.value)}
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="maritalStatus">Marital Status</label>
+                                    <select
+                                        id="maritalStatus"
+                                        value={formData.maritalStatus}
+                                        onChange={(e) => updateField('maritalStatus', e.target.value)}
+                                    >
+                                        <option value={0}>Single</option>
+                                        <option value={1}>Married</option>
+                                        <option value={2}>Divorced</option>
+                                        <option value={3}>Widowed</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="occupation">Occupation</label>
+                                <input
+                                    type="text"
+                                    id="occupation"
+                                    value={formData.occupation}
+                                    onChange={(e) => updateField('occupation', e.target.value)}
+                                />
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="street">Street *</label>
+                                <input
+                                    type="text"
+                                    id="street"
+                                    value={formData.street}
+                                    onChange={(e) => updateField('street', e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="city">City *</label>
+                                    <input
+                                        type="text"
+                                        id="city"
+                                        value={formData.city}
+                                        onChange={(e) => updateField('city', e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="state">State *</label>
+                                    <input
+                                        type="text"
+                                        id="state"
+                                        value={formData.state}
+                                        onChange={(e) => updateField('state', e.target.value)}
+                                        required
                                     />
                                 </div>
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="email">Email *</label>
+                                <label htmlFor="country">Country *</label>
                                 <input
-                                    type="email"
-                                    id="email"
-                                    value={formData.email}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, email: e.target.value })
-                                    }
+                                    type="text"
+                                    id="country"
+                                    value={formData.country}
+                                    onChange={(e) => updateField('country', e.target.value)}
                                     required
-                                    placeholder="john@example.com"
                                 />
                             </div>
 
                             <div className={styles.formGroup}>
-                                <label htmlFor="phoneNumber">Phone Number</label>
+                                <label htmlFor="nextOfKinName">Next of Kin</label>
                                 <input
-                                    type="tel"
-                                    id="phoneNumber"
-                                    value={formData.phoneNumber}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, phoneNumber: e.target.value })
-                                    }
-                                    placeholder="+1234567890"
+                                    type="text"
+                                    id="nextOfKinName"
+                                    value={formData.nextOfKinName}
+                                    onChange={(e) => updateField('nextOfKinName', e.target.value)}
                                 />
                             </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="dateOfBirth">Date of Birth</label>
-                                <input
-                                    type="date"
-                                    id="dateOfBirth"
-                                    value={formData.dateOfBirth}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, dateOfBirth: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            <div className={styles.formGroup}>
-                                <label htmlFor="role">Role</label>
-                                <select
-                                    id="role"
-                                    value={formData.role}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, role: e.target.value })
-                                    }
-                                >
-                                    <option value="Member">Member</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Pastor">Pastor</option>
-                                </select>
+                            <div className={styles.grid}>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="nextOfKinCountryCode">Next of Kin Country Code</label>
+                                    <input
+                                        type="text"
+                                        id="nextOfKinCountryCode"
+                                        value={formData.nextOfKinCountryCode}
+                                        onChange={(e) => updateField('nextOfKinCountryCode', e.target.value)}
+                                        placeholder="+234"
+                                    />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="nextOfKinPhoneNumber">Next of Kin Phone</label>
+                                    <input
+                                        type="tel"
+                                        id="nextOfKinPhoneNumber"
+                                        value={formData.nextOfKinPhoneNumber}
+                                        onChange={(e) => updateField('nextOfKinPhoneNumber', e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             <div className={styles.formActions}>
@@ -279,9 +542,9 @@ export default function MembersPanel() {
                                 <button
                                     type="submit"
                                     className={styles.submitBtn}
-                                    disabled={loading}
+                                    disabled={saving}
                                 >
-                                    {loading ? 'Saving...' : editingMember ? 'Update' : 'Create'}
+                                    {saving ? 'Saving...' : editingMember ? 'Update' : 'Create'}
                                 </button>
                             </div>
                         </form>

@@ -1,11 +1,19 @@
-const API_BASE_URL = '/api/proxy';
-const UPLOAD_PROXY_URL = '/api/upload';
+const DEFAULT_BACKEND_API_URL = 'https://dayspring-backend-4ar8.onrender.com';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_API_URL || DEFAULT_BACKEND_API_URL).replace(/\/$/, '');
 
 class ApiClient {
     constructor() {
         this.baseUrl = API_BASE_URL;
         this.maxRetries = 3;
         this.inFlightGetRequests = new Map();
+    }
+
+    normalizeEndpoint(endpoint) {
+        if (!endpoint || typeof endpoint !== 'string') {
+            throw new Error('Missing or invalid API endpoint');
+        }
+
+        return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     }
 
     sleep(ms) {
@@ -204,6 +212,11 @@ class ApiClient {
     normalizeAppointment(appointment) {
         if (!appointment) return null;
 
+        const appointmentDate = appointment.appointmentDate || appointment.AppointmentDate || appointment.dateOfAppointment || appointment.DateOfAppointment || null;
+        const appointmentTime = appointment.appointmentTime || appointment.AppointmentTime || (
+            appointmentDate && appointmentDate.includes('T') ? appointmentDate.split('T')[1]?.slice(0, 5) : null
+        );
+
         return {
             ...appointment,
             id: appointment.id || appointment.Id,
@@ -214,8 +227,11 @@ class ApiClient {
             phoneNumber: appointment.phoneNumber || appointment.PhoneNumber || null,
             venueOfMeeting: appointment.venueOfMeeting ?? appointment.VenueOfMeeting ?? 0,
             status: appointment.status ?? appointment.Status ?? 0,
-            dateOfAppointment: appointment.dateOfAppointment || appointment.DateOfAppointment || appointment.appointmentDate || appointment.AppointmentDate || null,
-            appointmentDate: appointment.appointmentDate || appointment.AppointmentDate || appointment.dateOfAppointment || appointment.DateOfAppointment || null,
+            dateOfAppointment: appointmentDate,
+            appointmentDate,
+            appointmentTime,
+            attendedToBy: appointment.attendedToBy || appointment.AttendedToBy || null,
+            attendingPersonnelId: appointment.attendingPersonnelId || appointment.AttendingPersonnelId || appointment.attendedToBy || appointment.AttendedToBy || null,
         };
     }
 
@@ -242,6 +258,7 @@ class ApiClient {
         const address = member.address || member.Address;
         const phoneNumber = member.phoneNumber || member.PhoneNumber;
         const altPhoneNumber = member.alernativePhoneNumber || member.AlernativePhoneNumber;
+        const nextOfKinPhoneNumber = member.nextOfKinPhonenumber || member.NextOfKinPhonenumber;
 
         const formatPhone = (value) => {
             if (!value) return '';
@@ -265,12 +282,111 @@ class ApiClient {
             phoneNumber: formatPhone(phoneNumber),
             phoneNumberObject: phoneNumber || null,
             alternativePhoneNumber: formatPhone(altPhoneNumber),
+            alternativePhoneNumberObject: altPhoneNumber || null,
             dateOfBirth: member.dateOfBirth || member.DateOfBirth || '',
             address: formatAddress(address),
             addressObject: address || null,
             occupation: member.occupation || member.Occupation || '',
+            apellation: member.apellation ?? member.Apellation ?? 0,
+            maritalStatus: member.maritalStatus ?? member.MaritalStatus ?? 0,
+            gender: member.gender ?? member.Gender ?? 1,
+            fullNameOfNextOfKin: member.fUllNameOfNextOfKin || member.FUllNameOfNextOfKin || '',
+            nextOfKinPhoneNumber: formatPhone(nextOfKinPhoneNumber),
+            nextOfKinPhoneNumberObject: nextOfKinPhoneNumber || null,
             role: member.role || member.Role || 'Member',
         };
+    }
+
+    normalizeUser(user) {
+        if (!user) return null;
+
+        return {
+            ...user,
+            id: user.id || user.Id,
+            userName: user.userName || user.UserName || '',
+            email: user.email || user.Email || '',
+            role: user.role || user.Role || '',
+        };
+    }
+
+    normalizeMember(member) {
+        if (!member) return null;
+
+        return {
+            ...member,
+            id: member.memberId || member.MemberId || member.id || member.Id,
+            memberId: member.memberId || member.MemberId || member.id || member.Id,
+            userId: member.userId || member.UserId,
+            smallGroupId: member.smallGroupId || member.SmallGroupId || null,
+            unitId: member.unitId || member.UnitId || null,
+        };
+    }
+
+    normalizeUnit(unit) {
+        if (!unit) return null;
+
+        return {
+            ...unit,
+            id: unit.id || unit.Id,
+            unitName: unit.unitName || unit.UnitName || '',
+            description: unit.description || unit.Description || '',
+            unitHeadId: unit.unitHeadId || unit.UnitHeadId || '',
+            unitHeadPhoneNumber: unit.unitHeadPhoneNumber || unit.UnitHeadPhoneNumber || null,
+        };
+    }
+
+    normalizeSmallGroup(group) {
+        if (!group) return null;
+
+        return {
+            ...group,
+            id: group.id || group.Id,
+            smallGroupName: group.smallGroupName || group.SmallGroupName || '',
+            description: group.description || group.Description || '',
+            smallGroupHeadMemberId: group.smallGroupHeadMemberId || group.SmallGroupHeadMemberId || '',
+            smallGroupHeadPhoneNumber: group.smallGroupHeadPhoneNumber || group.SmallGroupHeadPhoneNumber || null,
+        };
+    }
+
+    normalizeChurchOfficial(official) {
+        if (!official) return null;
+
+        const userId = official.userId || official.UserId;
+        const pastorId = official.pastorId || official.PastorId || null;
+        const ministerId = official.ministerId || official.MinisterId || null;
+        const firstName = official.firstName || official.FirstName || '';
+        const lastName = official.lastName || official.LastName || '';
+        const officialType = pastorId ? 'Pastor' : 'Minister';
+
+        return {
+            ...official,
+            id: userId,
+            userId,
+            pastorId,
+            ministerId,
+            firstName,
+            lastName,
+            name: [firstName, lastName].filter(Boolean).join(' ').trim() || userId,
+            officialType,
+        };
+    }
+
+    normalizeChurchOfficials(data) {
+        const officials = this.normalizeArray(data, this.normalizeChurchOfficial);
+        const uniqueOfficials = new Map();
+
+        officials.forEach((official) => {
+            if (!official.userId || uniqueOfficials.has(official.userId)) return;
+            uniqueOfficials.set(official.userId, official);
+        });
+
+        return Array.from(uniqueOfficials.values()).sort((a, b) => {
+            if (a.officialType !== b.officialType) {
+                return a.officialType.localeCompare(b.officialType);
+            }
+
+            return a.name.localeCompare(b.name);
+        });
     }
 
     normalizeArray(data, normalizer) {
@@ -281,33 +397,22 @@ class ApiClient {
         const token = this.getToken();
         const method = options.method || 'GET';
         const requestKey = method === 'GET' ? `${method}:${endpoint}` : null;
+        const normalizedEndpoint = this.normalizeEndpoint(endpoint);
 
         const execute = async () => {
-            let response;
+            const headers = {
+                ...(token && { Authorization: `Bearer ${token}` }),
+            };
 
-            if (method === 'GET' || method === 'DELETE') {
-                const url = `${this.baseUrl}?endpoint=${encodeURIComponent(endpoint)}`;
-                response = await this.fetchWith429Retry(url, {
-                    method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token && { Authorization: `Bearer ${token}` }),
-                    },
-                });
-            } else {
-                response = await this.fetchWith429Retry(this.baseUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        endpoint,
-                        method,
-                        data: options.body ? JSON.parse(options.body) : undefined,
-                        headers: token ? { Authorization: `Bearer ${token}` } : {},
-                    }),
-                });
+            if (options.body !== undefined) {
+                headers['Content-Type'] = 'application/json';
             }
+
+            const response = await this.fetchWith429Retry(`${this.baseUrl}${normalizedEndpoint}`, {
+                method,
+                headers,
+                ...(options.body !== undefined ? { body: options.body } : {}),
+            });
 
             if (response.status === 401) {
                 this.removeToken();
@@ -348,11 +453,11 @@ class ApiClient {
 
     async upload(endpoint, formData, method = 'POST') {
         const token = this.getToken();
-        const response = await this.fetchWith429Retry(UPLOAD_PROXY_URL, {
+        const normalizedEndpoint = this.normalizeEndpoint(endpoint);
+        const response = await this.fetchWith429Retry(`${this.baseUrl}${normalizedEndpoint}`, {
             method,
             headers: {
                 ...(token && { Authorization: `Bearer ${token}` }),
-                'X-Target-Endpoint': endpoint,
             },
             body: formData,
         });
@@ -408,10 +513,20 @@ class ApiClient {
         return this.upload('/api/Appointments/confirm-appointment', formData, 'POST');
     }
 
-    async cancelAppointment(appointmentId) {
-        return this.request(`/api/Appointments/cancel/${appointmentId}`, {
+    async cancelAppointment(appointmentId, reason) {
+        return this.request('/api/Appointments/cancel', {
             method: 'PATCH',
-            body: JSON.stringify({}),
+            body: JSON.stringify({
+                appointmentId,
+                reason,
+            }),
+        });
+    }
+
+    async updateAppointmentVenue(appointmentId, appointmentVenue) {
+        return this.request(`/api/Appointments/${appointmentId}/venue`, {
+            method: 'PATCH',
+            body: JSON.stringify({ appointmentVenue }),
         });
     }
 
@@ -562,6 +677,77 @@ class ApiClient {
         return this.normalizeArray(data, this.normalizeBioData);
     }
 
+    async getMembers() {
+        const data = await this.request('/api/Member');
+        return this.normalizeArray(data, this.normalizeMember);
+    }
+
+    async getUnits() {
+        const data = await this.request('/api/Units');
+        return this.normalizeArray(data, this.normalizeUnit);
+    }
+
+    async createUnit(unitData) {
+        return this.request('/api/Units/create', {
+            method: 'POST',
+            body: JSON.stringify(unitData),
+        });
+    }
+
+    async updateUnit(unitId, unitData) {
+        return this.request(`/api/Units/${unitId}`, {
+            method: 'PUT',
+            body: JSON.stringify(unitData),
+        });
+    }
+
+    async deleteUnit(unitId) {
+        return this.request(`/api/Units/${unitId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async getSmallGroups() {
+        const data = await this.request('/api/SmallGroups/all');
+        return this.normalizeArray(data, this.normalizeSmallGroup);
+    }
+
+    async createSmallGroup(groupData) {
+        return this.request('/api/SmallGroups/create', {
+            method: 'POST',
+            body: JSON.stringify(groupData),
+        });
+    }
+
+    async updateSmallGroup(groupId, groupData) {
+        return this.request(`/api/SmallGroups/${groupId}`, {
+            method: 'PUT',
+            body: JSON.stringify(groupData),
+        });
+    }
+
+    async assignSmallGroupLeader(groupId, leaderMemberId, phoneNumber) {
+        return this.request('/api/SmallGroups/assign-leader', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                smallGroupId: groupId,
+                leaderMemberId,
+                phoneNumber,
+            }),
+        });
+    }
+
+    async deleteSmallGroup(groupId) {
+        return this.request(`/api/SmallGroups/${groupId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async getChurchOfficials() {
+        const data = await this.request('/api/ChurchsOfficial');
+        return this.normalizeChurchOfficials(data);
+    }
+
     async getBioDataById(id) {
         const data = await this.request(`/api/BioData/${id}`);
         return this.normalizeBioData(data);
@@ -571,6 +757,18 @@ class ApiClient {
         return this.request('/api/BioData/create-biodata', {
             method: 'POST',
             body: JSON.stringify(bioData),
+        });
+    }
+
+    async getUsers() {
+        const data = await this.request('/api/Users/get-all');
+        return this.normalizeArray(data, this.normalizeUser);
+    }
+
+    async createMember(memberData) {
+        return this.request('/api/Member/create', {
+            method: 'POST',
+            body: JSON.stringify(memberData),
         });
     }
 
