@@ -183,8 +183,8 @@ export default function AppointmentsPage() {
         <div className="max-w-[1400px] mx-auto px-4">
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Appointments</h1>
-                    <p className="text-gray-500 text-lg">Manage appointment requests from members</p>
+                    <h1 className="text-2xl font-bold mb-2" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Appointments</h1>
+                    <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage appointment requests from members</p>
                 </div>
                 <div className="flex bg-gray-100 p-1 rounded-xl">
                     <button

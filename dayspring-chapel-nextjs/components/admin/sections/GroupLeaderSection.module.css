@@ -1,0 +1,299 @@
+/* GroupLeaderSection — glass card, inherits --brand from dashboard THEME */
+
+.section {
+    /* sits inside a .chartCard from dashboard.module.css */
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+    margin-bottom: 1.1rem;
+}
+
+.title {
+    margin: 0 0 0.28rem;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.sub {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+/* ── Type toggle ─────────────────────────────────────────── */
+.typeToggle {
+    display: flex;
+    background: rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(15, 23, 42, 0.09);
+    border-radius: 9px;
+    padding: 3px;
+    margin-bottom: 0.9rem;
+    gap: 3px;
+}
+
+.typeBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    border: none;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: none;
+    color: #64748b;
+    transition: all 0.16s ease;
+    font-family: inherit;
+}
+
+.typeBtn.active {
+    background: var(--brand, #d9752c);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(217, 117, 44, 0.30);
+}
+
+.typeBtnIcon {
+    font-size: 0.9rem;
+}
+
+/* ── Group dropdown ──────────────────────────────────────── */
+.selectWrap {
+    margin-bottom: 0.9rem;
+}
+
+.groupSelect {
+    width: 100%;
+    padding: 0.62rem 2.2rem 0.62rem 0.85rem;
+    border: 1.5px solid rgba(15, 23, 42, 0.13);
+    border-radius: 0.65rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    font-size: 0.84rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23475569' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    cursor: pointer;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    box-sizing: border-box;
+}
+
+.groupSelect:focus {
+    border-color: var(--brand, #d9752c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand, #d9752c) 15%, transparent);
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0.4rem 0 0;
+}
+
+/* ── Status messages ─────────────────────────────────────── */
+.msg {
+    padding: 0.55rem 0.85rem;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0.9rem;
+    line-height: 1.4;
+}
+
+.msg.success {
+    background: rgba(16, 185, 129, 0.10);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.20);
+}
+
+.msg.error {
+    background: rgba(220, 38, 38, 0.08);
+    color: #991b1b;
+    border: 1px solid rgba(220, 38, 38, 0.17);
+}
+
+/* ── Loading & empty states ──────────────────────────────── */
+.loader {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    padding: 0.75rem 0;
+}
+
+.loaderDot {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(15, 23, 42, 0.10);
+    border-top-color: var(--brand, #d9752c);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.empty {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 1.2rem 0.5rem;
+    background: rgba(15, 23, 42, 0.03);
+    border: 1px dashed rgba(15, 23, 42, 0.10);
+    border-radius: 8px;
+}
+
+.placeholder {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 1rem 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.07);
+}
+
+/* ── Member list ─────────────────────────────────────────── */
+.memberList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.42rem;
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15, 23, 42, 0.12) transparent;
+}
+
+.memberList::-webkit-scrollbar {
+    width: 4px;
+}
+
+.memberList::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.12);
+    border-radius: 4px;
+}
+
+.memberRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    gap: 0.6rem;
+    transition: background 0.15s ease;
+}
+
+.memberRow:hover {
+    background: rgba(15, 23, 42, 0.07);
+}
+
+.headRow {
+    background: rgba(217, 117, 44, 0.07) !important;
+    border-color: rgba(217, 117, 44, 0.18) !important;
+}
+
+.memberInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--brand, #d9752c);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    opacity: 0.82;
+}
+
+.memberName {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.headBadge {
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    background: rgba(217, 117, 44, 0.14);
+    color: #b45309;
+    border: 1px solid rgba(217, 117, 44, 0.26);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Assign button ───────────────────────────────────────── */
+.assignBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 7px;
+    background: linear-gradient(135deg, var(--brand, #d9752c), #c26622);
+    color: white;
+    font-size: 0.73rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    box-shadow: 0 2px 8px rgba(217, 117, 44, 0.26);
+    font-family: inherit;
+}
+
+.assignBtn:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+.assignBtn:disabled {
+    opacity: 0.50;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btnSpinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    flex-shrink: 0;
+}

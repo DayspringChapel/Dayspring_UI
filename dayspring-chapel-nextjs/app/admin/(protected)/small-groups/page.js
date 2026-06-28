@@ -177,8 +177,8 @@ export default function SmallGroupsPage() {
     return (
         <div className="mx-auto max-w-[1400px] px-4">
             <div className="mb-8">
-                <h1 className="mb-2 text-2xl font-bold text-gray-900">Small Groups</h1>
-                <p className="text-lg text-gray-500">Manage care groups and assign small group leaders.</p>
+                <h1 className="mb-2 text-2xl font-bold" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Small Groups</h1>
+                <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage care groups and assign small group leaders.</p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_1fr]">

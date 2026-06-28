@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import RoleAssignWidget from '@/components/admin/widgets/RoleAssignWidget';
+import GroupLeaderSection from '@/components/admin/sections/GroupLeaderSection';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import styles from './dashboard.module.css';
@@ -198,6 +199,10 @@ export default function ChurchAdminDashboard({ userName }) {
                                 ))}
                             </div>
                         </section>
+
+                        <div className={styles.chartCard}>
+                            <GroupLeaderSection />
+                        </div>
                     </main>
 
                     <aside className={styles.col1Sticky}>

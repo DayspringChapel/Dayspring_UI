@@ -6,6 +6,8 @@ import styles from '../panels/Panel.module.css';
 
 const INITIAL_FORM_DATA = {
     userId: '',
+    email: '',
+    roleId: '',
     apellation: 0,
     firstName: '',
     lastName: '',
@@ -27,27 +29,30 @@ const INITIAL_FORM_DATA = {
 };
 
 export default function MembersPanel() {
-    const [members, setMembers] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [showModal, setShowModal] = useState(false);
+    const [members, setMembers]           = useState([]);
+    const [users, setUsers]               = useState([]);
+    const [roles, setRoles]               = useState([]);
+    const [loading, setLoading]           = useState(true);
+    const [saving, setSaving]             = useState(false);
+    const [showModal, setShowModal]       = useState(false);
     const [editingMember, setEditingMember] = useState(null);
-    const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+    const [formData, setFormData]         = useState(INITIAL_FORM_DATA);
+    const [userMode, setUserMode]         = useState('existing'); // 'existing' | 'new'
+    const [tempPasswordResult, setTempPasswordResult] = useState(null);
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
         try {
-            const [bioData, allUsers] = await Promise.all([
+            const [bioData, allUsers, allRoles] = await Promise.all([
                 apiClient.getBioData().catch(() => []),
                 apiClient.getUsers().catch(() => []),
+                apiClient.getRoles().catch(() => []),
             ]);
 
             setMembers(Array.isArray(bioData) ? bioData : []);
             setUsers(Array.isArray(allUsers) ? allUsers : []);
+            setRoles(Array.isArray(allRoles) ? allRoles : []);
         } catch (error) {
             console.error('Failed to load member data:', error);
             setMembers([]);
@@ -58,17 +63,17 @@ export default function MembersPanel() {
     };
 
     const usersById = useMemo(
-        () => new Map(users.map((user) => [user.id, user])),
+        () => new Map(users.map((u) => [u.id, u])),
         [users]
     );
 
     const availableUsersForCreate = useMemo(() => {
-        const existingUserIds = new Set(members.map((member) => member.userId).filter(Boolean));
-        return users.filter((user) => user.id && !existingUserIds.has(user.id));
+        const existingUserIds = new Set(members.map((m) => m.userId).filter(Boolean));
+        return users.filter((u) => u.id && !existingUserIds.has(u.id));
     }, [members, users]);
 
-    const buildPayload = () => ({
-        userId: formData.userId,
+    const buildBioPayload = (overrideUserId) => ({
+        userId: overrideUserId ?? formData.userId,
         apellation: Number(formData.apellation),
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -79,16 +84,10 @@ export default function MembersPanel() {
             country: formData.country.trim(),
         },
         phoneNumber: formData.phoneNumber.trim()
-            ? {
-                countryCode: formData.countryCode.trim(),
-                number: formData.phoneNumber.trim(),
-            }
+            ? { countryCode: formData.countryCode.trim(), number: formData.phoneNumber.trim() }
             : null,
         alernativePhoneNumber: formData.alternativePhoneNumber.trim()
-            ? {
-                countryCode: formData.alternativeCountryCode.trim(),
-                number: formData.alternativePhoneNumber.trim(),
-            }
+            ? { countryCode: formData.alternativeCountryCode.trim(), number: formData.alternativePhoneNumber.trim() }
             : null,
         dateOfBirth: formData.dateOfBirth || null,
         occupation: formData.occupation.trim() || null,
@@ -96,10 +95,7 @@ export default function MembersPanel() {
         gender: Number(formData.gender),
         fUllNameOfNextOfKin: formData.nextOfKinName.trim() || null,
         nextOfKinPhonenumber: formData.nextOfKinPhoneNumber.trim()
-            ? {
-                countryCode: formData.nextOfKinCountryCode.trim(),
-                number: formData.nextOfKinPhoneNumber.trim(),
-            }
+            ? { countryCode: formData.nextOfKinCountryCode.trim(), number: formData.nextOfKinPhoneNumber.trim() }
             : null,
     });
 
@@ -108,36 +104,62 @@ export default function MembersPanel() {
         setSaving(true);
 
         try {
-            const payload = buildPayload();
-
             if (editingMember) {
-                await apiClient.updateBioData(payload);
+                await apiClient.updateBioData(buildBioPayload());
+                await loadData();
+                handleCloseModal();
+                return;
+            }
+
+            if (userMode === 'new') {
+                // Atomically create User + Member, then create BioData
+                const result = await apiClient.createMemberWithUser({
+                    firstName:   formData.firstName.trim(),
+                    lastName:    formData.lastName.trim(),
+                    email:       formData.email.trim(),
+                    phoneNumber: formData.phoneNumber.trim() || null,
+                    unitId:      null,
+                    smallGroupId: null,
+                    roleId:      formData.roleId || null,
+                });
+
+                const returnedUserId = result?.userId ?? result?.UserId;
+                await apiClient.createBioData(buildBioPayload(returnedUserId));
+
+                setTempPasswordResult({
+                    userName:    result?.userName    ?? result?.UserName    ?? '',
+                    email:       result?.email       ?? result?.Email       ?? formData.email,
+                    tempPassword: result?.tempPassword ?? result?.TempPassword ?? '',
+                });
+
+                await loadData();
             } else {
-                await apiClient.createBioData(payload);
+                // Link biodata to existing user, then create Member entity
+                await apiClient.createBioData(buildBioPayload());
 
                 const currentUser = apiClient.getUserData();
                 const modifier =
-                    currentUser?.userName ||
-                    currentUser?.UserName ||
-                    currentUser?.email ||
-                    currentUser?.Email ||
+                    currentUser?.userName  ||
+                    currentUser?.UserName  ||
+                    currentUser?.email     ||
+                    currentUser?.Email     ||
                     'admin';
 
                 try {
                     await apiClient.createMember({
-                        userId: formData.userId,
-                        children: [],
+                        userId:      formData.userId,
+                        children:    [],
                         modifier,
                         smallGroupId: null,
-                        unitId: null,
+                        unitId:      null,
                     });
                 } catch (memberError) {
                     console.error('Failed to create member record:', memberError);
                 }
-            }
 
-            await loadData();
-            handleCloseModal();
+                await loadData();
+                handleCloseModal();
+            }
         } catch (error) {
             console.error('Failed to save member:', error);
             alert(error.message || 'Failed to save member. Please try again.');
@@ -148,7 +170,6 @@ export default function MembersPanel() {
 
     const handleDelete = async (memberId) => {
         if (!confirm('Are you sure you want to delete this member?')) return;
-
         try {
             await apiClient.deleteBioData(memberId);
             await loadData();
@@ -161,31 +182,36 @@ export default function MembersPanel() {
     const handleCreate = () => {
         setEditingMember(null);
         setFormData(INITIAL_FORM_DATA);
+        setUserMode('existing');
+        setTempPasswordResult(null);
         setShowModal(true);
     };
 
     const handleEdit = (member) => {
         setEditingMember(member);
+        setTempPasswordResult(null);
         setFormData({
-            userId: member.userId || '',
-            apellation: member.apellation ?? 0,
-            firstName: member.firstName || '',
-            lastName: member.lastName || '',
-            countryCode: member.phoneNumberObject?.countryCode || '',
-            phoneNumber: member.phoneNumberObject?.number || '',
-            alternativeCountryCode: member.alternativePhoneNumberObject?.countryCode || '',
-            alternativePhoneNumber: member.alternativePhoneNumberObject?.number || '',
-            dateOfBirth: member.dateOfBirth ? String(member.dateOfBirth).split('T')[0] : '',
-            occupation: member.occupation || '',
-            street: member.addressObject?.street || '',
-            city: member.addressObject?.city || '',
-            state: member.addressObject?.state || '',
-            country: member.addressObject?.country || '',
-            maritalStatus: member.maritalStatus ?? 0,
-            gender: member.gender ?? 1,
-            nextOfKinName: member.fullNameOfNextOfKin || '',
-            nextOfKinCountryCode: member.nextOfKinPhoneNumberObject?.countryCode || '',
-            nextOfKinPhoneNumber: member.nextOfKinPhoneNumberObject?.number || '',
+            userId:                   member.userId || '',
+            email:                    '',
+            roleId:                   '',
+            apellation:               member.apellation ?? 0,
+            firstName:                member.firstName || '',
+            lastName:                 member.lastName || '',
+            countryCode:              member.phoneNumberObject?.countryCode || '',
+            phoneNumber:              member.phoneNumberObject?.number || '',
+            alternativeCountryCode:   member.alternativePhoneNumberObject?.countryCode || '',
+            alternativePhoneNumber:   member.alternativePhoneNumberObject?.number || '',
+            dateOfBirth:              member.dateOfBirth ? String(member.dateOfBirth).split('T')[0] : '',
+            occupation:               member.occupation || '',
+            street:                   member.addressObject?.street || '',
+            city:                     member.addressObject?.city || '',
+            state:                    member.addressObject?.state || '',
+            country:                  member.addressObject?.country || '',
+            maritalStatus:            member.maritalStatus ?? 0,
+            gender:                   member.gender ?? 1,
+            nextOfKinName:            member.fullNameOfNextOfKin || '',
+            nextOfKinCountryCode:     member.nextOfKinPhoneNumberObject?.countryCode || '',
+            nextOfKinPhoneNumber:     member.nextOfKinPhoneNumberObject?.number || '',
         });
         setShowModal(true);
     };
@@ -194,16 +220,17 @@ export default function MembersPanel() {
         setShowModal(false);
         setEditingMember(null);
         setFormData(INITIAL_FORM_DATA);
+        setTempPasswordResult(null);
+        setUserMode('existing');
     };
 
-    const updateField = (field, value) => {
-        setFormData((current) => ({ ...current, [field]: value }));
-    };
+    const updateField = (field, value) =>
+        setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (loading && members.length === 0) {
         return (
             <div className={styles.loading}>
-                <div className={styles.spinner}></div>
+                <div className={styles.spinner} />
                 <p>Loading members...</p>
             </div>
         );
@@ -215,22 +242,17 @@ export default function MembersPanel() {
                 <div>
                     <h2>Members Directory</h2>
                     <p className={styles.cardDescription}>
-                        Create biodata for existing users and edit current member records.
+                        Register new members or update existing records.
                     </p>
                 </div>
-                <button
-                    className={styles.addBtn}
-                    onClick={handleCreate}
-                    disabled={availableUsersForCreate.length === 0}
-                    title={availableUsersForCreate.length === 0 ? 'No unassigned users available' : 'Add member'}
-                >
+                <button className={styles.addBtn} onClick={handleCreate}>
                     Add Member
                 </button>
             </div>
 
             {members.length === 0 ? (
                 <div className={styles.empty}>
-                    <p>No members found.</p>
+                    <p>No members found. Add your first member above.</p>
                 </div>
             ) : (
                 <div className={styles.tableContainer}>
@@ -248,32 +270,21 @@ export default function MembersPanel() {
                         <tbody>
                             {members.map((member) => {
                                 const user = usersById.get(member.userId);
-
                                 return (
                                     <tr key={member.id}>
                                         <td>{member.firstName} {member.lastName}</td>
                                         <td>{user?.email || member.email || 'N/A'}</td>
                                         <td>{member.phoneNumber || 'N/A'}</td>
-                                        <td>{member.dateOfBirth || 'N/A'}</td>
+                                        <td>{member.dateOfBirth ? String(member.dateOfBirth).split('T')[0] : 'N/A'}</td>
                                         <td>
-                                            <span className={`${styles.badge} ${user?.role === 'Admin' ? styles.admin : styles.member}`}>
-                                                {user?.role || member.role}
+                                            <span className={`${styles.badge} ${user?.role?.toLowerCase() === 'admin' ? styles.admin : styles.member}`}>
+                                                {user?.role || member.role || 'Member'}
                                             </span>
                                         </td>
                                         <td>
                                             <div className={styles.actions}>
-                                                <button
-                                                    className={styles.editBtn}
-                                                    onClick={() => handleEdit(member)}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className={styles.deleteBtn}
-                                                    onClick={() => handleDelete(member.id)}
-                                                >
-                                                    Delete
-                                                </button>
+                                                <button className={styles.editBtn} onClick={() => handleEdit(member)}>Edit</button>
+                                                <button className={styles.deleteBtn} onClick={() => handleDelete(member.id)}>Delete</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -286,268 +297,246 @@ export default function MembersPanel() {
 
             {showModal && (
                 <div className={styles.modal} onClick={handleCloseModal}>
-                    <div
-                        className={styles.modalContent}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
                             <h3>{editingMember ? 'Edit Member' : 'Create Member'}</h3>
-                            <button className={styles.closeBtn} onClick={handleCloseModal}>
-                                x
-                            </button>
+                            <button className={styles.closeBtn} onClick={handleCloseModal}>✕</button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className={styles.form}>
-                            {!editingMember && (
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="userId">User Account *</label>
-                                    <select
-                                        id="userId"
-                                        value={formData.userId}
-                                        onChange={(e) => updateField('userId', e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Select a user</option>
-                                        {availableUsersForCreate.map((user) => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.userName} - {user.email}
-                                            </option>
-                                        ))}
-                                    </select>
+                        {/* ── Success state after "New User" creation ── */}
+                        {tempPasswordResult ? (
+                            <div className={styles.tempPasswordSuccess}>
+                                <div className={styles.tempPasswordBanner}>
+                                    <h4>✓ Member account created</h4>
+                                    <p>
+                                        Share these login credentials with the member. The password is shown once and cannot be retrieved again.
+                                    </p>
+                                    <div className={styles.tempPasswordBox}>
+                                        <div>
+                                            <div className={styles.tempPasswordMeta}>
+                                                Username: <strong style={{ color: '#e2e8f0' }}>{tempPasswordResult.userName}</strong>
+                                            </div>
+                                            <div className={styles.tempPasswordMeta}>
+                                                Email: <strong style={{ color: '#e2e8f0' }}>{tempPasswordResult.email}</strong>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className={styles.tempPasswordMeta} style={{ marginBottom: '0.25rem' }}>Temporary password:</div>
+                                            <div className={styles.tempPasswordValue}>{tempPasswordResult.tempPassword}</div>
+                                        </div>
+                                    </div>
+                                    <div className={styles.tempPasswordWarning}>
+                                        ⚠ Copy this password now. The member should change it on first login via "Forgot Password".
+                                    </div>
                                 </div>
-                            )}
-
-                            <div className={styles.grid}>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="apellation">Title</label>
-                                    <select
-                                        id="apellation"
-                                        value={formData.apellation}
-                                        onChange={(e) => updateField('apellation', e.target.value)}
-                                    >
-                                        <option value={0}>Mr</option>
-                                        <option value={1}>Mrs</option>
-                                        <option value={2}>Ms</option>
-                                        <option value={3}>Dr</option>
-                                        <option value={4}>Prof</option>
-                                        <option value={5}>Rev</option>
-                                        <option value={6}>Pastor</option>
-                                        <option value={7}>Elder</option>
-                                        <option value={8}>Deacon</option>
-                                        <option value={9}>Deaconess</option>
-                                        <option value={10}>Minister</option>
-                                        <option value={11}>Engr</option>
-                                    </select>
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="gender">Gender</label>
-                                    <select
-                                        id="gender"
-                                        value={formData.gender}
-                                        onChange={(e) => updateField('gender', e.target.value)}
-                                    >
-                                        <option value={1}>Male</option>
-                                        <option value={2}>Female</option>
-                                    </select>
+                                <div className={styles.formActions}>
+                                    <button className={styles.submitBtn} onClick={handleCloseModal}>Done</button>
                                 </div>
                             </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className={styles.form}>
+                                {/* ── User account section ── */}
+                                {!editingMember && (
+                                    <>
+                                        <div className={styles.userModeToggle}>
+                                            <button
+                                                type="button"
+                                                className={`${styles.userModeBtn} ${userMode === 'existing' ? styles.active : ''}`}
+                                                onClick={() => setUserMode('existing')}
+                                            >
+                                                Link Existing User
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`${styles.userModeBtn} ${userMode === 'new' ? styles.active : ''}`}
+                                                onClick={() => setUserMode('new')}
+                                            >
+                                                Create New User
+                                            </button>
+                                        </div>
 
-                            <div className={styles.grid}>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="firstName">First Name *</label>
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        value={formData.firstName}
-                                        onChange={(e) => updateField('firstName', e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="lastName">Last Name *</label>
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        value={formData.lastName}
-                                        onChange={(e) => updateField('lastName', e.target.value)}
-                                        required
-                                    />
-                                </div>
-                            </div>
+                                        {userMode === 'existing' ? (
+                                            <div className={styles.formGroup}>
+                                                <label htmlFor="userId">User Account *</label>
+                                                <select
+                                                    id="userId"
+                                                    value={formData.userId}
+                                                    onChange={(e) => updateField('userId', e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">— Select existing user —</option>
+                                                    {availableUsersForCreate.map((u) => (
+                                                        <option key={u.id} value={u.id}>
+                                                            {u.userName} — {u.email}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {availableUsersForCreate.length === 0 && (
+                                                    <p style={{ fontSize: '0.78rem', color: '#b45309', marginTop: '0.4rem' }}>
+                                                        All existing users already have member profiles. Use "Create New User" instead.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className={styles.formRow} style={{ marginBottom: '1.2rem' }}>
+                                                <div className={styles.formGroup}>
+                                                    <label htmlFor="email">Email Address *</label>
+                                                    <input
+                                                        type="email"
+                                                        id="email"
+                                                        value={formData.email}
+                                                        onChange={(e) => updateField('email', e.target.value)}
+                                                        placeholder="member@church.org"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className={styles.formGroup}>
+                                                    <label htmlFor="roleId">Initial Role</label>
+                                                    <select
+                                                        id="roleId"
+                                                        value={formData.roleId}
+                                                        onChange={(e) => updateField('roleId', e.target.value)}
+                                                    >
+                                                        <option value="">— No role assigned —</option>
+                                                        {roles.map((r) => (
+                                                            <option key={r.id ?? r.Id} value={r.id ?? r.Id}>
+                                                                {r.name ?? r.Name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
 
-                            <div className={styles.grid}>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="countryCode">Phone Country Code</label>
-                                    <input
-                                        type="text"
-                                        id="countryCode"
-                                        value={formData.countryCode}
-                                        onChange={(e) => updateField('countryCode', e.target.value)}
-                                        placeholder="+234"
-                                    />
+                                {/* ── Personal info ── */}
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="apellation">Title</label>
+                                        <select id="apellation" value={formData.apellation} onChange={(e) => updateField('apellation', e.target.value)}>
+                                            <option value={0}>Mr</option>
+                                            <option value={1}>Mrs</option>
+                                            <option value={2}>Ms</option>
+                                            <option value={3}>Dr</option>
+                                            <option value={4}>Prof</option>
+                                            <option value={5}>Rev</option>
+                                            <option value={6}>Pastor</option>
+                                            <option value={7}>Elder</option>
+                                            <option value={8}>Deacon</option>
+                                            <option value={9}>Deaconess</option>
+                                            <option value={10}>Minister</option>
+                                            <option value={11}>Engr</option>
+                                        </select>
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="gender">Gender</label>
+                                        <select id="gender" value={formData.gender} onChange={(e) => updateField('gender', e.target.value)}>
+                                            <option value={1}>Male</option>
+                                            <option value={2}>Female</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="phoneNumber">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        id="phoneNumber"
-                                        value={formData.phoneNumber}
-                                        onChange={(e) => updateField('phoneNumber', e.target.value)}
-                                    />
-                                </div>
-                            </div>
 
-                            <div className={styles.grid}>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="alternativeCountryCode">Alt. Country Code</label>
-                                    <input
-                                        type="text"
-                                        id="alternativeCountryCode"
-                                        value={formData.alternativeCountryCode}
-                                        onChange={(e) => updateField('alternativeCountryCode', e.target.value)}
-                                        placeholder="+234"
-                                    />
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="firstName">First Name *</label>
+                                        <input type="text" id="firstName" value={formData.firstName} onChange={(e) => updateField('firstName', e.target.value)} required />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="lastName">Last Name *</label>
+                                        <input type="text" id="lastName" value={formData.lastName} onChange={(e) => updateField('lastName', e.target.value)} required />
+                                    </div>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="alternativePhoneNumber">Alternative Phone</label>
-                                    <input
-                                        type="tel"
-                                        id="alternativePhoneNumber"
-                                        value={formData.alternativePhoneNumber}
-                                        onChange={(e) => updateField('alternativePhoneNumber', e.target.value)}
-                                    />
+
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="countryCode">Phone Code</label>
+                                        <input type="text" id="countryCode" value={formData.countryCode} onChange={(e) => updateField('countryCode', e.target.value)} placeholder="+234" />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="phoneNumber">Phone Number</label>
+                                        <input type="tel" id="phoneNumber" value={formData.phoneNumber} onChange={(e) => updateField('phoneNumber', e.target.value)} />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className={styles.grid}>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="dateOfBirth">Date of Birth</label>
-                                    <input
-                                        type="date"
-                                        id="dateOfBirth"
-                                        value={formData.dateOfBirth}
-                                        onChange={(e) => updateField('dateOfBirth', e.target.value)}
-                                    />
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="alternativeCountryCode">Alt. Code</label>
+                                        <input type="text" id="alternativeCountryCode" value={formData.alternativeCountryCode} onChange={(e) => updateField('alternativeCountryCode', e.target.value)} placeholder="+234" />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="alternativePhoneNumber">Alternative Phone</label>
+                                        <input type="tel" id="alternativePhoneNumber" value={formData.alternativePhoneNumber} onChange={(e) => updateField('alternativePhoneNumber', e.target.value)} />
+                                    </div>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="maritalStatus">Marital Status</label>
-                                    <select
-                                        id="maritalStatus"
-                                        value={formData.maritalStatus}
-                                        onChange={(e) => updateField('maritalStatus', e.target.value)}
-                                    >
-                                        <option value={0}>Single</option>
-                                        <option value={1}>Married</option>
-                                        <option value={2}>Divorced</option>
-                                        <option value={3}>Widowed</option>
-                                    </select>
+
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="dateOfBirth">Date of Birth</label>
+                                        <input type="date" id="dateOfBirth" value={formData.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)} />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="maritalStatus">Marital Status</label>
+                                        <select id="maritalStatus" value={formData.maritalStatus} onChange={(e) => updateField('maritalStatus', e.target.value)}>
+                                            <option value={0}>Single</option>
+                                            <option value={1}>Married</option>
+                                            <option value={2}>Divorced</option>
+                                            <option value={3}>Widowed</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="occupation">Occupation</label>
-                                <input
-                                    type="text"
-                                    id="occupation"
-                                    value={formData.occupation}
-                                    onChange={(e) => updateField('occupation', e.target.value)}
-                                />
-                            </div>
-
-                            <div className={styles.formGroup}>
-                                <label htmlFor="street">Street *</label>
-                                <input
-                                    type="text"
-                                    id="street"
-                                    value={formData.street}
-                                    onChange={(e) => updateField('street', e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <div className={styles.grid}>
                                 <div className={styles.formGroup}>
-                                    <label htmlFor="city">City *</label>
-                                    <input
-                                        type="text"
-                                        id="city"
-                                        value={formData.city}
-                                        onChange={(e) => updateField('city', e.target.value)}
-                                        required
-                                    />
+                                    <label htmlFor="occupation">Occupation</label>
+                                    <input type="text" id="occupation" value={formData.occupation} onChange={(e) => updateField('occupation', e.target.value)} />
                                 </div>
+
                                 <div className={styles.formGroup}>
-                                    <label htmlFor="state">State *</label>
-                                    <input
-                                        type="text"
-                                        id="state"
-                                        value={formData.state}
-                                        onChange={(e) => updateField('state', e.target.value)}
-                                        required
-                                    />
+                                    <label htmlFor="street">Street Address *</label>
+                                    <input type="text" id="street" value={formData.street} onChange={(e) => updateField('street', e.target.value)} required />
                                 </div>
-                            </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="country">Country *</label>
-                                <input
-                                    type="text"
-                                    id="country"
-                                    value={formData.country}
-                                    onChange={(e) => updateField('country', e.target.value)}
-                                    required
-                                />
-                            </div>
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="city">City *</label>
+                                        <input type="text" id="city" value={formData.city} onChange={(e) => updateField('city', e.target.value)} required />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="state">State *</label>
+                                        <input type="text" id="state" value={formData.state} onChange={(e) => updateField('state', e.target.value)} required />
+                                    </div>
+                                </div>
 
-                            <div className={styles.formGroup}>
-                                <label htmlFor="nextOfKinName">Next of Kin</label>
-                                <input
-                                    type="text"
-                                    id="nextOfKinName"
-                                    value={formData.nextOfKinName}
-                                    onChange={(e) => updateField('nextOfKinName', e.target.value)}
-                                />
-                            </div>
-
-                            <div className={styles.grid}>
                                 <div className={styles.formGroup}>
-                                    <label htmlFor="nextOfKinCountryCode">Next of Kin Country Code</label>
-                                    <input
-                                        type="text"
-                                        id="nextOfKinCountryCode"
-                                        value={formData.nextOfKinCountryCode}
-                                        onChange={(e) => updateField('nextOfKinCountryCode', e.target.value)}
-                                        placeholder="+234"
-                                    />
+                                    <label htmlFor="country">Country *</label>
+                                    <input type="text" id="country" value={formData.country} onChange={(e) => updateField('country', e.target.value)} required />
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label htmlFor="nextOfKinPhoneNumber">Next of Kin Phone</label>
-                                    <input
-                                        type="tel"
-                                        id="nextOfKinPhoneNumber"
-                                        value={formData.nextOfKinPhoneNumber}
-                                        onChange={(e) => updateField('nextOfKinPhoneNumber', e.target.value)}
-                                    />
-                                </div>
-                            </div>
 
-                            <div className={styles.formActions}>
-                                <button
-                                    type="button"
-                                    className={styles.cancelBtn}
-                                    onClick={handleCloseModal}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className={styles.submitBtn}
-                                    disabled={saving}
-                                >
-                                    {saving ? 'Saving...' : editingMember ? 'Update' : 'Create'}
-                                </button>
-                            </div>
-                        </form>
+                                <div className={styles.formGroup}>
+                                    <label htmlFor="nextOfKinName">Next of Kin</label>
+                                    <input type="text" id="nextOfKinName" value={formData.nextOfKinName} onChange={(e) => updateField('nextOfKinName', e.target.value)} />
+                                </div>
+
+                                <div className={styles.formRow}>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="nextOfKinCountryCode">Next of Kin Code</label>
+                                        <input type="text" id="nextOfKinCountryCode" value={formData.nextOfKinCountryCode} onChange={(e) => updateField('nextOfKinCountryCode', e.target.value)} placeholder="+234" />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="nextOfKinPhoneNumber">Next of Kin Phone</label>
+                                        <input type="tel" id="nextOfKinPhoneNumber" value={formData.nextOfKinPhoneNumber} onChange={(e) => updateField('nextOfKinPhoneNumber', e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div className={styles.formActions}>
+                                    <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>Cancel</button>
+                                    <button type="submit" className={styles.submitBtn} disabled={saving}>
+                                        {saving ? 'Saving...' : editingMember ? 'Update' : 'Create Member'}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

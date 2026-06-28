@@ -1,8 +1,7 @@
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 1rem;
-    /* Add padding to prevent edge touching */
+    padding: 2rem 2rem 0;
 }
 
 .header {
@@ -10,16 +9,18 @@
 }
 
 .header h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1a202c;
-    margin: 0 0 0.5rem 0;
+    font-size: 1.85rem;
+    font-weight: 900;
+    color: #f1f5f9;
+    margin: 0 0 0.3rem 0;
+    letter-spacing: -0.03em;
 }
 
 .header p {
-    color: #718096;
-    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.9rem;
     margin: 0;
+    font-weight: 500;
 }
 
 .tabs {
