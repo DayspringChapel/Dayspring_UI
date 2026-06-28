@@ -1064,6 +1064,61 @@ class ApiClient {
             body: JSON.stringify({ scheduledPostId }),
         });
     }
+
+    // ── Content Personnel ─────────────────────────────────────────────────────
+    // Role values: 1 = Media, 2 = Graphics, 3 = SocialMedia
+
+    normalizeContentPersonnel(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            contentId: item.contentId || item.ContentId || '',
+            contentTitle: item.contentTitle || item.ContentTitle || '',
+            userId: item.userId || item.UserId || '',
+            userName: item.userName || item.UserName || '',
+            fullName: item.fullName || item.FullName || '',
+            role: item.role ?? item.Role ?? 0,
+            roleName: item.roleName || item.RoleName || '',
+            assignedBy: item.assignedBy || item.AssignedBy || '',
+            assignedAt: item.assignedAt || item.AssignedAt || '',
+        };
+    }
+
+    async assignContentPersonnel(contentId, userId, role) {
+        return this.request('/api/v1/ContentPersonnel/assign', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, userId, role }),
+        });
+    }
+
+    async getContentPersonnel(contentId) {
+        const data = await this.request(`/api/v1/ContentPersonnel/${contentId}`);
+        return this.normalizeArray(data, this.normalizeContentPersonnel);
+    }
+
+    async getContentPersonnelByRole(contentId, role) {
+        const data = await this.request(`/api/v1/ContentPersonnel/${contentId}/role/${role}`);
+        return this.normalizeArray(data, this.normalizeContentPersonnel);
+    }
+
+    async getMyPersonnelAssignments() {
+        const data = await this.request('/api/v1/ContentPersonnel/my-assignments');
+        return this.normalizeArray(data, this.normalizeContentPersonnel);
+    }
+
+    async updateContentPersonnelRole(id, role) {
+        return this.request(`/api/v1/ContentPersonnel/${id}/update`, {
+            method: 'PUT',
+            body: JSON.stringify({ role }),
+        });
+    }
+
+    async removeContentPersonnel(id) {
+        return this.request(`/api/v1/ContentPersonnel/${id}/remove`, {
+            method: 'DELETE',
+        });
+    }
 }
 
 const apiClient = new ApiClient();
