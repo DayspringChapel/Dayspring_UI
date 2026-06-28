@@ -1,9 +1,11 @@
-const DEFAULT_BACKEND_API_URL = 'https://dayspring-backend-4ar8.onrender.com';
+﻿const DEFAULT_BACKEND_API_URL = 'https://dayspring-backend-4ar8.onrender.com';
 const API_BASE_URL = (process.env.NEXT_PUBLIC_BACKEND_API_URL || DEFAULT_BACKEND_API_URL).replace(/\/$/, '');
+const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
 class ApiClient {
     constructor() {
         this.baseUrl = API_BASE_URL;
+        this.apiVersion = API_VERSION;
         this.maxRetries = 3;
         this.inFlightGetRequests = new Map();
     }
@@ -13,7 +15,9 @@ class ApiClient {
             throw new Error('Missing or invalid API endpoint');
         }
 
-        return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        // Swap the hardcoded version segment for whatever NEXT_PUBLIC_API_VERSION is set to
+        return path.replace(/^\/api\/v\d+\//, `/api/${this.apiVersion}/`);
     }
 
     sleep(ms) {
@@ -472,7 +476,7 @@ class ApiClient {
     }
 
     async login(userNameOrEmail, password) {
-        return this.request('/api/Users/login', {
+        return this.request('/api/v1/Users/login', {
             method: 'POST',
             body: JSON.stringify({ userNameOrEmail, password }),
         });
@@ -483,38 +487,38 @@ class ApiClient {
     }
 
     async getAlbums() {
-        const data = await this.request('/api/Albums');
+        const data = await this.request('/api/v1/Albums');
         return this.normalizeArray(data, this.normalizeAlbum);
     }
 
     async createAlbum(formData) {
-        return this.upload('/api/Albums/create-album', formData, 'POST');
+        return this.upload('/api/v1/Albums/create-album', formData, 'POST');
     }
 
     async deleteAlbum(albumId) {
-        return this.request(`/api/Albums/${albumId}/delete`, {
+        return this.request(`/api/v1/Albums/${albumId}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getAppointments() {
-        const data = await this.request('/api/Appointments/get-all');
+        const data = await this.request('/api/v1/Appointments/get-all');
         return this.normalizeArray(data, this.normalizeAppointment);
     }
 
     async scheduleAppointment(appointmentData) {
-        return this.request('/api/Appointments/schedule-appointment', {
+        return this.request('/api/v1/Appointments/schedule-appointment', {
             method: 'POST',
             body: JSON.stringify(appointmentData),
         });
     }
 
     async confirmAppointment(formData) {
-        return this.upload('/api/Appointments/confirm-appointment', formData, 'POST');
+        return this.upload('/api/v1/Appointments/confirm-appointment', formData, 'POST');
     }
 
     async cancelAppointment(appointmentId, reason) {
-        return this.request('/api/Appointments/cancel', {
+        return this.request('/api/v1/Appointments/cancel', {
             method: 'PATCH',
             body: JSON.stringify({
                 appointmentId,
@@ -524,210 +528,210 @@ class ApiClient {
     }
 
     async updateAppointmentVenue(appointmentId, appointmentVenue) {
-        return this.request(`/api/Appointments/${appointmentId}/venue`, {
+        return this.request(`/api/v1/Appointments/${appointmentId}/venue`, {
             method: 'PATCH',
             body: JSON.stringify({ appointmentVenue }),
         });
     }
 
     async getBooks() {
-        const data = await this.request('/api/Books');
+        const data = await this.request('/api/v1/Books');
         return this.normalizeArray(data, this.normalizeBook);
     }
 
     async createBook(formData) {
-        return this.upload('/api/Books/create', formData, 'POST');
+        return this.upload('/api/v1/Books/create', formData, 'POST');
     }
 
     async updateBook(bookId, formData) {
-        return this.upload(`/api/Books/${bookId}/update`, formData, 'PATCH');
+        return this.upload(`/api/v1/Books/${bookId}/update`, formData, 'PATCH');
     }
 
     async deleteBook(bookId) {
-        return this.request(`/api/Books/${bookId}/delete`, {
+        return this.request(`/api/v1/Books/${bookId}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getEvents() {
-        const data = await this.request('/api/Events');
+        const data = await this.request('/api/v1/Events');
         return this.normalizeArray(data, this.normalizeEvent);
     }
 
     async createEvent(formData) {
-        return this.upload('/api/Events/add-event', formData, 'POST');
+        return this.upload('/api/v1/Events/add-event', formData, 'POST');
     }
 
     async updateEvent(eventId, formData) {
         if (formData instanceof FormData) {
-            return this.upload(`/api/Events/${eventId}/update`, formData, 'PATCH');
+            return this.upload(`/api/v1/Events/${eventId}/update`, formData, 'PATCH');
         }
 
-        return this.request(`/api/Events/${eventId}/update`, {
+        return this.request(`/api/v1/Events/${eventId}/update`, {
             method: 'PATCH',
             body: JSON.stringify(formData),
         });
     }
 
     async deleteEvent(eventId) {
-        return this.request(`/api/Events/${eventId}/delete`, {
+        return this.request(`/api/v1/Events/${eventId}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getSermons() {
-        const data = await this.request('/api/Sermons');
+        const data = await this.request('/api/v1/Sermons');
         return this.normalizeArray(data, this.normalizeSermon);
     }
 
     async createSermon(formData) {
-        return this.upload('/api/Sermons/create', formData, 'POST');
+        return this.upload('/api/v1/Sermons/create', formData, 'POST');
     }
 
     async updateSermon(sermonId, sermonData) {
-        return this.request(`/api/Sermons/${sermonId}/update`, {
+        return this.request(`/api/v1/Sermons/${sermonId}/update`, {
             method: 'PUT',
             body: JSON.stringify(sermonData),
         });
     }
 
     async deleteSermon(sermonId) {
-        return this.request(`/api/Sermons/${sermonId}/delete`, {
+        return this.request(`/api/v1/Sermons/${sermonId}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getSeries() {
-        const data = await this.request('/api/Series/series');
+        const data = await this.request('/api/v1/Series/series');
         return Array.isArray(data) ? data : [];
     }
 
     async createSeries(seriesData) {
-        return this.request('/api/Series/create', {
+        return this.request('/api/v1/Series/create', {
             method: 'POST',
             body: JSON.stringify(seriesData),
         });
     }
 
     async updateSeries(id, seriesData) {
-        return this.request(`/api/Series/${id}/update`, {
+        return this.request(`/api/v1/Series/${id}/update`, {
             method: 'PUT',
             body: JSON.stringify(seriesData),
         });
     }
 
     async deleteSeries(id) {
-        return this.request(`/api/Series/${id}/delete`, {
+        return this.request(`/api/v1/Series/${id}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getImages() {
-        const data = await this.request('/api/Images/get-all');
+        const data = await this.request('/api/v1/Images/get-all');
         return this.normalizeArray(data, this.normalizeImage);
     }
 
     async uploadImage(formData) {
-        return this.upload('/api/Images/upload', formData, 'POST');
+        return this.upload('/api/v1/Images/upload', formData, 'POST');
     }
 
     async deleteImage(imageId) {
-        return this.request(`/api/Images/${imageId}/delete`, {
+        return this.request(`/api/v1/Images/${imageId}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getRequisitions() {
-        const data = await this.request('/api/Requisitions/requisition');
+        const data = await this.request('/api/v1/Requisitions/requisition');
         return this.normalizeArray(data, this.normalizeRequisition);
     }
 
     async createRequisition(requisitionData) {
-        return this.request('/create-requisition', {
+        return this.request('/api/v1/Requisitions/create-requisition', {
             method: 'POST',
             body: JSON.stringify(requisitionData),
         });
     }
 
     async updateRequisition(id, requisitionData) {
-        return this.request(`/api/Requisitions/${id}/requisition`, {
+        return this.request(`/api/v1/Requisitions/${id}/requisition`, {
             method: 'PUT',
             body: JSON.stringify(requisitionData),
         });
     }
 
     async approveRequisition(id) {
-        return this.request(`/api/Requisitions/${id}/approve`, {
+        return this.request(`/api/v1/Requisitions/${id}/approve`, {
             method: 'PATCH',
         });
     }
 
     async getGivings() {
-        return this.request('/api/Givings');
+        return this.request('/api/v1/Givings');
     }
 
     async deleteGiving(givingId) {
-        return this.request(`/api/Givings/${givingId}/delete-giving`, {
+        return this.request(`/api/v1/Givings/${givingId}/delete-giving`, {
             method: 'DELETE',
         });
     }
 
     async getBioData() {
-        const data = await this.request('/api/BioData/all');
+        const data = await this.request('/api/v1/BioData/all');
         return this.normalizeArray(data, this.normalizeBioData);
     }
 
     async getMembers() {
-        const data = await this.request('/api/Member');
+        const data = await this.request('/api/v1/Member');
         return this.normalizeArray(data, this.normalizeMember);
     }
 
     async getUnits() {
-        const data = await this.request('/api/Units');
+        const data = await this.request('/api/v1/Units');
         return this.normalizeArray(data, this.normalizeUnit);
     }
 
     async createUnit(unitData) {
-        return this.request('/api/Units/create', {
+        return this.request('/api/v1/Units/create', {
             method: 'POST',
             body: JSON.stringify(unitData),
         });
     }
 
     async updateUnit(unitId, unitData) {
-        return this.request(`/api/Units/${unitId}`, {
+        return this.request(`/api/v1/Units/${unitId}`, {
             method: 'PUT',
             body: JSON.stringify(unitData),
         });
     }
 
     async deleteUnit(unitId) {
-        return this.request(`/api/Units/${unitId}`, {
+        return this.request(`/api/v1/Units/${unitId}`, {
             method: 'DELETE',
         });
     }
 
     async getSmallGroups() {
-        const data = await this.request('/api/SmallGroups/all');
+        const data = await this.request('/api/v1/SmallGroups/all');
         return this.normalizeArray(data, this.normalizeSmallGroup);
     }
 
     async createSmallGroup(groupData) {
-        return this.request('/api/SmallGroups/create', {
+        return this.request('/api/v1/SmallGroups/create', {
             method: 'POST',
             body: JSON.stringify(groupData),
         });
     }
 
     async updateSmallGroup(groupId, groupData) {
-        return this.request(`/api/SmallGroups/${groupId}`, {
+        return this.request(`/api/v1/SmallGroups/update/${groupId}`, {
             method: 'PUT',
             body: JSON.stringify(groupData),
         });
     }
 
     async assignSmallGroupLeader(groupId, leaderMemberId, phoneNumber) {
-        return this.request('/api/SmallGroups/assign-leader', {
+        return this.request(`/api/v1/SmallGroups/assign-leader/${leaderMemberId}`, {
             method: 'PATCH',
             body: JSON.stringify({
                 smallGroupId: groupId,
@@ -738,59 +742,59 @@ class ApiClient {
     }
 
     async deleteSmallGroup(groupId) {
-        return this.request(`/api/SmallGroups/${groupId}`, {
+        return this.request(`/api/v1/SmallGroups/${groupId}`, {
             method: 'DELETE',
         });
     }
 
     async getChurchOfficials() {
-        const data = await this.request('/api/ChurchsOfficial');
+        const data = await this.request('/api/v1/ChurchsOfficial');
         return this.normalizeChurchOfficials(data);
     }
 
     async getBioDataById(id) {
-        const data = await this.request(`/api/BioData/${id}`);
+        const data = await this.request(`/api/v1/BioData/${id}`);
         return this.normalizeBioData(data);
     }
 
     async createBioData(bioData) {
-        return this.request('/api/BioData/create-biodata', {
+        return this.request('/api/v1/BioData/create-biodata', {
             method: 'POST',
             body: JSON.stringify(bioData),
         });
     }
 
     async getUsers() {
-        const data = await this.request('/api/Users/get-all');
+        const data = await this.request('/api/v1/Users/get-all');
         return this.normalizeArray(data, this.normalizeUser);
     }
 
     async createMember(memberData) {
-        return this.request('/api/Member/create', {
+        return this.request('/api/v1/Member/create', {
             method: 'POST',
             body: JSON.stringify(memberData),
         });
     }
 
     async updateBioData(bioData) {
-        return this.request('/api/BioData/update-biodata', {
+        return this.request('/api/v1/BioData/update-biodata', {
             method: 'PUT',
             body: JSON.stringify(bioData),
         });
     }
 
     async deleteBioData(id) {
-        return this.request(`/api/BioData/${id}/delete`, {
+        return this.request(`/api/v1/BioData/${id}/delete`, {
             method: 'DELETE',
         });
     }
 
     async getRoles() {
-        return this.request('/api/Roles/get-all');
+        return this.request('/api/v1/Roles/get-all');
     }
 
     async assignRole(userEmail, roleName) {
-        return this.request('/api/Roles/assign-role', {
+        return this.request('/api/v1/Roles/assign-role', {
             method: 'POST',
             body: JSON.stringify({ userEmail, roleName }),
         });
@@ -799,14 +803,14 @@ class ApiClient {
     // ── Auth ─────────────────────────────────────────────────────────────────
 
     async refreshToken(token, refreshToken) {
-        return this.request('/api/Users/refresh-token', {
+        return this.request('/api/v1/Users/refresh-token', {
             method: 'POST',
             body: JSON.stringify({ token, refreshToken }),
         });
     }
 
     async revokeToken(token) {
-        return this.request('/api/Users/revoke-token', {
+        return this.request('/api/v1/Users/revoke-token', {
             method: 'POST',
             body: JSON.stringify(token),
         });
@@ -837,35 +841,35 @@ class ApiClient {
     }
 
     async getMediaContents() {
-        const data = await this.request('/api/MediaContent');
+        const data = await this.request('/api/v1/MediaContent');
         return this.normalizeArray(data, this.normalizeMediaContent);
     }
 
     async getMediaContentById(id) {
-        const data = await this.request(`/api/MediaContent/${id}`);
+        const data = await this.request(`/api/v1/MediaContent/${id}`);
         return this.normalizeMediaContent(data);
     }
 
     async getMediaContentsByStatus(status) {
-        const data = await this.request(`/api/MediaContent/status/${status}`);
+        const data = await this.request(`/api/v1/MediaContent/status/${status}`);
         return this.normalizeArray(data, this.normalizeMediaContent);
     }
 
     async getMyMediaContents(ownerId) {
-        const data = await this.request(`/api/MediaContent/owner/${ownerId}`);
+        const data = await this.request(`/api/v1/MediaContent/owner/${ownerId}`);
         return this.normalizeArray(data, this.normalizeMediaContent);
     }
 
     async uploadMediaContent(formData) {
-        return this.upload('/api/MediaContent/upload', formData, 'POST');
+        return this.upload('/api/v1/MediaContent/upload', formData, 'POST');
     }
 
     async updateMediaContent(id, formData) {
-        return this.upload(`/api/MediaContent/${id}/update`, formData, 'PATCH');
+        return this.upload(`/api/v1/MediaContent/${id}/update`, formData, 'PATCH');
     }
 
     async deleteMediaContent(id) {
-        return this.request(`/api/MediaContent/${id}/delete`, { method: 'DELETE' });
+        return this.request(`/api/v1/MediaContent/${id}/delete`, { method: 'DELETE' });
     }
 
     // ── Workflow ──────────────────────────────────────────────────────────────
@@ -888,31 +892,31 @@ class ApiClient {
     }
 
     async getWorkflow(contentId) {
-        const data = await this.request(`/api/Workflow/${contentId}`);
+        const data = await this.request(`/api/v1/Workflow/${contentId}`);
         return this.normalizeWorkflow(data);
     }
 
     async getWorkflowHistory(contentId) {
-        const data = await this.request(`/api/Workflow/${contentId}/history`);
+        const data = await this.request(`/api/v1/Workflow/${contentId}/history`);
         return Array.isArray(data) ? data : [];
     }
 
     async submitForReview(contentId, comment) {
-        return this.request('/api/Workflow/submit', {
+        return this.request('/api/v1/Workflow/submit', {
             method: 'POST',
             body: JSON.stringify({ contentId, comment }),
         });
     }
 
     async sendBackToDraft(contentId, comment) {
-        return this.request('/api/Workflow/send-back', {
+        return this.request('/api/v1/Workflow/send-back', {
             method: 'POST',
             body: JSON.stringify({ contentId, comment }),
         });
     }
 
     async forwardForApproval(contentId, comment) {
-        return this.request('/api/Workflow/forward-for-approval', {
+        return this.request('/api/v1/Workflow/forward-for-approval', {
             method: 'POST',
             body: JSON.stringify({ contentId, comment }),
         });
@@ -938,43 +942,43 @@ class ApiClient {
     }
 
     async getAdminApprovalQueue() {
-        const data = await this.request('/api/Approvals/queue/admin');
+        const data = await this.request('/api/v1/Approvals/queue/admin');
         return this.normalizeArray(data, this.normalizeApproval);
     }
 
     async getSuperAdminApprovalQueue() {
-        const data = await this.request('/api/Approvals/queue/super-admin');
+        const data = await this.request('/api/v1/Approvals/queue/super-admin');
         return this.normalizeArray(data, this.normalizeApproval);
     }
 
     async getApprovalsByContent(contentId) {
-        const data = await this.request(`/api/Approvals/content/${contentId}`);
+        const data = await this.request(`/api/v1/Approvals/content/${contentId}`);
         return this.normalizeArray(data, this.normalizeApproval);
     }
 
     async approveContent(contentId, comment) {
-        return this.request('/api/Approvals/approve', {
+        return this.request('/api/v1/Approvals/approve', {
             method: 'POST',
             body: JSON.stringify({ contentId, approved: true, comment }),
         });
     }
 
     async rejectContent(contentId, comment) {
-        return this.request('/api/Approvals/reject', {
+        return this.request('/api/v1/Approvals/reject', {
             method: 'POST',
             body: JSON.stringify({ contentId, approved: false, comment }),
         });
     }
 
     async addReviewComment(contentId, body, parentCommentId = null) {
-        return this.request('/api/Approvals/comments', {
+        return this.request('/api/v1/Approvals/comments', {
             method: 'POST',
             body: JSON.stringify({ contentId, body, parentCommentId }),
         });
     }
 
     async getReviewComments(contentId) {
-        const data = await this.request(`/api/Approvals/${contentId}/comments`);
+        const data = await this.request(`/api/v1/Approvals/${contentId}/comments`);
         return Array.isArray(data) ? data : [];
     }
 
@@ -1017,45 +1021,45 @@ class ApiClient {
     }
 
     async schedulePublish(contentId, platforms, scheduledAt, caption) {
-        return this.request('/api/Publishing/schedule', {
+        return this.request('/api/v1/Publishing/schedule', {
             method: 'POST',
             body: JSON.stringify({ contentId, platforms, scheduledAt, caption }),
         });
     }
 
     async getAllScheduledPosts() {
-        const data = await this.request('/api/Publishing/scheduled');
+        const data = await this.request('/api/v1/Publishing/scheduled');
         return this.normalizeArray(data, this.normalizeScheduledPost);
     }
 
     async getScheduledPostsByContent(contentId) {
-        const data = await this.request(`/api/Publishing/scheduled/content/${contentId}`);
+        const data = await this.request(`/api/v1/Publishing/scheduled/content/${contentId}`);
         return this.normalizeArray(data, this.normalizeScheduledPost);
     }
 
     async cancelScheduledPost(scheduledPostId) {
-        return this.request(`/api/Publishing/scheduled/${scheduledPostId}/cancel`, { method: 'DELETE' });
+        return this.request(`/api/v1/Publishing/scheduled/${scheduledPostId}/cancel`, { method: 'DELETE' });
     }
 
     async publishNow(contentId, platforms, caption) {
-        return this.request('/api/Publishing/publish-now', {
+        return this.request('/api/v1/Publishing/publish-now', {
             method: 'POST',
             body: JSON.stringify({ contentId, platforms, caption }),
         });
     }
 
     async getAllPublishedPosts() {
-        const data = await this.request('/api/Publishing/published');
+        const data = await this.request('/api/v1/Publishing/published');
         return this.normalizeArray(data, this.normalizePublishedPost);
     }
 
     async getPublishedPostsByContent(contentId) {
-        const data = await this.request(`/api/Publishing/published/content/${contentId}`);
+        const data = await this.request(`/api/v1/Publishing/published/content/${contentId}`);
         return this.normalizeArray(data, this.normalizePublishedPost);
     }
 
     async retryPublish(scheduledPostId) {
-        return this.request('/api/Publishing/retry', {
+        return this.request('/api/v1/Publishing/retry', {
             method: 'POST',
             body: JSON.stringify({ scheduledPostId }),
         });
