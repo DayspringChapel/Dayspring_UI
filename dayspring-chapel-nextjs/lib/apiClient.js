@@ -795,6 +795,271 @@ class ApiClient {
             body: JSON.stringify({ userEmail, roleName }),
         });
     }
+
+    // ── Auth ─────────────────────────────────────────────────────────────────
+
+    async refreshToken(token, refreshToken) {
+        return this.request('/api/Users/refresh-token', {
+            method: 'POST',
+            body: JSON.stringify({ token, refreshToken }),
+        });
+    }
+
+    async revokeToken(token) {
+        return this.request('/api/Users/revoke-token', {
+            method: 'POST',
+            body: JSON.stringify(token),
+        });
+    }
+
+    // ── Media Content ─────────────────────────────────────────────────────────
+
+    normalizeMediaContent(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            title: item.title || item.Title || '',
+            description: item.description || item.Description || '',
+            contentType: item.contentType ?? item.ContentType ?? 0,
+            contentTypeName: item.contentTypeName || item.ContentTypeName || '',
+            cloudinaryUrl: item.cloudinaryUrl || item.CloudinaryUrl || '',
+            thumbnailUrl: item.thumbnailUrl || item.ThumbnailUrl || null,
+            ownerId: item.ownerId || item.OwnerId || '',
+            ownerName: item.ownerName || item.OwnerName || '',
+            category: item.category || item.Category || '',
+            tags: item.tags || item.Tags || '',
+            workflowStatus: item.workflowStatus ?? item.WorkflowStatus ?? 0,
+            workflowStatusName: item.workflowStatusName || item.WorkflowStatusName || '',
+            createdBy: item.createdBy || item.CreatedBy || '',
+            createdDate: item.createdDate || item.CreatedDate || '',
+        };
+    }
+
+    async getMediaContents() {
+        const data = await this.request('/api/MediaContent');
+        return this.normalizeArray(data, this.normalizeMediaContent);
+    }
+
+    async getMediaContentById(id) {
+        const data = await this.request(`/api/MediaContent/${id}`);
+        return this.normalizeMediaContent(data);
+    }
+
+    async getMediaContentsByStatus(status) {
+        const data = await this.request(`/api/MediaContent/status/${status}`);
+        return this.normalizeArray(data, this.normalizeMediaContent);
+    }
+
+    async getMyMediaContents(ownerId) {
+        const data = await this.request(`/api/MediaContent/owner/${ownerId}`);
+        return this.normalizeArray(data, this.normalizeMediaContent);
+    }
+
+    async uploadMediaContent(formData) {
+        return this.upload('/api/MediaContent/upload', formData, 'POST');
+    }
+
+    async updateMediaContent(id, formData) {
+        return this.upload(`/api/MediaContent/${id}/update`, formData, 'PATCH');
+    }
+
+    async deleteMediaContent(id) {
+        return this.request(`/api/MediaContent/${id}/delete`, { method: 'DELETE' });
+    }
+
+    // ── Workflow ──────────────────────────────────────────────────────────────
+
+    normalizeWorkflow(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            contentId: item.contentId || item.ContentId || '',
+            contentTitle: item.contentTitle || item.ContentTitle || '',
+            currentStatus: item.currentStatus ?? item.CurrentStatus ?? 0,
+            currentStatusName: item.currentStatusName || item.CurrentStatusName || '',
+            initiatedBy: item.initiatedBy || item.InitiatedBy || '',
+            lastTransitionAt: item.lastTransitionAt || item.LastTransitionAt || '',
+            history: Array.isArray(item.history || item.History)
+                ? (item.history || item.History)
+                : [],
+        };
+    }
+
+    async getWorkflow(contentId) {
+        const data = await this.request(`/api/Workflow/${contentId}`);
+        return this.normalizeWorkflow(data);
+    }
+
+    async getWorkflowHistory(contentId) {
+        const data = await this.request(`/api/Workflow/${contentId}/history`);
+        return Array.isArray(data) ? data : [];
+    }
+
+    async submitForReview(contentId, comment) {
+        return this.request('/api/Workflow/submit', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, comment }),
+        });
+    }
+
+    async sendBackToDraft(contentId, comment) {
+        return this.request('/api/Workflow/send-back', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, comment }),
+        });
+    }
+
+    async forwardForApproval(contentId, comment) {
+        return this.request('/api/Workflow/forward-for-approval', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, comment }),
+        });
+    }
+
+    // ── Approvals ─────────────────────────────────────────────────────────────
+
+    normalizeApproval(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            contentId: item.contentId || item.ContentId || '',
+            contentTitle: item.contentTitle || item.ContentTitle || '',
+            level: item.level ?? item.Level ?? 0,
+            levelName: item.levelName || item.LevelName || '',
+            approverName: item.approverName || item.ApproverName || '',
+            status: item.status ?? item.Status ?? 0,
+            statusName: item.statusName || item.StatusName || '',
+            comment: item.comment || item.Comment || null,
+            decidedAt: item.decidedAt || item.DecidedAt || null,
+        };
+    }
+
+    async getAdminApprovalQueue() {
+        const data = await this.request('/api/Approvals/queue/admin');
+        return this.normalizeArray(data, this.normalizeApproval);
+    }
+
+    async getSuperAdminApprovalQueue() {
+        const data = await this.request('/api/Approvals/queue/super-admin');
+        return this.normalizeArray(data, this.normalizeApproval);
+    }
+
+    async getApprovalsByContent(contentId) {
+        const data = await this.request(`/api/Approvals/content/${contentId}`);
+        return this.normalizeArray(data, this.normalizeApproval);
+    }
+
+    async approveContent(contentId, comment) {
+        return this.request('/api/Approvals/approve', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, approved: true, comment }),
+        });
+    }
+
+    async rejectContent(contentId, comment) {
+        return this.request('/api/Approvals/reject', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, approved: false, comment }),
+        });
+    }
+
+    async addReviewComment(contentId, body, parentCommentId = null) {
+        return this.request('/api/Approvals/comments', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, body, parentCommentId }),
+        });
+    }
+
+    async getReviewComments(contentId) {
+        const data = await this.request(`/api/Approvals/${contentId}/comments`);
+        return Array.isArray(data) ? data : [];
+    }
+
+    // ── Publishing ────────────────────────────────────────────────────────────
+
+    normalizeScheduledPost(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            contentId: item.contentId || item.ContentId || '',
+            contentTitle: item.contentTitle || item.ContentTitle || '',
+            platform: item.platform ?? item.Platform ?? 0,
+            platformName: item.platformName || item.PlatformName || '',
+            scheduledAt: item.scheduledAt || item.ScheduledAt || '',
+            status: item.status ?? item.Status ?? 0,
+            statusName: item.statusName || item.StatusName || '',
+            scheduledByName: item.scheduledByName || item.ScheduledByName || '',
+            caption: item.caption || item.Caption || null,
+            retryCount: item.retryCount ?? item.RetryCount ?? 0,
+            errorMessage: item.errorMessage || item.ErrorMessage || null,
+        };
+    }
+
+    normalizePublishedPost(item) {
+        if (!item) return null;
+        return {
+            ...item,
+            id: item.id || item.Id,
+            contentId: item.contentId || item.ContentId || '',
+            contentTitle: item.contentTitle || item.ContentTitle || '',
+            platform: item.platform ?? item.Platform ?? 0,
+            platformName: item.platformName || item.PlatformName || '',
+            platformPostUrl: item.platformPostUrl || item.PlatformPostUrl || null,
+            publishedAt: item.publishedAt || item.PublishedAt || '',
+            publishedByName: item.publishedByName || item.PublishedByName || '',
+            status: item.status ?? item.Status ?? 0,
+            errorMessage: item.errorMessage || item.ErrorMessage || null,
+        };
+    }
+
+    async schedulePublish(contentId, platforms, scheduledAt, caption) {
+        return this.request('/api/Publishing/schedule', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, platforms, scheduledAt, caption }),
+        });
+    }
+
+    async getAllScheduledPosts() {
+        const data = await this.request('/api/Publishing/scheduled');
+        return this.normalizeArray(data, this.normalizeScheduledPost);
+    }
+
+    async getScheduledPostsByContent(contentId) {
+        const data = await this.request(`/api/Publishing/scheduled/content/${contentId}`);
+        return this.normalizeArray(data, this.normalizeScheduledPost);
+    }
+
+    async cancelScheduledPost(scheduledPostId) {
+        return this.request(`/api/Publishing/scheduled/${scheduledPostId}/cancel`, { method: 'DELETE' });
+    }
+
+    async publishNow(contentId, platforms, caption) {
+        return this.request('/api/Publishing/publish-now', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, platforms, caption }),
+        });
+    }
+
+    async getAllPublishedPosts() {
+        const data = await this.request('/api/Publishing/published');
+        return this.normalizeArray(data, this.normalizePublishedPost);
+    }
+
+    async getPublishedPostsByContent(contentId) {
+        const data = await this.request(`/api/Publishing/published/content/${contentId}`);
+        return this.normalizeArray(data, this.normalizePublishedPost);
+    }
+
+    async retryPublish(scheduledPostId) {
+        return this.request('/api/Publishing/retry', {
+            method: 'POST',
+            body: JSON.stringify({ scheduledPostId }),
+        });
+    }
 }
 
 const apiClient = new ApiClient();

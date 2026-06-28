@@ -16,6 +16,9 @@ export default function AdminDashboard() {
         requisitions: 0,
         units: 0,
         smallGroups: 0,
+        media: 0,
+        pendingApprovals: 0,
+        scheduledPosts: 0,
     });
     const [loading, setLoading] = useState(true);
 
@@ -25,16 +28,22 @@ export default function AdminDashboard() {
 
     const loadStats = async () => {
         try {
-            const [appointmentsRes, eventsRes, booksRes, sermonsRes, requisitionsRes, unitsRes, smallGroupsRes] =
-                await Promise.all([
-                    apiClient.getAppointments().catch(() => []),
-                    apiClient.getEvents().catch(() => []),
-                    apiClient.getBooks().catch(() => []),
-                    apiClient.getSermons().catch(() => []),
-                    apiClient.getRequisitions().catch(() => []),
-                    apiClient.getUnits().catch(() => []),
-                    apiClient.getSmallGroups().catch(() => []),
-                ]);
+            const [
+                appointmentsRes, eventsRes, booksRes, sermonsRes,
+                requisitionsRes, unitsRes, smallGroupsRes,
+                mediaRes, approvalsRes, scheduledRes,
+            ] = await Promise.all([
+                apiClient.getAppointments().catch(() => []),
+                apiClient.getEvents().catch(() => []),
+                apiClient.getBooks().catch(() => []),
+                apiClient.getSermons().catch(() => []),
+                apiClient.getRequisitions().catch(() => []),
+                apiClient.getUnits().catch(() => []),
+                apiClient.getSmallGroups().catch(() => []),
+                apiClient.getMediaContents().catch(() => []),
+                apiClient.getAdminApprovalQueue().catch(() => []),
+                apiClient.getAllScheduledPosts().catch(() => []),
+            ]);
 
             const getCount = (response) => {
                 const data = response?.data || response || [];
@@ -49,6 +58,9 @@ export default function AdminDashboard() {
                 requisitions: getCount(requisitionsRes),
                 units: getCount(unitsRes),
                 smallGroups: getCount(smallGroupsRes),
+                media: getCount(mediaRes),
+                pendingApprovals: getCount(approvalsRes),
+                scheduledPosts: getCount(scheduledRes),
             });
         } catch (error) {
             console.error('Failed to load stats:', error);
@@ -58,100 +70,27 @@ export default function AdminDashboard() {
     };
 
     const quickActions = [
-        {
-            title: 'Manage Content',
-            description: 'Add or edit events, sermons, books, and albums',
-            icon: 'CM',
-            path: '/admin/content',
-            color: '#D9752C',
-        },
-        {
-            title: 'Appointments',
-            description: 'View and manage appointment requests',
-            icon: 'AP',
-            path: '/admin/appointments',
-            color: '#0f766e',
-        },
-        {
-            title: 'Requisitions',
-            description: 'Review and approve requisition requests',
-            icon: 'RQ',
-            path: '/admin/requisitions',
-            color: '#b45309',
-        },
-        {
-            title: 'Members',
-            description: 'Manage member profiles and birthdays',
-            icon: 'MB',
-            path: '/admin/members',
-            color: '#be123c',
-        },
-        {
-            title: 'Units',
-            description: 'Manage departments, heads, and contact details',
-            icon: 'UN',
-            path: '/admin/units',
-            color: '#4f46e5',
-        },
-        {
-            title: 'Small Groups',
-            description: 'Manage small groups and assign leaders',
-            icon: 'SG',
-            path: '/admin/small-groups',
-            color: '#15803d',
-        },
+        { title: 'Manage Content', description: 'Add or edit events, sermons, books, and albums', icon: 'CM', path: '/admin/content', color: '#D9752C' },
+        { title: 'Appointments', description: 'View and manage appointment requests', icon: 'AP', path: '/admin/appointments', color: '#0f766e' },
+        { title: 'Requisitions', description: 'Review and approve requisition requests', icon: 'RQ', path: '/admin/requisitions', color: '#b45309' },
+        { title: 'Members', description: 'Manage member profiles and birthdays', icon: 'MB', path: '/admin/members', color: '#be123c' },
+        { title: 'Media Library', description: 'Upload and manage media content files', icon: 'ML', path: '/admin/media', color: '#7c3aed' },
+        { title: 'Workflow', description: 'Route content through the approval pipeline', icon: 'WF', path: '/admin/workflow', color: '#0369a1' },
+        { title: 'Approvals', description: 'Approve or reject pending content submissions', icon: 'AV', path: '/admin/approvals', color: '#15803d' },
+        { title: 'Publishing', description: 'Schedule and track publishing across platforms', icon: 'PB', path: '/admin/publishing', color: '#9f1239' },
     ];
 
     const statCards = [
-        {
-            title: 'Appointments',
-            value: stats.appointments,
-            icon: 'AP',
-            color: '#D9752C',
-            note: 'Pastoral requests',
-        },
-        {
-            title: 'Events',
-            value: stats.events,
-            icon: 'EV',
-            color: '#0f766e',
-            note: 'Upcoming moments',
-        },
-        {
-            title: 'Books',
-            value: stats.books,
-            icon: 'BK',
-            color: '#b45309',
-            note: 'Library resources',
-        },
-        {
-            title: 'Sermons',
-            value: stats.sermons,
-            icon: 'SR',
-            color: '#be123c',
-            note: 'Messages available',
-        },
-        {
-            title: 'Requisitions',
-            value: stats.requisitions,
-            icon: 'RQ',
-            color: '#2563eb',
-            note: 'Requests to review',
-        },
-        {
-            title: 'Units',
-            value: stats.units,
-            icon: 'UN',
-            color: '#4f46e5',
-            note: 'Departments',
-        },
-        {
-            title: 'Small Groups',
-            value: stats.smallGroups,
-            icon: 'SG',
-            color: '#15803d',
-            note: 'Care groups',
-        },
+        { title: 'Appointments', value: stats.appointments, icon: 'AP', color: '#D9752C', note: 'Pastoral requests' },
+        { title: 'Events', value: stats.events, icon: 'EV', color: '#0f766e', note: 'Upcoming moments' },
+        { title: 'Books', value: stats.books, icon: 'BK', color: '#b45309', note: 'Library resources' },
+        { title: 'Sermons', value: stats.sermons, icon: 'SR', color: '#be123c', note: 'Messages available' },
+        { title: 'Requisitions', value: stats.requisitions, icon: 'RQ', color: '#2563eb', note: 'Requests to review' },
+        { title: 'Units', value: stats.units, icon: 'UN', color: '#4f46e5', note: 'Departments' },
+        { title: 'Small Groups', value: stats.smallGroups, icon: 'SG', color: '#15803d', note: 'Care groups' },
+        { title: 'Media Content', value: stats.media, icon: 'MD', color: '#7c3aed', note: 'Content uploads' },
+        { title: 'Pending Approvals', value: stats.pendingApprovals, icon: 'PA', color: '#b91c1c', note: 'Awaiting review' },
+        { title: 'Scheduled Posts', value: stats.scheduledPosts, icon: 'SP', color: '#0369a1', note: 'Publishing queue' },
     ];
 
     const totalRecords = Object.values(stats).reduce((sum, value) => sum + value, 0);

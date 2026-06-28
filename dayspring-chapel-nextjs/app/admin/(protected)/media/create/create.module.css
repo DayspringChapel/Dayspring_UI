@@ -1,0 +1,217 @@
+.page {
+    --ink: #172033;
+    --muted: #5b667a;
+    --line: rgba(23, 32, 51, 0.1);
+    --paper: rgba(255, 255, 255, 0.95);
+    --brand: #d9752c;
+    --brand-dark: #8f3f12;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--ink);
+    animation: fadeUp 0.4s ease both;
+}
+
+.backBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.5rem;
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.18s;
+}
+
+.backBtn:hover { color: var(--ink); }
+
+.pageTitle {
+    margin: 0 0 0.35rem;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+}
+
+.pageSubtitle {
+    margin: 0 0 2rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.form {
+    padding: 2rem;
+    border: 1px solid var(--line);
+    border-radius: 1.75rem;
+    background: var(--paper);
+    box-shadow: 0 8px 28px rgba(23, 32, 51, 0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Drop zone */
+.dropZone {
+    padding: 2.5rem 1.5rem;
+    border: 2px dashed var(--line);
+    border-radius: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.dropZone:hover { border-color: var(--brand); background: #fff8f3; }
+
+.dropZoneActive {
+    border-color: var(--brand);
+    background: #fff4ec;
+}
+
+.dropZoneIcon {
+    font-size: 2.2rem;
+    margin-bottom: 0.6rem;
+    display: block;
+}
+
+.dropZoneLabel {
+    margin: 0 0 0.3rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.dropZoneHint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.dropZoneFileName {
+    margin: 0 0 0.2rem;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #15803d;
+}
+
+.dropZoneFileSize {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #9ca3af;
+}
+
+.hiddenInput { display: none; }
+
+/* Field rows */
+.row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.formGroup label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    width: 100%;
+    padding: 0.68rem 1rem;
+    border: 1.5px solid var(--line);
+    border-radius: 0.85rem;
+    background: #fafafa;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.18s;
+    box-sizing: border-box;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus { border-color: var(--brand); }
+
+.formGroup textarea { resize: vertical; }
+
+.thumbnailInput {
+    font-size: 0.85rem;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+/* Error */
+.error {
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Submit row */
+.formActions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+}
+
+.btnSubmit {
+    flex: 1;
+    padding: 0.78rem;
+    border: none;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(217, 117, 44, 0.32);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btnSubmit:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(217, 117, 44, 0.44); }
+.btnSubmit:disabled { opacity: 0.48; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btnCancel {
+    padding: 0.78rem 1.5rem;
+    border: 1.5px solid var(--line);
+    border-radius: 0.85rem;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: border-color 0.18s, color 0.18s;
+}
+
+.btnCancel:hover { border-color: var(--ink); color: var(--ink); }
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 580px) {
+    .page { padding: 1rem; }
+    .form { padding: 1.25rem; border-radius: 1.25rem; }
+    .row2 { grid-template-columns: 1fr; }
+    .formActions { flex-direction: column-reverse; }
+}

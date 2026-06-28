@@ -174,6 +174,74 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 </svg>
             ),
         },
+        {
+            title: 'Media',
+            path: '/admin/media',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V13C18 14.1046 17.1046 15 16 15H4C2.89543 15 2 14.1046 2 13V4ZM8 6C7.44772 6 7 6.44772 7 7V11C7 11.3688 7.20302 11.7077 7.52652 11.8817C7.85003 12.0557 8.2429 12.0366 8.5477 11.8321L12.5477 9.16542C12.8217 8.98169 12.99 8.68065 12.99 8.35714C12.99 8.03363 12.8217 7.73259 12.5477 7.54885L8.5477 4.88218C8.2429 4.67766 7.85003 4.65851 7.52652 4.83253C7.20302 5.00655 7 5.34547 7 5.71429V6H8ZM4 16H16C16.3506 16 16.6872 15.9398 17 15.8293V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V15.8293C3.31278 15.9398 3.64936 16 4 16Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            ),
+        },
+        {
+            title: 'Workflow',
+            path: '/admin/workflow',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M2 5C2 3.89543 2.89543 3 4 3H7C8.10457 3 9 3.89543 9 5V7C9 8.10457 8.10457 9 7 9H4C2.89543 9 2 8.10457 2 7V5ZM11 5C11 3.89543 11.8954 3 13 3H16C17.1046 3 18 3.89543 18 5V7C18 8.10457 17.1046 9 16 9H13C11.8954 9 11 8.10457 11 7V5ZM2 13C2 11.8954 2.89543 11 4 11H7C8.10457 11 9 11.8954 9 13V15C9 16.1046 8.10457 17 7 17H4C2.89543 17 2 16.1046 2 15V13ZM9 14H11M11 14V12C11 11.4477 11.4477 11 12 11H14M14 11V9M14 9H16M14 9H12"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        fill="none"
+                    />
+                </svg>
+            ),
+        },
+        {
+            title: 'Approvals',
+            path: '/admin/approvals',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            ),
+        },
+        {
+            title: 'Publishing',
+            path: '/admin/publishing',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        d="M10 2L13.09 8.26L20 9.27L15 14.14L16.18 21.02L10 17.77L3.82 21.02L5 14.14L0 9.27L6.91 8.26L10 2Z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        transform="scale(0.85) translate(1.5, 1.5)"
+                    />
+                    <path
+                        d="M3 13H17M10 3V10"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                    />
+                </svg>
+            ),
+        },
     ];
 
     return (
