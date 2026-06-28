@@ -776,6 +776,13 @@ class ApiClient {
         });
     }
 
+    async createMemberWithUser(data) {
+        return this.request('/api/v1/Member/create-with-user', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     async updateBioData(bioData) {
         return this.request('/api/v1/BioData/update-biodata', {
             method: 'PUT',
@@ -796,7 +803,7 @@ class ApiClient {
     async assignRole(userEmail, roleName) {
         return this.request('/api/v1/Roles/assign-role', {
             method: 'POST',
-            body: JSON.stringify({ userEmail, roleName }),
+            body: JSON.stringify({ UserEmail: userEmail, RoleName: roleName }),
         });
     }
 

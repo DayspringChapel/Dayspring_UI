@@ -1,453 +1,692 @@
-.dashboard {
-    --ink: #172033;
-    --muted: #5b667a;
-    --line: rgba(23, 32, 51, 0.1);
-    --paper: rgba(255, 255, 255, 0.9);
-    --brand: #d9752c;
-    --brand-dark: #8f3f12;
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLASSMORPHISM DASHBOARD  —  token-driven, per-role themed
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Root tokens (per-role overrides set via inline style on .page) ──── */
+.page {
+    --brand:        #d9752c;
+    --brand-l:      #fb923c;
+    --brand-dark:   #9a3412;
+    --glow-1:       rgba(217,117,44,0.60);
+    --glow-2:       rgba(99,102,241,0.38);
+    --hero-a:       #1c0900;
+    --hero-b:       #2d1400;
+
+    /* glass palette */
+    --g-card:       rgba(255,255,255,0.80);
+    --g-card-h:     rgba(255,255,255,0.90);
+    --g-border:     rgba(255,255,255,0.88);
+    --g-border-h:   rgba(255,255,255,1);
+    --g-shadow:     0 8px 32px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.55);
+    --g-shadow-h:   0 20px 52px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.70);
+    --g-blur:       blur(22px) saturate(180%);
+
+    /* dark glass (hero) */
+    --dg:           rgba(8,12,28,0.72);
+    --dg-border:    rgba(255,255,255,0.13);
+
+    /* action btn inactive glass */
+    --action-bg:    rgba(255,255,255,0.60);
+    --action-bg-h:  rgba(255,255,255,0.84);
+
+    /* text */
+    --ink:          #0f172a;
+    --muted:        #475569;
+    --faint:        #94a3b8;
+    --on-dark:      #f1f5f9;
+
+    /* geometry */
+    --r-xl:  2rem;
+    --r-lg:  1.4rem;
+    --r-md:  1rem;
+    --r-sm:  0.6rem;
+
     position: relative;
-    max-width: 1460px;
-    min-height: calc(100vh - 110px);
+    max-width: 1500px;
     margin: 0 auto;
     padding: 2rem;
-    color: var(--ink);
     isolation: isolate;
+    min-height: calc(100vh - 110px);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.dashboard::before {
+/* ── 2. Ambient background ──────────────────────────────────────────────── */
+.page::before {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 0;
     z-index: -2;
     background:
-        radial-gradient(circle at 12% 8%, rgba(217, 117, 44, 0.22), transparent 28rem),
-        radial-gradient(circle at 88% 15%, rgba(15, 118, 110, 0.16), transparent 24rem),
-        linear-gradient(135deg, #fff7ed 0%, #f8fafc 48%, #eef6f2 100%);
+        radial-gradient(ellipse 80% 65% at 12%  8%,  var(--glow-1), transparent),
+        radial-gradient(ellipse 65% 70% at 88% 85%,  var(--glow-2), transparent),
+        radial-gradient(ellipse 50% 50% at 55% 45%,  rgba(255,255,255,0.03), transparent),
+        linear-gradient(148deg, #07090f 0%, #0d1120 40%, #0a0c1a 70%, #060810 100%);
+    pointer-events: none;
 }
 
-.dashboard::after {
+/* Soft floating orbs that breathe */
+.page::after {
     content: '';
-    position: absolute;
-    inset: 1rem;
+    position: fixed;
+    inset: 0;
     z-index: -1;
-    border-radius: 2rem;
-    background-image:
-        linear-gradient(rgba(23, 32, 51, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23, 32, 51, 0.035) 1px, transparent 1px);
-    background-size: 32px 32px;
-    mask-image: linear-gradient(to bottom, black, transparent 72%);
+    background:
+        radial-gradient(circle 280px at 72% 18%,
+            color-mix(in srgb, var(--brand) 18%, transparent), transparent),
+        radial-gradient(circle 180px at 22% 78%,
+            color-mix(in srgb, var(--brand-l) 12%, transparent), transparent);
+    pointer-events: none;
+    animation: orbDrift 22s ease-in-out infinite alternate;
 }
 
-.welcomeSection {
+@keyframes orbDrift {
+    from { transform: translate(0,   0) scale(1); }
+    to   { transform: translate(18px,-16px) scale(1.06); }
+}
+
+/* ── 3. Shared glass card base ──────────────────────────────────────────── */
+.statCard,
+.chartCard,
+.actionsCard,
+.sideCard {
+    background: var(--g-card);
+    backdrop-filter: var(--g-blur);
+    -webkit-backdrop-filter: var(--g-blur);
+    border: 1px solid var(--g-border);
+    box-shadow: var(--g-shadow);
+}
+
+/* ── 4. Hero ────────────────────────────────────────────────────────────── */
+.hero {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 2rem;
     margin-bottom: 1.75rem;
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    border-radius: 2rem;
-    background:
-        linear-gradient(135deg, rgba(23, 32, 51, 0.96), rgba(70, 45, 27, 0.92)),
-        radial-gradient(circle at top right, rgba(217, 117, 44, 0.36), transparent 22rem);
-    box-shadow: 0 26px 70px rgba(83, 48, 22, 0.22);
-    overflow: hidden;
+    padding: clamp(1.75rem, 4vw, 3rem) clamp(1.75rem, 4vw, 3.5rem);
+    border-radius: var(--r-xl);
+    background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%);
+    border: 1px solid var(--dg-border);
+    box-shadow:
+        0 36px 80px rgba(0,0,0,0.50),
+        inset 0 1px 0 rgba(255,255,255,0.09),
+        0 0 0 1px rgba(255,255,255,0.04);
     position: relative;
-    animation: riseIn 0.55s ease both;
+    overflow: hidden;
+    animation: riseIn 0.48s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-.welcomeSection::after {
+/* Brand glow inside hero */
+.hero::before {
     content: '';
     position: absolute;
-    width: 22rem;
-    height: 22rem;
-    right: -7rem;
-    top: -9rem;
-    border-radius: 999px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 68%);
+    width: 38rem;
+    height: 38rem;
+    right: -14rem;
+    top: -18rem;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        color-mix(in srgb, var(--brand) 28%, transparent),
+        transparent 65%);
+    pointer-events: none;
 }
 
-.eyebrow,
-.sectionHeader span {
+/* Bottom shimmer line */
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 3rem;
+    right: 3rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+}
+
+.badge {
     display: inline-flex;
-    width: fit-content;
-    margin-bottom: 0.75rem;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
     border-radius: 999px;
-    padding: 0.45rem 0.75rem;
-    background: rgba(255, 255, 255, 0.13);
-    color: #fed7aa;
-    font-size: 0.72rem;
+    padding: 0.35rem 0.9rem;
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(8px);
+    color: var(--brand-l);
+    font-size: 0.67rem;
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.13);
+    width: fit-content;
 }
 
-.welcomeSection h1 {
-    margin: 0 0 0.75rem;
-    color: #ffffff;
-    font-size: clamp(2.2rem, 5vw, 4.6rem);
-    font-weight: 900;
+.heroTitle {
+    margin: 0 0 0.7rem;
+    font-size: clamp(2.2rem, 5vw, 4.4rem);
+    font-weight: 950;
     letter-spacing: -0.06em;
     line-height: 0.95;
+    background: linear-gradient(
+        140deg,
+        #ffffff 0%,
+        color-mix(in srgb, var(--brand-l) 65%, #ffffff) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.welcomeSection p {
-    max-width: 650px;
+.heroSub {
     margin: 0;
-    color: #f8fafc;
-    font-size: clamp(1rem, 1.6vw, 1.2rem);
-    line-height: 1.7;
+    color: rgba(226, 232, 240, 0.72);
+    font-size: clamp(0.88rem, 1.4vw, 1.02rem);
+    font-weight: 500;
+    line-height: 1.75;
+    max-width: 520px;
 }
 
-.heroMetric {
+.heroPill {
     position: relative;
     z-index: 1;
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-width: 12rem;
     min-height: 12rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 18px 45px rgba(0, 0, 0, 0.22);
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.17);
+    background: rgba(255,255,255,0.065);
+    backdrop-filter: blur(20px);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.16),
+        0 0 50px color-mix(in srgb, var(--brand) 38%, transparent),
+        0 22px 50px rgba(0,0,0,0.32);
     text-align: center;
-    backdrop-filter: blur(16px);
+    gap: 0.3rem;
+    padding: 1.25rem;
 }
 
-.heroMetric span {
-    display: block;
-    color: #ffffff;
-    font-size: 3.75rem;
-    font-weight: 900;
+.heroBig {
+    color: #fff;
+    font-size: 3.8rem;
+    font-weight: 950;
     line-height: 1;
+    letter-spacing: -0.055em;
+    text-shadow: 0 0 28px color-mix(in srgb, var(--brand) 70%, transparent);
 }
 
-.heroMetric small {
-    max-width: 7rem;
-    color: #ffedd5;
-    font-size: 0.78rem;
-    font-weight: 800;
-    line-height: 1.3;
+.heroSmall {
+    color: rgba(255,255,255,0.62);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
 }
 
-.dashboardGrid {
+.urgentPill {
+    margin-top: 0.4rem;
+    border-radius: 999px;
+    padding: 0.22rem 0.65rem;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 14px rgba(239,68,68,0.55);
+}
+
+/* ── 5. Layout ──────────────────────────────────────────────────────────── */
+.grid3col {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+    grid-template-columns: minmax(0, 1fr) 340px;
     gap: 1.5rem;
     align-items: start;
 }
+.col2       { min-width: 0; }
+.mainStack  { display: flex; flex-direction: column; gap: 1.25rem; }
 
-.mainContent {
-    min-width: 0;
-}
-
-.sidebarContent {
+.col1Sticky {
     position: sticky;
     top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.statsGrid {
+/* ── 6. Stat cards ──────────────────────────────────────────────────────── */
+.statGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
     gap: 1rem;
-    margin-bottom: 1.5rem;
 }
 
 .statCard {
-    display: flex;
-    min-height: 12rem;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1.25rem;
-    border: 1px solid var(--line);
-    border-radius: 1.5rem;
-    background: var(--paper);
-    box-shadow: 0 16px 36px rgba(23, 32, 51, 0.08);
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 1.4rem 1.3rem 1.2rem;
+    border-radius: var(--r-lg);
     overflow: hidden;
-    transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-    animation: riseIn 0.55s ease both;
+    animation: riseIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+.statCard:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--g-shadow-h);
+    border-color: var(--g-border-h);
 }
 
-.statCard:nth-child(1) { animation-delay: 0.04s; }
-.statCard:nth-child(2) { animation-delay: 0.08s; }
-.statCard:nth-child(3) { animation-delay: 0.12s; }
-.statCard:nth-child(4) { animation-delay: 0.16s; }
-.statCard:nth-child(5) { animation-delay: 0.2s; }
-
+/* Vertical accent strip */
 .statCard::before {
     content: '';
     position: absolute;
-    inset: auto 0 0;
-    height: 0.45rem;
-    background: var(--accent-color);
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    background: linear-gradient(to bottom,
+        var(--accent, var(--brand)),
+        color-mix(in srgb, var(--accent, var(--brand)) 40%, transparent));
 }
 
+/* Corner glow blob */
 .statCard::after {
     content: '';
     position: absolute;
-    width: 9rem;
-    height: 9rem;
-    right: -4.5rem;
-    top: -4rem;
+    width: 9rem; height: 9rem;
+    right: -3.5rem; top: -3.5rem;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent, var(--brand)) 14%, transparent);
+    pointer-events: none;
+}
+
+.statUrgent {
+    border-color: rgba(239,68,68,0.35);
+    background: color-mix(in srgb, #ef4444 5%, var(--g-card));
+}
+.statUrgent::before {
+    background: linear-gradient(to bottom, #ef4444, #b91c1c);
+}
+.statUrgent::after {
+    background: rgba(239,68,68,0.10);
+}
+
+.statTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+}
+
+.statIcon {
+    font-size: 1.55rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.20));
+}
+
+.urgentBadge {
     border-radius: 999px;
-    background: color-mix(in srgb, var(--accent-color) 18%, transparent);
-}
-
-.statCard:hover {
-    transform: translateY(-5px);
-    border-color: color-mix(in srgb, var(--accent-color) 35%, var(--line));
-    box-shadow: 0 24px 50px rgba(23, 32, 51, 0.13);
-}
-
-.statIcon,
-.actionIcon {
-    display: inline-grid;
-    place-items: center;
-    width: 3.2rem;
-    height: 3.2rem;
-    border-radius: 1rem;
-    color: #ffffff;
-    background: var(--accent-color);
-    box-shadow: 0 12px 24px color-mix(in srgb, var(--accent-color) 28%, transparent);
-    font-size: 0.88rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-}
-
-.statContent h3 {
-    margin: 0 0 0.45rem;
-    color: var(--muted);
-    font-size: 0.78rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
+    padding: 0.17rem 0.52rem;
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff;
+    font-size: 0.57rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(239,68,68,0.42);
 }
 
 .statValue {
     margin: 0;
     color: var(--ink);
-    font-size: clamp(2.1rem, 3.5vw, 3rem);
+    font-size: clamp(2.1rem, 3.5vw, 2.85rem);
     font-weight: 950;
-    letter-spacing: -0.05em;
-    line-height: 0.95;
+    letter-spacing: -0.06em;
+    line-height: 1;
 }
 
-.statContent span {
-    display: block;
-    margin-top: 0.5rem;
-    color: #3f4b5f;
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.quickActionsSection {
-    border: 1px solid var(--line);
-    border-radius: 1.75rem;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
-    backdrop-filter: blur(14px);
-    animation: riseIn 0.55s ease 0.18s both;
-}
-
-.sectionHeader {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-
-.sectionHeader span {
-    margin-bottom: 0;
-    background: #fff1e7;
-    color: var(--brand-dark);
-}
-
-.sectionHeader h2 {
+.statLabel {
     margin: 0;
     color: var(--ink);
-    font-size: clamp(1.5rem, 3vw, 2.15rem);
-    font-weight: 900;
-    letter-spacing: -0.045em;
+    font-size: 0.81rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
-.actionsGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+.statNote {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 0.12rem;
 }
 
-.actionCard {
+/* Staggered entrance */
+.statCard:nth-child(1) { animation-delay: 0.04s; }
+.statCard:nth-child(2) { animation-delay: 0.08s; }
+.statCard:nth-child(3) { animation-delay: 0.12s; }
+.statCard:nth-child(4) { animation-delay: 0.16s; }
+.statCard:nth-child(5) { animation-delay: 0.20s; }
+.statCard:nth-child(6) { animation-delay: 0.24s; }
+.statCard:nth-child(7) { animation-delay: 0.28s; }
+.statCard:nth-child(8) { animation-delay: 0.32s; }
+
+/* ── 7. Chart panels ────────────────────────────────────────────────────── */
+.chartsRow {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-    min-height: 8rem;
-    padding: 1.2rem;
-    border: 1px solid rgba(23, 32, 51, 0.1);
-    border-radius: 1.35rem;
-    background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.72)),
-        radial-gradient(circle at top right, color-mix(in srgb, var(--action-color) 16%, transparent), transparent 9rem);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.chartCard {
+    padding: 1.6rem 1.5rem;
+    border-radius: var(--r-lg);
+    animation: riseIn 0.5s cubic-bezier(0.22,1,0.36,1) 0.14s both;
+    transition: transform 0.24s ease, box-shadow 0.24s ease;
+}
+.chartCard:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--g-shadow-h);
+}
+
+.chartTitle {
+    margin: 0 0 0.3rem;
     color: var(--ink);
-    cursor: pointer;
-    text-align: left;
-    transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+    font-size: 1.02rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
 }
 
-.actionCard:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--action-color) 42%, var(--line));
-    box-shadow: 0 20px 42px rgba(23, 32, 51, 0.12);
+.chartSub {
+    margin: 0 0 1.2rem;
+    color: var(--muted);
+    font-size: 0.77rem;
+    font-weight: 600;
 }
+
+/* ── 8. Quick actions ───────────────────────────────────────────────────── */
+.actionsCard {
+    padding: 1.6rem 1.5rem;
+    border-radius: var(--r-lg);
+    animation: riseIn 0.5s cubic-bezier(0.22,1,0.36,1) 0.22s both;
+}
+
+.actionGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+}
+
+.actionBtn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 1.15rem 0.75rem;
+    border: 1px solid rgba(255,255,255,0.62);
+    border-radius: var(--r-md);
+    background: var(--action-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    cursor: pointer;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+    overflow: hidden;
+    outline: none;
+}
+
+/* Brand gradient wash on hover */
+.actionBtn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--ac, var(--brand)) 14%, transparent),
+        transparent 60%
+    );
+    opacity: 0;
+    transition: opacity 0.22s;
+}
+
+.actionBtn:hover:not(:disabled) {
+    transform: translateY(-4px) scale(1.02);
+    border-color: color-mix(in srgb, var(--ac, var(--brand)) 55%, rgba(255,255,255,0.6));
+    box-shadow:
+        0 14px 32px rgba(0,0,0,0.18),
+        0 0 0 1px color-mix(in srgb, var(--ac, var(--brand)) 28%, transparent);
+    background: var(--action-bg-h);
+}
+.actionBtn:hover::before { opacity: 1; }
+.actionBtn:disabled { cursor: wait; opacity: 0.72; }
+
+/* — Loading state inside button — */
+.actionBtn.navigating {
+    pointer-events: none;
+    border-color: color-mix(in srgb, var(--ac, var(--brand)) 55%, rgba(255,255,255,0.6));
+    background: var(--action-bg-h);
+}
+.actionBtn.navigating::before { opacity: 1; }
 
 .actionIcon {
-    background: var(--action-color);
-    box-shadow: 0 12px 24px color-mix(in srgb, var(--action-color) 22%, transparent);
+    font-size: 1.8rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.18));
+    transition: transform 0.22s ease;
+}
+.actionBtn:hover .actionIcon { transform: scale(1.12); }
+
+.actionLabel {
+    color: var(--ink);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
 }
 
-.actionCard h3 {
-    margin: 0 0 0.3rem;
-    color: #111827;
-    font-size: 1.05rem;
+/* Spinner shown while navigating */
+.btnSpinner {
+    width: 22px;
+    height: 22px;
+    border: 2.5px solid rgba(15,23,42,0.12);
+    border-top-color: var(--ac, var(--brand));
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+}
+
+/* ── 9. Sidebar cards ───────────────────────────────────────────────────── */
+.sideCard {
+    padding: 1.25rem 1.15rem;
+    border-radius: var(--r-lg);
+}
+
+.sideCardTitle {
+    margin: 0 0 1rem;
+    color: var(--ink);
+    font-size: 0.87rem;
     font-weight: 900;
     letter-spacing: -0.02em;
 }
 
-.actionCard p {
+.snapshotList {
+    list-style: none;
     margin: 0;
-    color: #4b5563;
-    font-size: 0.92rem;
-    font-weight: 650;
-    line-height: 1.5;
-}
-
-.actionArrow {
-    border-radius: 999px;
-    padding: 0.55rem 0.8rem;
-    background: color-mix(in srgb, var(--action-color) 11%, #ffffff);
-    color: var(--action-color);
-    font-size: 0.78rem;
-    font-weight: 900;
-}
-
-.loadingContainer {
+    padding: 0;
     display: flex;
-    min-height: 520px;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.snapItem {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.44rem 0.65rem;
+    border-radius: var(--r-sm);
+    background: rgba(255,255,255,0.42);
+    border: 1px solid rgba(255,255,255,0.62);
+    transition: background 0.18s;
+}
+.snapItem:hover { background: rgba(255,255,255,0.60); }
+
+.snapDot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.snapLabel {
+    flex: 1;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.snapValue {
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+}
+
+/* ── 10. Navigation overlay (full-screen transition) ────────────────────── */
+.navOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 1.25rem;
-    border-radius: 2rem;
-    background: linear-gradient(135deg, #fff7ed, #ffffff);
-    color: var(--ink);
+    background: rgba(7,9,15,0.82);
+    backdrop-filter: blur(14px);
+    animation: fadeIn 0.18s ease both;
+}
+
+.navOverlayRing {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.12);
+    border-top-color: var(--brand);
+    animation: spin 0.72s linear infinite;
+    box-shadow: 0 0 24px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+
+.navOverlayText {
+    color: rgba(241,245,249,0.75);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── 11. Loading skeleton ───────────────────────────────────────────────── */
+.fullLoading {
+    display: flex;
+    min-height: 60vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    color: rgba(255,255,255,0.65);
+}
+
+.skeleton { padding: 2rem; }
+
+.skeletonHero {
+    height: 200px;
+    border-radius: var(--r-xl);
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.05) 25%,
+        rgba(255,255,255,0.10) 50%,
+        rgba(255,255,255,0.05) 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s infinite;
+    margin-bottom: 1.5rem;
+}
+
+.skeletonGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+    gap: 1rem;
+}
+
+.skeletonCard {
+    height: 140px;
+    border-radius: var(--r-lg);
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.05) 25%,
+        rgba(255,255,255,0.10) 50%,
+        rgba(255,255,255,0.05) 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s infinite;
 }
 
 .spinner {
-    width: 56px;
-    height: 56px;
-    border: 4px solid #fed7aa;
+    width: 52px;
+    height: 52px;
+    border: 3px solid rgba(255,255,255,0.10);
     border-top-color: var(--brand);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.72s linear infinite;
+    box-shadow: 0 0 22px color-mix(in srgb, var(--brand) 50%, transparent);
 }
 
-.loadingContainer p {
-    color: var(--ink);
-    font-size: 1rem;
-    font-weight: 800;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
+/* ── 12. Keyframes ──────────────────────────────────────────────────────── */
 @keyframes riseIn {
-    from {
-        opacity: 0;
-        transform: translateY(18px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-@media (max-width: 1280px) {
-    .statsGrid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .dashboardGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebarContent {
+/* ── 13. Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+    .grid3col { grid-template-columns: 1fr; }
+    .col1Sticky {
         position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
     }
+    .col1Sticky > * { flex: 1; min-width: 280px; }
 }
 
-@media (max-width: 820px) {
-    .dashboard {
-        padding: 1rem;
-    }
-
-    .welcomeSection {
-        grid-template-columns: 1fr;
-    }
-
-    .heroMetric {
-        width: 100%;
+@media (max-width: 860px) {
+    .page   { padding: 1rem; }
+    .hero   { grid-template-columns: 1fr; }
+    .heroPill {
         min-height: auto;
         min-width: 0;
-        border-radius: 1.5rem;
-        padding: 1.25rem;
+        width: 100%;
+        border-radius: var(--r-lg);
+        flex-direction: row;
+        padding: 1rem 1.5rem;
+        gap: 1.25rem;
     }
-
-    .heroMetric span {
-        font-size: 2.75rem;
-    }
-
-    .heroMetric small {
-        max-width: none;
-    }
-
-    .statsGrid,
-    .actionsGrid {
-        grid-template-columns: 1fr;
-    }
-
-    .sectionHeader {
-        align-items: start;
-        flex-direction: column;
-    }
+    .heroBig       { font-size: 2.6rem; }
+    .chartsRow     { grid-template-columns: 1fr; }
+    .actionGrid    { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 520px) {
-    .welcomeSection {
-        padding: 1.25rem;
-        border-radius: 1.5rem;
-    }
-
-    .statCard,
-    .quickActionsSection,
-    .actionCard {
-        border-radius: 1.15rem;
-    }
-
-    .actionCard {
-        grid-template-columns: 1fr;
-    }
-
-    .actionArrow {
-        width: fit-content;
-    }
+    .statGrid      { grid-template-columns: repeat(2, 1fr); }
+    .actionGrid    { grid-template-columns: repeat(2, 1fr); }
+    .hero          { border-radius: var(--r-lg); }
 }
