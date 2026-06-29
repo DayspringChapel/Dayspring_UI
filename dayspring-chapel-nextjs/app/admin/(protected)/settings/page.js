@@ -47,12 +47,39 @@ export default function SettingsPage() {
     const [saving, setSaving] = useState(false);
     const [status, setStatus]  = useState(null); // 'saved' | 'error'
 
+    const [botInfo, setBotInfo]       = useState('');
+    const [savingBot, setSavingBot]   = useState(false);
+    const [botStatus, setBotStatus]   = useState(null);
+
     useEffect(() => {
         fetch('/api/livestream')
             .then((r) => r.json())
             .then(setConfig)
             .catch(() => {});
+        fetch('/api/chatbot-config')
+            .then((r) => r.json())
+            .then((d) => setBotInfo(d.additionalInfo || ''))
+            .catch(() => {});
     }, []);
+
+    const saveBot = async () => {
+        setSavingBot(true);
+        setBotStatus(null);
+        try {
+            const res = await fetch('/api/chatbot-config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ additionalInfo: botInfo }),
+            });
+            if (!res.ok) throw new Error();
+            setBotStatus('saved');
+        } catch {
+            setBotStatus('error');
+        } finally {
+            setSavingBot(false);
+            setTimeout(() => setBotStatus(null), 4000);
+        }
+    };
 
     const update = (platform, field, value) => {
         setConfig((prev) => ({
@@ -220,8 +247,75 @@ export default function SettingsPage() {
                 </div>
             </div>
 
+            {/* Chatbot Knowledge Base Card */}
+            <div style={{
+                background: 'rgba(255,255,255,0.86)',
+                backdropFilter: 'blur(22px)',
+                border: '1px solid rgba(255,255,255,0.90)',
+                borderRadius: '1.25rem',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.20)',
+                padding: '1.75rem',
+                marginBottom: '1.5rem',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                    <span style={{ fontSize: '1.3rem' }}>🤖</span>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>
+                            Chatbot Knowledge Base
+                        </h2>
+                        <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
+                            Add any extra info the assistant should know — service times, pastor names, contact details, etc.
+                        </p>
+                    </div>
+                </div>
+
+                <textarea
+                    value={botInfo}
+                    onChange={(e) => setBotInfo(e.target.value)}
+                    rows={8}
+                    placeholder={`Examples:\n- Sunday services: 7:00 AM and 9:30 AM\n- Lead Pastor: Pastor John Doe\n- WhatsApp: +234 800 000 0000\n- How to join a small group: Visit the church office on weekdays`}
+                    style={{
+                        width: '100%', boxSizing: 'border-box',
+                        padding: '0.75rem 1rem',
+                        border: '1.5px solid rgba(15,23,42,0.14)',
+                        borderRadius: '0.75rem',
+                        background: 'rgba(255,255,255,0.92)',
+                        color: '#0f172a', fontSize: '0.84rem',
+                        fontFamily: 'inherit', outline: 'none',
+                        lineHeight: 1.6, resize: 'vertical',
+                    }}
+                    onFocus={(e) => { e.target.style.borderColor = '#F58634'; e.target.style.boxShadow = '0 0 0 3px rgba(245,134,52,0.15)'; }}
+                    onBlur={(e)  => { e.target.style.borderColor = 'rgba(15,23,42,0.14)'; e.target.style.boxShadow = 'none'; }}
+                />
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                    <button
+                        onClick={saveBot}
+                        disabled={savingBot}
+                        style={{
+                            padding: '0.68rem 1.75rem',
+                            borderRadius: '0.75rem', border: 'none',
+                            background: 'linear-gradient(135deg,#d9752c,#c26622)',
+                            color: '#fff', fontWeight: 800, fontSize: '0.9rem',
+                            cursor: savingBot ? 'not-allowed' : 'pointer',
+                            opacity: savingBot ? 0.7 : 1,
+                            boxShadow: '0 4px 16px rgba(217,117,44,0.32)',
+                            fontFamily: 'inherit',
+                        }}
+                    >
+                        {savingBot ? 'Saving…' : 'Save Knowledge'}
+                    </button>
+                    {botStatus === 'saved' && (
+                        <span style={{ color: '#059669', fontSize: '0.85rem', fontWeight: 700 }}>✓ Saved</span>
+                    )}
+                    {botStatus === 'error' && (
+                        <span style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: 700 }}>✗ Failed to save</span>
+                    )}
+                </div>
+            </div>
+
             <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', textAlign: 'center' }}>
-                Stream settings are held in server memory. They reset if the server restarts.
+                All settings are held in server memory and reset if the server restarts.
             </p>
         </div>
     );

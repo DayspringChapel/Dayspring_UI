@@ -667,8 +667,37 @@ class ApiClient {
         });
     }
 
+    normalizeGiving(giving) {
+        if (!giving) return null;
+        return {
+            ...giving,
+            id: giving.id || giving.Id,
+            donorName: giving.donorName || giving.DonorName || giving.memberName || giving.MemberName || '',
+            amount: giving.amount ?? giving.Amount ?? 0,
+            givingType: giving.givingType || giving.GivingType || giving.category || giving.Category || '',
+            dateOfGiving: giving.dateOfGiving || giving.DateOfGiving || giving.date || giving.Date || '',
+            description: giving.description || giving.Description || '',
+            paymentMethod: giving.paymentMethod || giving.PaymentMethod || '',
+        };
+    }
+
     async getGivings() {
-        return this.request('/api/v1/Givings');
+        const data = await this.request('/api/v1/Givings');
+        return this.normalizeArray(data, this.normalizeGiving);
+    }
+
+    async createGiving(givingData) {
+        return this.request('/api/v1/Givings/create', {
+            method: 'POST',
+            body: JSON.stringify(givingData),
+        });
+    }
+
+    async updateGiving(givingId, givingData) {
+        return this.request(`/api/v1/Givings/${givingId}/update`, {
+            method: 'PUT',
+            body: JSON.stringify(givingData),
+        });
     }
 
     async deleteGiving(givingId) {
