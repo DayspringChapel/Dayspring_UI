@@ -467,6 +467,14 @@ class ApiClient {
             body: formData,
         });
 
+        if (response.status === 401) {
+            this.removeToken();
+            if (typeof window !== 'undefined') {
+                window.location.href = '/admin/login';
+            }
+            throw new Error('Unauthorized');
+        }
+
         const result = await this.parseResponseJson(response);
 
         if (!response.ok) {
