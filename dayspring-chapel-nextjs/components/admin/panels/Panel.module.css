@@ -905,8 +905,13 @@
         padding: 1.25rem;
     }
 
+    .tableContainer {
+        overflow-x: auto;
+    }
+
     .table {
         font-size: 0.82rem;
+        min-width: 560px;
     }
 
     .table th,
