@@ -66,6 +66,8 @@ export default function MembersPanel() {
     const [filterSG, setFilterSG]             = useState('');
     const [assigningId, setAssigningId]       = useState(null);
     const [assignDraft, setAssignDraft]       = useState({});
+    const [roleAssignDraft, setRoleAssignDraft] = useState({});
+    const [assigningRoleFor, setAssigningRoleFor] = useState(null);
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
@@ -165,7 +167,6 @@ export default function MembersPanel() {
                     email: step2.email.trim(),
                     phoneNumber: step1.phoneNumber.trim() || null,
                     unitId: step2.unitId || null, smallGroupId: step2.smallGroupId || null,
-                    roleId: step2.roleId || null,
                 });
                 returnedUserId   = result?.userId    ?? result?.UserId;
                 returnedUserName = result?.userName  ?? result?.UserName ?? '';
@@ -236,6 +237,22 @@ export default function MembersPanel() {
             notify('error', err.message || 'Failed to assign. Try again.');
         } finally {
             setAssigningId(null);
+        }
+    };
+
+    const handleAssignRole = async (member) => {
+        const newRole = roleAssignDraft[member.userId];
+        if (!newRole || !member.userEmail) return;
+        setAssigningRoleFor(member.userId);
+        try {
+            await apiClient.assignRole(member.userEmail, newRole);
+            setRoleAssignDraft((p) => { const n = { ...p }; delete n[member.userId]; return n; });
+            await loadData();
+            notify('success', `Role assigned: ${newRole}.`);
+        } catch (err) {
+            notify('error', err.message || 'Failed to assign role. Try again.');
+        } finally {
+            setAssigningRoleFor(null);
         }
     };
 
@@ -374,9 +391,33 @@ export default function MembersPanel() {
                                                 : <span style={{ color: '#cbd5e1' }}>—</span>}
                                         </td>
                                         <td>
-                                            <span className={`${styles.badge} ${member.userRole?.toLowerCase().includes('admin') ? styles.admin : ''}`}>
-                                                {member.userRole || 'Member'}
-                                            </span>
+                                            {member.userEmail ? (
+                                                <div className={styles.quickAssignRow}>
+                                                    <select
+                                                        value={roleAssignDraft[member.userId] ?? (member.userRole || '')}
+                                                        onChange={(e) => setRoleAssignDraft((p) => ({ ...p, [member.userId]: e.target.value }))}
+                                                        className={styles.inlineSelect}
+                                                        disabled={assigningRoleFor === member.userId}
+                                                    >
+                                                        <option value="">— No role —</option>
+                                                        {roles.map((r) => {
+                                                            const name = r.name ?? r.Name ?? '';
+                                                            return <option key={name} value={name}>{name}</option>;
+                                                        })}
+                                                    </select>
+                                                    <button
+                                                        onClick={() => handleAssignRole(member)}
+                                                        disabled={assigningRoleFor === member.userId || !(member.userId in roleAssignDraft)}
+                                                        className={styles.assignInlineBtn}
+                                                    >
+                                                        {assigningRoleFor === member.userId ? '…' : 'Set'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span className={`${styles.badge} ${member.userRole?.toLowerCase().includes('admin') ? styles.admin : ''}`}>
+                                                    {member.userRole || 'Member'}
+                                                </span>
+                                            )}
                                         </td>
                                         <td>
                                             {mid ? (
@@ -586,16 +627,8 @@ export default function MembersPanel() {
                                         </div>
 
                                         {userMode === 'new' ? (
-                                            <div className={styles.formRow}>
-                                                <div className={styles.formGroup}><label>Email Address *</label>
-                                                    <input type="email" required value={step2.email} onChange={s2('email')} placeholder="member@church.org" />
-                                                </div>
-                                                <div className={styles.formGroup}><label>System Role</label>
-                                                    <select value={step2.roleId} onChange={s2('roleId')}>
-                                                        <option value="">— No role —</option>
-                                                        {roles.map((r) => <option key={r.id ?? r.Id} value={r.id ?? r.Id}>{r.name ?? r.Name}</option>)}
-                                                    </select>
-                                                </div>
+                                            <div className={styles.formGroup}><label>Email Address *</label>
+                                                <input type="email" required value={step2.email} onChange={s2('email')} placeholder="member@church.org" />
                                             </div>
                                         ) : (
                                             <div className={styles.formGroup}><label>User Account *</label>
