@@ -8,7 +8,9 @@
 //   TWITTER_ACCESS_TOKEN_SECRET  — Twitter/X Access Token Secret
 //   WHATSAPP_PHONE_NUMBER_ID     — WhatsApp Business phone number ID (Meta Cloud API)
 //   WHATSAPP_ACCESS_TOKEN        — Meta system user access token
-//   WHATSAPP_RECIPIENT_NUMBERS   — Comma-separated E.164 numbers, e.g. 2348012345678,2348098765432
+//   WHATSAPP_RECIPIENT_NUMBERS   — Comma-separated E.164 numbers, e.g. 2348012345678
+//   IG_USER_ID                   — Instagram Business Account User ID
+//   IG_ACCESS_TOKEN              — Instagram Graph API access token
 
 import crypto from 'crypto';
 
@@ -68,35 +70,29 @@ function oauthSign(method, url, params, consumerKey, consumerSecret, accessToken
     const signingKey = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(accessSecret)}`;
     const signature  = crypto.createHmac('sha1', signingKey).update(baseString).digest('base64');
 
-    const authHeader = 'OAuth ' + Object.entries({ ...oauthParams, oauth_signature: signature })
+    return 'OAuth ' + Object.entries({ ...oauthParams, oauth_signature: signature })
         .map(([k, v]) => `${encodeURIComponent(k)}="${encodeURIComponent(v)}"`)
         .join(', ');
-
-    return authHeader;
 }
 
 async function postToTwitter(text) {
-    const apiKey     = process.env.TWITTER_API_KEY;
-    const apiSecret  = process.env.TWITTER_API_SECRET;
-    const accToken   = process.env.TWITTER_ACCESS_TOKEN;
-    const accSecret  = process.env.TWITTER_ACCESS_TOKEN_SECRET;
+    const apiKey    = process.env.TWITTER_API_KEY;
+    const apiSecret = process.env.TWITTER_API_SECRET;
+    const accToken  = process.env.TWITTER_ACCESS_TOKEN;
+    const accSecret = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 
     if (!apiKey || !apiSecret || !accToken || !accSecret) {
         return { skipped: true, reason: 'Twitter/X credentials not set' };
     }
 
-    const url  = 'https://api.twitter.com/2/tweets';
-    const body = { text: text.slice(0, 280) };
-
+    const url        = 'https://api.twitter.com/2/tweets';
+    const body       = { text: text.slice(0, 280) };
     const authHeader = oauthSign('POST', url, {}, apiKey, apiSecret, accToken, accSecret);
 
     try {
         const res  = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type':  'application/json',
-                'Authorization': authHeader,
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
             body: JSON.stringify(body),
         });
         const data = await res.json();
@@ -133,10 +129,7 @@ async function postToWhatsApp(description, imageUrl) {
             try {
                 const res  = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type':  'application/json',
-                        'Authorization': `Bearer ${accessToken}`,
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
                     body: JSON.stringify(body),
                 });
                 const data = await res.json();
@@ -154,23 +147,98 @@ async function postToWhatsApp(description, imageUrl) {
     return { success: true, sent, failed };
 }
 
+// ── Instagram (two-step: container → publish) ─────────────────────────────────
+
+async function postToInstagram(description, imageUrl) {
+    const userId      = process.env.IG_USER_ID;
+    const accessToken = process.env.IG_ACCESS_TOKEN;
+
+    if (!userId || !accessToken) {
+        return { skipped: true, reason: 'Instagram credentials not set' };
+    }
+
+    // Instagram requires an image for a feed post; use caption-only if no image provided
+    // (Stories/Reels need different endpoints — this posts to feed with image)
+    if (!imageUrl) {
+        return { skipped: true, reason: 'Instagram requires an image URL for a feed post' };
+    }
+
+    try {
+        // Step 1: Create container
+        const containerRes = await fetch(`https://graph.facebook.com/v18.0/${userId}/media`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image_url:    imageUrl,
+                caption:      description,
+                access_token: accessToken,
+            }),
+        });
+        const containerData = await containerRes.json();
+        if (!containerRes.ok) return { error: containerData.error?.message || 'Instagram container creation failed' };
+
+        const containerId = containerData.id;
+
+        // Step 2: Publish container
+        const publishRes = await fetch(`https://graph.facebook.com/v18.0/${userId}/media_publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ creation_id: containerId, access_token: accessToken }),
+        });
+        const publishData = await publishRes.json();
+        if (!publishRes.ok) return { error: publishData.error?.message || 'Instagram publish failed' };
+
+        return { success: true, id: publishData.id };
+    } catch (err) {
+        return { error: err.message };
+    }
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function POST(request) {
     try {
-        const { description, imageUrl } = await request.json();
+        const body = await request.json();
 
-        if (!description?.trim()) {
-            return Response.json({ error: 'Description is required' }, { status: 400 });
+        // Support two calling modes:
+        // 1. New: { targets: ['facebook','twitter',...], descriptions: { facebook: '...', twitter: '...' }, imageUrl }
+        // 2. Legacy: { description: '...', imageUrl } — posts to all configured platforms
+        const { targets, descriptions, description: legacyDescription, imageUrl } = body;
+
+        const isLegacy   = !targets && legacyDescription;
+        const targetList = isLegacy ? ['facebook', 'twitter', 'whatsapp'] : (targets || []);
+
+        if (!isLegacy && targetList.length === 0) {
+            return Response.json({ error: 'Select at least one platform' }, { status: 400 });
         }
 
-        const [facebook, twitter, whatsapp] = await Promise.all([
-            postToFacebook(description, imageUrl),
-            postToTwitter(description),
-            postToWhatsApp(description, imageUrl),
-        ]);
+        const getDesc = (platform) => {
+            if (isLegacy) return legacyDescription;
+            return descriptions?.[platform] || descriptions?.youtube || descriptions?.facebook ||
+                   descriptions?.instagram || Object.values(descriptions || {})[0] || '';
+        };
 
-        return Response.json({ facebook, twitter, whatsapp });
+        const tasks = {};
+
+        if (targetList.includes('facebook')) {
+            tasks.facebook = postToFacebook(getDesc('facebook'), imageUrl);
+        }
+        if (targetList.includes('twitter')) {
+            tasks.twitter = postToTwitter(getDesc('twitter'));
+        }
+        if (targetList.includes('whatsapp')) {
+            tasks.whatsapp = postToWhatsApp(getDesc('whatsapp'), imageUrl);
+        }
+        if (targetList.includes('instagram')) {
+            tasks.instagram = postToInstagram(getDesc('instagram'), imageUrl);
+        }
+
+        const results = {};
+        const entries = Object.entries(tasks);
+        const resolved = await Promise.all(entries.map(([, p]) => p));
+        entries.forEach(([key], i) => { results[key] = resolved[i]; });
+
+        return Response.json(results);
     } catch (err) {
         return Response.json({ error: err.message }, { status: 500 });
     }

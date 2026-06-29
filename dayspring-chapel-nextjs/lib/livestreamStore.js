@@ -1,8 +1,8 @@
 const DEFAULT = {
-    youtube:   { active: false, url: '' },
-    facebook:  { active: false, url: '' },
-    instagram: { active: false, url: '' },
-    announcement: { description: '', imageUrl: '' },
+    youtube:   { active: false, url: '', description: '' },
+    facebook:  { active: false, url: '', description: '' },
+    instagram: { active: false, url: '', description: '' },
+    imageUrl: '',
     _meta: { lastYouTubeCheck: 0 },
 };
 
@@ -16,11 +16,20 @@ export function getStreams() {
 
 export function setStreams(data) {
     const s = global.__dayspringStreams;
+
+    const merge = (key) => {
+        const incoming = data[key] || {};
+        const merged = { ...s[key], ...incoming };
+        // Never persist active:true without a URL
+        if (merged.active && !merged.url?.trim()) merged.active = false;
+        return merged;
+    };
+
     global.__dayspringStreams = {
-        youtube:   { ...s.youtube,   ...(data.youtube   || {}) },
-        facebook:  { ...s.facebook,  ...(data.facebook  || {}) },
-        instagram: { ...s.instagram, ...(data.instagram || {}) },
-        announcement: { ...s.announcement, ...(data.announcement || {}) },
+        youtube:   merge('youtube'),
+        facebook:  merge('facebook'),
+        instagram: merge('instagram'),
+        imageUrl:  data.imageUrl ?? s.imageUrl,
         _meta: s._meta,
     };
     return global.__dayspringStreams;

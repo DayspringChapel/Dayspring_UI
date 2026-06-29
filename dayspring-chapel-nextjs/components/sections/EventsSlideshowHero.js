@@ -4,54 +4,29 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
-import PageHero from './PageHero'; // Fallback
+import { HeroCountdown } from '@/components/CountdownTimer';
+import PageHero from './PageHero';
 
 export default function EventsSlideshowHero() {
-    const { events, loading, error } = useEvents();
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const { events, loading } = useEvents();
+    const [featured, setFeatured] = useState(null);
 
-    // Filter and sort events for the slideshow
     useEffect(() => {
-        if (events && events.length > 0) {
-            // Filter out past events (optional, depending on requirements, but usually "upcoming" implies future)
-            // The context already sorts them by date.
-            // Let's take the top 5.
-            const now = new Date();
-            const futureEvents = events.filter(e => {
-                const eventDate = new Date(e.eventDate || e.datetime || e.date);
-                return eventDate >= now; // Only future events
-            }).slice(0, 5);
-
-            setUpcomingEvents(futureEvents);
-        }
+        if (!events || events.length === 0) return;
+        const now = new Date();
+        const upcoming = events
+            .filter((e) => {
+                const d = new Date(e.eventDate || e.datetime || e.date || 0);
+                return d >= now;
+            })
+            .sort((a, b) =>
+                new Date(a.eventDate || a.datetime || 0) -
+                new Date(b.eventDate || b.datetime || 0)
+            );
+        setFeatured(upcoming[0] || events[0]);
     }, [events]);
 
-    // Auto-advance
-    useEffect(() => {
-        if (upcomingEvents.length <= 1) return;
-
-        const timer = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % upcomingEvents.length);
-        }, 5000);
-
-        return () => clearInterval(timer);
-    }, [upcomingEvents.length]);
-
-    // Helper functions for event data
-    const getEventData = (event) => {
-        if (!event) return null;
-        return {
-            title: event.heading || event.Heading || event.title || 'Upcoming Event',
-            date: event.eventDate || event.datetime || event.DateTime || event.date,
-            location: event.location || event.Location,
-            image: event.eventImage || event.EventImage || '/about-cover.png', // Fallback image
-            id: event.id
-        };
-    };
-
-    // Fallback to static hero if no events or loading/error
-    if (loading || error || upcomingEvents.length === 0) {
+    if (loading || !featured) {
         return (
             <PageHero
                 title="EVENTS"
@@ -61,129 +36,127 @@ export default function EventsSlideshowHero() {
         );
     }
 
-    const currentEvent = getEventData(upcomingEvents[currentIndex]);
+    const title       = (featured.heading || featured.title || 'Upcoming Event').toUpperCase();
+    const dateStr     = featured.eventDate || featured.datetime;
+    const location    = featured.location;
+    const image       = featured.eventImage || '/about-cover.png';
+    const description = featured.description;
+    const isUpcoming  = dateStr && new Date(dateStr) > new Date();
 
-    const nextSlide = () => {
-        setCurrentIndex((prev) => (prev + 1) % upcomingEvents.length);
-    };
-
-    const prevSlide = () => {
-        setCurrentIndex((prev) => (prev - 1 + upcomingEvents.length) % upcomingEvents.length);
-    };
+    const formattedDate = dateStr
+        ? new Date(dateStr).toLocaleDateString('en-US', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          })
+        : null;
 
     return (
-        <div className="relative w-full h-[60vh] md:h-[80vh] bg-black overflow-hidden">
-            {/* Background Images - Transition Group could be used here, but simple opacity crossfade is easier for now */}
-            {upcomingEvents.map((event, index) => {
-                const data = getEventData(event);
-                return (
-                    <div
-                        key={event.id}
-                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                            }`}
-                    >
-                        <Image
-                            src={data.image}
-                            alt={data.title}
-                            fill
-                            className="object-cover opacity-60"
-                            priority={index === 0}
-                        />
-                        {/* Dark Gradient Overlay for readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
-                    </div>
-                );
-            })}
+        <div className="relative w-full overflow-hidden bg-black" style={{ height: '88vh', minHeight: 520 }}>
+            {/* Background image */}
+            <Image
+                src={image}
+                alt={title}
+                fill
+                className="object-cover object-center"
+                style={{ opacity: 0.45 }}
+                priority
+                unoptimized
+            />
 
-            {/* Content Overlay */}
-            <div className="absolute inset-0 z-20 flex flex-col justify-end pb-20 px-6 md:px-12 max-w-7xl mx-auto w-full">
-                <div className="max-w-4xl animate-fadeIn">
-                    {/* Badge */}
-                    <div className="inline-block bg-primary px-4 py-1 rounded-full text-white text-sm font-semibold mb-4 tracking-wide uppercase">
-                        Upcoming Event
-                    </div>
+            {/* Layered gradient — dark at bottom for text legibility */}
+            <div className="absolute inset-0"
+                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.25) 100%)' }} />
 
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 leading-tight drop-shadow-md">
-                        {currentEvent.title}
-                    </h1>
+            {/* Subtle left vignette */}
+            <div className="absolute inset-0"
+                style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
 
-                    <div className="flex flex-col md:flex-row md:items-center gap-4 text-gray-200 mb-8 text-lg">
-                        {currentEvent.date && (
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span>
-                                    {new Date(currentEvent.date).toLocaleDateString('en-US', {
-                                        weekday: 'long',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        year: 'numeric'
-                                    })}
-                                </span>
-                            </div>
-                        )}
-                        {currentEvent.location && (
-                            <div className="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span>{currentEvent.location}</span>
-                            </div>
-                        )}
-                    </div>
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col justify-end pb-16 px-6 md:px-16"
+                style={{ maxWidth: '72rem', width: '100%', margin: '0 auto', left: 0, right: 0 }}>
 
-                    <Link
-                        href={`/events/${currentEvent.id}`}
-                        className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105"
-                    >
-                        View Details
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                    </Link>
+                {/* Badge */}
+                <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                    background: 'rgba(245,134,52,0.20)', border: '1px solid rgba(245,134,52,0.50)',
+                    borderRadius: '999px', padding: '0.3rem 1rem',
+                    color: '#f58634', fontSize: '0.75rem', fontWeight: 800,
+                    textTransform: 'uppercase', letterSpacing: '0.12em',
+                    width: 'fit-content', marginBottom: '1.25rem',
+                }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f58634', display: 'inline-block' }} />
+                    {isUpcoming ? 'Next Event' : 'Featured Event'}
                 </div>
+
+                {/* Title */}
+                <h1 className="font-black text-white leading-none mb-4 uppercase"
+                    style={{ fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', textShadow: '0 2px 16px rgba(0,0,0,0.6)' }}>
+                    {title}
+                </h1>
+
+                {/* Date + location */}
+                <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4"
+                    style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1rem' }}>
+                    {formattedDate && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f58634" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                            {formattedDate}
+                        </span>
+                    )}
+                    {location && (
+                        <>
+                            <span className="hidden md:inline" style={{ color: 'rgba(255,255,255,0.25)' }}>·</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f58634" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                {location}
+                            </span>
+                        </>
+                    )}
+                </div>
+
+                {/* Description snippet */}
+                {description && (
+                    <p className="mb-5" style={{
+                        color: 'rgba(255,255,255,0.55)', fontSize: '1rem', maxWidth: '36rem',
+                        lineHeight: 1.6,
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
+                        {description}
+                    </p>
+                )}
+
+                {/* Countdown */}
+                {isUpcoming && (
+                    <div className="mb-6">
+                        <p style={{ color: 'rgba(255,255,255,0.40)', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '0.6rem' }}>
+                            Starts In
+                        </p>
+                        <HeroCountdown targetDate={dateStr} />
+                    </div>
+                )}
+
+                {/* CTA */}
+                <Link
+                    href={`/events/${featured.id}`}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
+                        background: '#f58634', color: '#fff',
+                        padding: '0.85rem 2rem', borderRadius: '999px',
+                        fontWeight: 800, fontSize: '0.95rem', width: 'fit-content',
+                        transition: 'background 0.2s, transform 0.2s',
+                        boxShadow: '0 6px 24px rgba(245,134,52,0.40)',
+                    }}
+                    className="hover:brightness-110 active:scale-95"
+                >
+                    View Full Details
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </Link>
             </div>
-
-            {/* Navigation Buttons */}
-            {upcomingEvents.length > 1 && (
-                <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-between px-4">
-                    <button
-                        onClick={prevSlide}
-                        className="pointer-events-auto p-3 rounded-full bg-black/30 hover:bg-primary text-white backdrop-blur-sm transition-all transform hover:scale-110"
-                        aria-label="Previous slide"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={nextSlide}
-                        className="pointer-events-auto p-3 rounded-full bg-black/30 hover:bg-primary text-white backdrop-blur-sm transition-all transform hover:scale-110"
-                        aria-label="Next slide"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-                </div>
-            )}
-
-            {/* Indicators */}
-            {upcomingEvents.length > 1 && (
-                <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center gap-3">
-                    {upcomingEvents.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentIndex(index)}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${index === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-white/50 hover:bg-white'
-                                }`}
-                            aria-label={`Go to slide ${index + 1}`}
-                        />
-                    ))}
-                </div>
-            )}
         </div>
     );
 }
