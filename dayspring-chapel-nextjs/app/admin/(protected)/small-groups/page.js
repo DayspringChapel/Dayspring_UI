@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const emptyForm = {
     smallGroupName: '',
@@ -167,10 +168,7 @@ export default function SmallGroupsPage() {
 
     if (loading) {
         return (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 text-gray-600">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
-                <p>Loading small groups...</p>
-            </div>
+            <LoadingSpinner message="Loading small groups" />
         );
     }
 

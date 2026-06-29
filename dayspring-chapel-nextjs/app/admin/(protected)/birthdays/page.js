@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import BirthdayCard from '@/components/admin/BirthdayCard';
 import styles from './birthdays.module.css';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function BirthdaysPage() {
     const [members, setMembers] = useState([]);
@@ -123,12 +124,7 @@ export default function BirthdaysPage() {
     const stats = getStats();
 
     if (loading) {
-        return (
-            <div className={styles.loading}>
-                <div className={styles.spinner}></div>
-                <p>Loading birthdays...</p>
-            </div>
-        );
+        return <LoadingSpinner message="Loading birthday records" />;
     }
 
     return (

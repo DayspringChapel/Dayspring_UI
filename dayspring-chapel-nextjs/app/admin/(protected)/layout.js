@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import Sidebar from '@/components/admin/Sidebar';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import styles from './admin.module.css';
 
 export default function ProtectedAdminLayout({ children }) {
@@ -44,12 +45,7 @@ export default function ProtectedAdminLayout({ children }) {
     }
 
     if (loading) {
-        return (
-            <div className={styles.loadingContainer}>
-                <div className={styles.spinner}></div>
-                <p>Loading...</p>
-            </div>
-        );
+        return <LoadingSpinner message="Preparing your dashboard" minHeight="100vh" />;
     }
 
     return (

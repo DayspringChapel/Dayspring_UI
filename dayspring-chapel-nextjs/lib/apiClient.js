@@ -671,13 +671,12 @@ class ApiClient {
         if (!giving) return null;
         return {
             ...giving,
-            id: giving.id || giving.Id,
-            donorName: giving.donorName || giving.DonorName || giving.memberName || giving.MemberName || '',
-            amount: giving.amount ?? giving.Amount ?? 0,
-            givingType: giving.givingType || giving.GivingType || giving.category || giving.Category || '',
-            dateOfGiving: giving.dateOfGiving || giving.DateOfGiving || giving.date || giving.Date || '',
-            description: giving.description || giving.Description || '',
-            paymentMethod: giving.paymentMethod || giving.PaymentMethod || '',
+            id:               giving.id               || giving.Id,
+            name:             giving.name             || giving.Name             || '',
+            purposeOfGiving:  giving.purposeOfGiving  || giving.PurposeOfGiving  || '',
+            accountNumber:    giving.accountNumber    || giving.AccountNumber    || '',
+            bankName:         giving.bankName         || giving.BankName         || '',
+            createdDate:      giving.createdDate      || giving.CreatedDate      || '',
         };
     }
 
@@ -687,15 +686,8 @@ class ApiClient {
     }
 
     async createGiving(givingData) {
-        return this.request('/api/v1/Givings/create', {
+        return this.request('/api/v1/Givings/give', {
             method: 'POST',
-            body: JSON.stringify(givingData),
-        });
-    }
-
-    async updateGiving(givingId, givingData) {
-        return this.request(`/api/v1/Givings/${givingId}/update`, {
-            method: 'PUT',
             body: JSON.stringify(givingData),
         });
     }

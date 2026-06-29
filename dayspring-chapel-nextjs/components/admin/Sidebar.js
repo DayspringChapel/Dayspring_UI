@@ -1,16 +1,22 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './Sidebar.module.css';
+import BrandedSplash from '@/components/BrandedSplash';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
     const router = useRouter();
     const pathname = usePathname();
+    const [loggingOut, setLoggingOut] = useState(false);
 
     const handleLogout = () => {
-        apiClient.logout();
-        router.push('/admin/login');
+        setLoggingOut(true);
+        setTimeout(() => {
+            apiClient.logout();
+            router.push('/admin/login');
+        }, 1600);
     };
 
     const menuItems = [
@@ -274,6 +280,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
     return (
         <>
+            <BrandedSplash visible={loggingOut} mode="logout" />
             {/* Overlay for mobile */}
             {isOpen && (
                 <div className={styles.overlay} onClick={() => setIsOpen(false)} />

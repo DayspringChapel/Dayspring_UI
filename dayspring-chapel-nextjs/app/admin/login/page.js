@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './login.module.css';
+import BrandedSplash from '@/components/BrandedSplash';
 
 export default function AdminLogin() {
     const router = useRouter();
@@ -67,6 +68,8 @@ export default function AdminLogin() {
     };
 
     return (
+        <>
+        <BrandedSplash visible={loading} mode="login" />
         <div className={styles.container}>
             <div className={styles.loginCard}>
                 <div className={styles.header}>
@@ -122,14 +125,7 @@ export default function AdminLogin() {
                     </div>
 
                     <button type="submit" className={styles.submitBtn} disabled={loading}>
-                        {loading ? (
-                            <>
-                                <span className={styles.spinner}></span>
-                                Signing in...
-                            </>
-                        ) : (
-                            'Sign In'
-                        )}
+                        Sign In
                     </button>
                 </form>
 
@@ -138,5 +134,6 @@ export default function AdminLogin() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

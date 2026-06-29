@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './requisitions.module.css';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 export default function RequisitionsPage() {
     const [requisitions, setRequisitions] = useState([]);
@@ -47,12 +48,7 @@ export default function RequisitionsPage() {
     };
 
     if (loading && requisitions.length === 0) {
-        return (
-            <div className={styles.loading}>
-                <div className={styles.spinner}></div>
-                <p>Loading requisitions...</p>
-            </div>
-        );
+        return <LoadingSpinner message="Loading requisitions" />;
     }
 
     return (

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 const emptyForm = {
     unitName: '',
@@ -192,13 +193,15 @@ export default function UnitsPage() {
         }
     };
 
+    // The content/media designation can only belong to one unit at a time.
+    // Disabled when a media unit already exists AND it's not the one currently being edited.
+    const existingMediaUnit = units.find((u) => u.isContentUnit);
+    const isContentCheckboxDisabled = !!(
+        existingMediaUnit && existingMediaUnit.id !== editingUnit?.id
+    );
+
     if (loading) {
-        return (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 text-gray-600">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-orange-500" />
-                <p>Loading units...</p>
-            </div>
-        );
+        return <LoadingSpinner message="Gathering your units" />;
     }
 
     return (
@@ -285,20 +288,37 @@ export default function UnitsPage() {
                                 />
                             </div>
                         </div>
-                        <label className="flex items-center gap-3 cursor-pointer select-none rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
-                            <input
-                                type="checkbox"
-                                checked={formData.isContentUnit}
-                                onChange={(event) => setFormData({ ...formData, isContentUnit: event.target.checked })}
-                                className="h-4 w-4 accent-orange-600"
-                            />
-                            <span className="text-sm font-semibold text-orange-800">
-                                Content / Media Unit
-                            </span>
-                            <span className="ml-auto text-xs text-orange-600 font-medium">
-                                Members eligible for content personnel roles
-                            </span>
-                        </label>
+                        <div>
+                            <label
+                                className="flex items-center gap-3 select-none rounded-xl border px-4 py-3"
+                                style={{
+                                    cursor: isContentCheckboxDisabled ? 'not-allowed' : 'pointer',
+                                    borderColor: isContentCheckboxDisabled ? '#e5e7eb' : '#fed7aa',
+                                    background: isContentCheckboxDisabled ? '#f9fafb' : '#fff7ed',
+                                    opacity: isContentCheckboxDisabled ? 0.65 : 1,
+                                }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isContentUnit}
+                                    disabled={isContentCheckboxDisabled}
+                                    onChange={(event) => setFormData({ ...formData, isContentUnit: event.target.checked })}
+                                    className="h-4 w-4 accent-orange-600"
+                                    style={{ cursor: isContentCheckboxDisabled ? 'not-allowed' : 'pointer' }}
+                                />
+                                <span className="text-sm font-semibold" style={{ color: isContentCheckboxDisabled ? '#9ca3af' : '#92400e' }}>
+                                    Content / Media Unit
+                                </span>
+                                <span className="ml-auto text-xs font-medium" style={{ color: isContentCheckboxDisabled ? '#9ca3af' : '#c2410c' }}>
+                                    Members eligible for content personnel roles
+                                </span>
+                            </label>
+                            {isContentCheckboxDisabled && (
+                                <p className="mt-1.5 text-xs text-gray-500">
+                                    Already assigned to <strong>&quot;{existingMediaUnit?.unitName}&quot;</strong>. Remove that designation first before assigning another unit.
+                                </p>
+                            )}
+                        </div>
                         <button
                             type="submit"
                             disabled={saving}

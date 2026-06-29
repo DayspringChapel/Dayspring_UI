@@ -258,7 +258,7 @@ export default function SettingsPage() {
                                 Go-Live Announcement
                             </p>
                             <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '0.25rem' }}>
-                                Post to Facebook &amp; Twitter when you go live
+                                Post to Facebook, Twitter &amp; WhatsApp when you go live
                             </span>
                         </div>
 
@@ -335,23 +335,26 @@ export default function SettingsPage() {
                                 {/* Per-platform results */}
                                 {postResults && (
                                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                        {['facebook', 'twitter'].map((p) => {
-                                            const r = postResults[p];
+                                        {[
+                                            { key: 'facebook', icon: '🔵', label: 'Facebook' },
+                                            { key: 'twitter',  icon: '🐦', label: 'Twitter/X' },
+                                            { key: 'whatsapp', icon: '💚', label: 'WhatsApp' },
+                                        ].map(({ key, icon, label }) => {
+                                            const r = postResults[key];
                                             if (!r) return null;
-                                            const icon = p === 'facebook' ? '🔵' : '🐦';
-                                            const label = p === 'facebook' ? 'Facebook' : 'Twitter/X';
                                             if (r.skipped) return (
-                                                <span key={p} style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <span key={key} style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     {icon} {label}: not configured
                                                 </span>
                                             );
                                             if (r.success) return (
-                                                <span key={p} style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                    {icon} {label}: ✓ posted
+                                                <span key={key} style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    {icon} {label}: ✓ {key === 'whatsapp' ? `sent to ${r.sent}` : 'posted'}
+                                                    {key === 'whatsapp' && r.failed > 0 && ` (${r.failed} failed)`}
                                                 </span>
                                             );
                                             return (
-                                                <span key={p} style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <span key={key} style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     {icon} {label}: ✗ {r.error}
                                                 </span>
                                             );

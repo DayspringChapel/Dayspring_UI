@@ -1,11 +1,14 @@
 // Posts a live-stream announcement to configured social media platforms.
 // Required env vars:
-//   FB_PAGE_ID            — Facebook Page ID
-//   FB_PAGE_ACCESS_TOKEN  — Facebook Page Access Token (long-lived)
-//   TWITTER_API_KEY       — Twitter/X API Key (OAuth 1.0a consumer key)
-//   TWITTER_API_SECRET    — Twitter/X API Secret
-//   TWITTER_ACCESS_TOKEN  — Twitter/X Access Token
-//   TWITTER_ACCESS_TOKEN_SECRET — Twitter/X Access Token Secret
+//   FB_PAGE_ID                   — Facebook Page ID
+//   FB_PAGE_ACCESS_TOKEN         — Facebook Page Access Token (long-lived)
+//   TWITTER_API_KEY              — Twitter/X API Key (OAuth 1.0a consumer key)
+//   TWITTER_API_SECRET           — Twitter/X API Secret
+//   TWITTER_ACCESS_TOKEN         — Twitter/X Access Token
+//   TWITTER_ACCESS_TOKEN_SECRET  — Twitter/X Access Token Secret
+//   WHATSAPP_PHONE_NUMBER_ID     — WhatsApp Business phone number ID (Meta Cloud API)
+//   WHATSAPP_ACCESS_TOKEN        — Meta system user access token
+//   WHATSAPP_RECIPIENT_NUMBERS   — Comma-separated E.164 numbers, e.g. 2348012345678,2348098765432
 
 import crypto from 'crypto';
 
@@ -104,6 +107,53 @@ async function postToTwitter(text) {
     }
 }
 
+// ── WhatsApp Business Cloud API ───────────────────────────────────────────────
+
+async function postToWhatsApp(description, imageUrl) {
+    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const accessToken   = process.env.WHATSAPP_ACCESS_TOKEN;
+    const rawNumbers    = process.env.WHATSAPP_RECIPIENT_NUMBERS;
+
+    if (!phoneNumberId || !accessToken || !rawNumbers) {
+        return { skipped: true, reason: 'WhatsApp credentials not set' };
+    }
+
+    const numbers = rawNumbers.split(',').map((n) => n.trim()).filter(Boolean);
+    if (numbers.length === 0) return { skipped: true, reason: 'No recipient numbers configured' };
+
+    const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+
+    const results = await Promise.all(
+        numbers.map(async (to) => {
+            const body = imageUrl
+                ? { messaging_product: 'whatsapp', to, type: 'image',
+                    image: { link: imageUrl, caption: description } }
+                : { messaging_product: 'whatsapp', to, type: 'text',
+                    text: { body: description } };
+            try {
+                const res  = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':  'application/json',
+                        'Authorization': `Bearer ${accessToken}`,
+                    },
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (!res.ok) return { to, error: data.error?.message || 'Send failed' };
+                return { to, success: true, id: data.messages?.[0]?.id };
+            } catch (err) {
+                return { to, error: err.message };
+            }
+        })
+    );
+
+    const sent   = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => r.error).length;
+    if (sent === 0) return { error: `Failed to send to ${failed} number(s)` };
+    return { success: true, sent, failed };
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function POST(request) {
@@ -114,12 +164,13 @@ export async function POST(request) {
             return Response.json({ error: 'Description is required' }, { status: 400 });
         }
 
-        const [facebook, twitter] = await Promise.all([
+        const [facebook, twitter, whatsapp] = await Promise.all([
             postToFacebook(description, imageUrl),
             postToTwitter(description),
+            postToWhatsApp(description, imageUrl),
         ]);
 
-        return Response.json({ facebook, twitter });
+        return Response.json({ facebook, twitter, whatsapp });
     } catch (err) {
         return Response.json({ error: err.message }, { status: 500 });
     }
