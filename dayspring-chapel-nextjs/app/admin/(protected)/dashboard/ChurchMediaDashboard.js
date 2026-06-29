@@ -197,38 +197,36 @@ export default function ChurchMediaDashboard({ userName }) {
                             </div>
                         )}
 
-                        <section className={styles.bottomPair}>
-                            <div className={styles.sideCard}>
-                                <h4 className={styles.sideCardTitle}>Quick Actions</h4>
-                                <div className={styles.actionRowWrap}>
-                                    {quickActions.map((a) => (
-                                        <ActionButtonRow
-                                            key={a.path}
-                                            {...a}
-                                            isNavigating={navigating === a.path}
-                                            anyNavigating={!!navigating}
-                                            onClick={() => navigate(a.path)}
-                                        />
-                                    ))}
-                                </div>
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                            <div className={styles.actionRowWrap}>
+                                {quickActions.map((a) => (
+                                    <ActionButtonRow
+                                        key={a.path}
+                                        {...a}
+                                        isNavigating={navigating === a.path}
+                                        anyNavigating={!!navigating}
+                                        onClick={() => navigate(a.path)}
+                                    />
+                                ))}
                             </div>
-                            <div className={styles.sideCard}>
-                                <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
-                                <ul className={styles.snapshotList}>
-                                    <SnapItem label="Draft"     value={pipeline.draft}     color="#94a3b8" />
-                                    <SnapItem label="Submitted" value={pipeline.submitted} color="#6366f1" />
-                                    <SnapItem label="In Review" value={pipeline.inReview}  color="#f59e0b" />
-                                    <SnapItem label="Ready"     value={pipeline.ready}     color="#0ea5e9" />
-                                    <SnapItem label="Scheduled" value={pipeline.scheduled} color="#3b82f6" />
-                                    <SnapItem label="Published" value={pipeline.published} color="#10b981" />
-                                    <SnapItem label="Rejected"  value={pipeline.rejected}  color="#ef4444" />
-                                </ul>
-                            </div>
-                        </section>
+                        </div>
                     </main>
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
+                            <ul className={styles.snapshotList}>
+                                <SnapItem label="Draft"     value={pipeline.draft}     color="#94a3b8" />
+                                <SnapItem label="Submitted" value={pipeline.submitted} color="#6366f1" />
+                                <SnapItem label="In Review" value={pipeline.inReview}  color="#f59e0b" />
+                                <SnapItem label="Ready"     value={pipeline.ready}     color="#0ea5e9" />
+                                <SnapItem label="Scheduled" value={pipeline.scheduled} color="#3b82f6" />
+                                <SnapItem label="Published" value={pipeline.published} color="#10b981" />
+                                <SnapItem label="Rejected"  value={pipeline.rejected}  color="#ef4444" />
+                            </ul>
+                        </div>
                     </aside>
                 </div>
             </div>

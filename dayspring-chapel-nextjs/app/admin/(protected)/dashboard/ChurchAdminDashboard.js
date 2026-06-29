@@ -183,36 +183,34 @@ export default function ChurchAdminDashboard({ userName }) {
                             <BarChart bars={ministryBars} height={190} />
                         </div>
 
-                        <section className={styles.bottomPair}>
-                            <div className={styles.sideCard}>
-                                <h4 className={styles.sideCardTitle}>Quick Actions</h4>
-                                <div className={styles.actionRowWrap}>
-                                    {quickActions.map((a) => (
-                                        <ActionButtonRow
-                                            key={a.path}
-                                            {...a}
-                                            isNavigating={navigating === a.path}
-                                            anyNavigating={!!navigating}
-                                            onClick={() => navigate(a.path)}
-                                        />
-                                    ))}
-                                </div>
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                            <div className={styles.actionRowWrap}>
+                                {quickActions.map((a) => (
+                                    <ActionButtonRow
+                                        key={a.path}
+                                        {...a}
+                                        isNavigating={navigating === a.path}
+                                        anyNavigating={!!navigating}
+                                        onClick={() => navigate(a.path)}
+                                    />
+                                ))}
                             </div>
-                            {stats.pendingAppts > 0 && (
-                                <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
-                                    <h4 className={styles.sideCardTitle}>Pending Actions</h4>
-                                    <ul className={styles.snapshotList}>
-                                        <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
-                                        <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
-                                        <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />
-                                    </ul>
-                                </div>
-                            )}
-                        </section>
+                        </div>
                     </main>
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
+                        {stats.pendingAppts > 0 && (
+                            <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
+                                <h4 className={styles.sideCardTitle}>Pending Actions</h4>
+                                <ul className={styles.snapshotList}>
+                                    <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
+                                    <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
+                                    <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />
+                                </ul>
+                            </div>
+                        )}
                     </aside>
                 </div>
             </div>
