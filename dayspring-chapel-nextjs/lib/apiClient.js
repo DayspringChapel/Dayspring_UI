@@ -116,13 +116,19 @@ class ApiClient {
         return payload;
     }
 
+    forceHttps(url) {
+        if (!url || typeof url !== 'string') return url;
+        return url.replace(/^http:\/\//i, 'https://');
+    }
+
     normalizeImage(image) {
         if (!image) return null;
         if (typeof image === 'string') {
-            return { id: image, url: image, imageUrlLink: image };
+            const url = this.forceHttps(image);
+            return { id: url, url, imageUrlLink: url };
         }
 
-        const url = image.imageUrlLink || image.ImageUrlLink || image.url || image.Url || null;
+        const url = this.forceHttps(image.imageUrlLink || image.ImageUrlLink || image.url || image.Url || null);
 
         return {
             ...image,
@@ -136,7 +142,7 @@ class ApiClient {
         if (!event) return null;
 
         const eventDate = event.eventDate || event.EventDate || event.datetime || event.DateTime || null;
-        const eventImage = event.eventImage || event.EventImage || event.eventImageUrl || event.EventImageUrl || null;
+        const eventImage = this.forceHttps(event.eventImage || event.EventImage || event.eventImageUrl || event.EventImageUrl || null);
 
         return {
             ...event,
@@ -152,7 +158,7 @@ class ApiClient {
     normalizeBook(book) {
         if (!book) return null;
 
-        const imageUrl = book.imageUrl || book.ImageUrl || book.bookImage || book.BookImage || null;
+        const imageUrl = this.forceHttps(book.imageUrl || book.ImageUrl || book.bookImage || book.BookImage || null);
 
         return {
             ...book,
@@ -175,7 +181,7 @@ class ApiClient {
             ? (album.images || album.Images).map((image) => this.normalizeImage(image)).filter(Boolean)
             : [];
 
-        const albumImage = album.albumImageUrlLink || album.AlbumImageUrlLink || null;
+        const albumImage = this.forceHttps(album.albumImageUrlLink || album.AlbumImageUrlLink || null);
         const albumYear = album.albumYear || album.AlbumYear || null;
 
         return {
@@ -194,8 +200,8 @@ class ApiClient {
     normalizeSermon(sermon) {
         if (!sermon) return null;
 
-        const imageUrl = sermon.imageUrl || sermon.ImageUrl || sermon.imageLink || sermon.ImageLink || sermon.image || sermon.Image || null;
-        const audioLink = sermon.audioFile || sermon.AudioFile || sermon.audioLink || sermon.AudioLink || sermon.link || null;
+        const imageUrl = this.forceHttps(sermon.imageUrl || sermon.ImageUrl || sermon.imageLink || sermon.ImageLink || sermon.image || sermon.Image || null);
+        const audioLink = this.forceHttps(sermon.audioFile || sermon.AudioFile || sermon.audioLink || sermon.AudioLink || sermon.link || null);
 
         return {
             ...sermon,

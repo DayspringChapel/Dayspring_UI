@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchEventsServer } from '@/lib/serverApi';
 import CountdownBadge from '@/components/CountdownTimer';
 
+
 const PLACEHOLDER_EVENTS = [
     { id: 1, heading: 'SERVICE OF HYMNS', eventDate: null, eventImage: '/upcoming-events-3.png' },
     { id: 2, heading: "GLS'2025",         eventDate: null, eventImage: '/upcoming-events-1.png' },
@@ -33,35 +34,37 @@ function EventCard({ event, index }) {
     const date    = formatEventDate(dateStr);
 
     return (
-        <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-lg group cursor-pointer">
-            <Image
-                src={imgSrc}
-                alt={title || 'Event'}
-                fill
-                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                unoptimized
-            />
+        <Link href={`/content/event/${event.id}`} className="block">
+            <div className="relative h-[300px] rounded-2xl overflow-hidden shadow-lg group cursor-pointer">
+                <Image
+                    src={imgSrc}
+                    alt={title || 'Event'}
+                    fill
+                    className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                    unoptimized
+                />
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent transition-opacity duration-300" />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent transition-opacity duration-300" />
 
-            {/* Countdown badge — top right */}
-            {dateStr && (
-                <div className="absolute top-3 right-3 z-10">
-                    <CountdownBadge targetDate={dateStr} />
+                {/* Countdown badge — top right */}
+                {dateStr && (
+                    <div className="absolute top-3 right-3 z-10">
+                        <CountdownBadge targetDate={dateStr} />
+                    </div>
+                )}
+
+                {/* Info — bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                    {title && (
+                        <p className="font-black text-white text-lg leading-tight mb-1 drop-shadow">{title}</p>
+                    )}
+                    {date && (
+                        <p className="text-gray-300 text-sm font-medium">📅 {date}</p>
+                    )}
                 </div>
-            )}
-
-            {/* Info — bottom */}
-            <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-                {title && (
-                    <p className="font-black text-white text-lg leading-tight mb-1 drop-shadow">{title}</p>
-                )}
-                {date && (
-                    <p className="text-gray-300 text-sm font-medium">📅 {date}</p>
-                )}
             </div>
-        </div>
+        </Link>
     );
 }
 

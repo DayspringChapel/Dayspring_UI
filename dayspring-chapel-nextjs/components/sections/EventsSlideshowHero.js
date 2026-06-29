@@ -140,7 +140,7 @@ export default function EventsSlideshowHero() {
 
                 {/* CTA */}
                 <Link
-                    href={`/events/${featured.id}`}
+                    href={`/content/event/${featured.id}`}
                     style={{
                         display: 'inline-flex', alignItems: 'center', gap: '0.6rem',
                         background: '#f58634', color: '#fff',

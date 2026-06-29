@@ -25,7 +25,7 @@ function ShuffleCard({ event, height = 300 }) {
     const date        = formatDate(dateStr);
 
     return (
-        <Link href={`/events/${event.id}`} style={{ display: 'block', height: '100%' }}>
+        <Link href={`/content/event/${event.id}`} style={{ display: 'block', height: '100%' }}>
             <div className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300"
                 style={{ height }}>
                 <Image
@@ -235,7 +235,7 @@ export default function EventsContent() {
                                 const image   = event.eventImage || '/upcoming-events-1.png';
                                 const date    = formatDate(dateStr);
                                 return (
-                                    <Link key={event.id} href={`/events/${event.id}`}>
+                                    <Link key={event.id} href={`/content/event/${event.id}`}>
                                         <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all group">
                                             <div className="relative rounded-lg overflow-hidden flex-shrink-0" style={{ width: 70, height: 70 }}>
                                                 <Image src={image} alt={title} fill className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300" unoptimized />
