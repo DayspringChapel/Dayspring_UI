@@ -196,10 +196,13 @@ export default function ChurchMediaDashboard({ userName }) {
                                 <BarChart bars={myRoleBars} height={140} />
                             </div>
                         )}
+                    </main>
 
-                        <section className={styles.actionsCard}>
-                            <h3 className={styles.chartTitle}>Quick Actions</h3>
-                            <div className={styles.actionGrid}>
+                    <aside className={styles.col1Sticky}>
+                        <BirthdayWidget />
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                            <div className={styles.sideActionGrid}>
                                 {quickActions.map((a) => (
                                     <ActionButton
                                         key={a.path}
@@ -210,11 +213,7 @@ export default function ChurchMediaDashboard({ userName }) {
                                     />
                                 ))}
                             </div>
-                        </section>
-                    </main>
-
-                    <aside className={styles.col1Sticky}>
-                        <BirthdayWidget />
+                        </div>
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
                             <ul className={styles.snapshotList}>

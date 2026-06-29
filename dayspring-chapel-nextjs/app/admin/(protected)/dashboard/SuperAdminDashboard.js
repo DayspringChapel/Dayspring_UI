@@ -179,10 +179,13 @@ export default function SuperAdminDashboard({ userName }) {
                                 <BarChart bars={ministryBars} height={190} />
                             </div>
                         </section>
+                    </main>
 
-                        <section className={styles.actionsCard}>
-                            <h3 className={styles.chartTitle}>Quick Actions</h3>
-                            <div className={styles.actionGrid}>
+                    <aside className={styles.col1Sticky}>
+                        <BirthdayWidget />
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                            <div className={styles.sideActionGrid}>
                                 {quickActions.map((a) => (
                                     <ActionButton
                                         key={a.path}
@@ -193,19 +196,15 @@ export default function SuperAdminDashboard({ userName }) {
                                     />
                                 ))}
                             </div>
-                        </section>
-                    </main>
-
-                    <aside className={styles.col1Sticky}>
-                        <BirthdayWidget />
+                        </div>
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>System Snapshot</h4>
                             <ul className={styles.snapshotList}>
-                                <SnapItem label="Departments"  value={stats.units}           color="#a78bfa" />
-                                <SnapItem label="Books"        value={stats.books}           color="#3b82f6" />
-                                <SnapItem label="Appointments" value={stats.appointments}    color="#be123c" />
-                                <SnapItem label="Albums"       value={stats.albums}          color="#f59e0b" />
-                                <SnapItem label="Rejected"     value={pipeline.rejected}     color="#ef4444" />
+                                <SnapItem label="Departments"  value={stats.units}        color="#a78bfa" />
+                                <SnapItem label="Books"        value={stats.books}        color="#3b82f6" />
+                                <SnapItem label="Appointments" value={stats.appointments} color="#be123c" />
+                                <SnapItem label="Albums"       value={stats.albums}       color="#f59e0b" />
+                                <SnapItem label="Rejected"     value={pipeline.rejected}  color="#ef4444" />
                             </ul>
                         </div>
                     </aside>

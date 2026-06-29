@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { EventProvider } from '@/context/EventContext';
 import EventsPanel from '@/components/admin/panels/EventsPanel';
 import SermonsPanel from '@/components/admin/panels/SermonsPanel';
 import BooksPanel from '@/components/admin/panels/BooksPanel';
@@ -56,7 +57,7 @@ export default function ContentManagement() {
 
             {/* Content Area */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                {activeTab === 'events' && <EventsPanel />}
+                {activeTab === 'events' && <EventProvider><EventsPanel /></EventProvider>}
                 {activeTab === 'sermons' && <SermonsPanel />}
                 {activeTab === 'series' && <SeriesPanel />}
                 {activeTab === 'books' && <BooksPanel />}

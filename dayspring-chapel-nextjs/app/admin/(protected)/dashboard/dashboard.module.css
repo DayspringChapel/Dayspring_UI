@@ -257,7 +257,7 @@
 /* ── 6. Stat cards ──────────────────────────────────────────────────────── */
 .statGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
@@ -418,6 +418,14 @@
     grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
     gap: 0.85rem;
     margin-top: 1rem;
+}
+
+/* 2-column action grid for sidebar */
+.sideActionGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+    margin-top: 0.85rem;
 }
 
 .actionBtn {
@@ -682,11 +690,14 @@
     }
     .heroBig       { font-size: 2.6rem; }
     .chartsRow     { grid-template-columns: 1fr; }
+    .statGrid      { grid-template-columns: repeat(2, 1fr); }
     .actionGrid    { grid-template-columns: repeat(3, 1fr); }
+    .sideActionGrid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 520px) {
-    .statGrid      { grid-template-columns: repeat(2, 1fr); }
-    .actionGrid    { grid-template-columns: repeat(2, 1fr); }
-    .hero          { border-radius: var(--r-lg); }
+    .statGrid       { grid-template-columns: repeat(2, 1fr); }
+    .actionGrid     { grid-template-columns: repeat(2, 1fr); }
+    .sideActionGrid { grid-template-columns: repeat(2, 1fr); }
+    .hero           { border-radius: var(--r-lg); }
 }

@@ -182,10 +182,13 @@ export default function ChurchAdminDashboard({ userName }) {
                             <p className={styles.chartSub}>Key ministry metrics side by side</p>
                             <BarChart bars={ministryBars} height={190} />
                         </div>
+                    </main>
 
-                        <section className={styles.actionsCard}>
-                            <h3 className={styles.chartTitle}>Quick Actions</h3>
-                            <div className={styles.actionGrid}>
+                    <aside className={styles.col1Sticky}>
+                        <BirthdayWidget />
+                        <div className={styles.sideCard}>
+                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                            <div className={styles.sideActionGrid}>
                                 {quickActions.map((a) => (
                                     <ActionButton
                                         key={a.path}
@@ -196,14 +199,10 @@ export default function ChurchAdminDashboard({ userName }) {
                                     />
                                 ))}
                             </div>
-                        </section>
-                    </main>
-
-                    <aside className={styles.col1Sticky}>
-                        <BirthdayWidget />
+                        </div>
                         {stats.pendingAppts > 0 && (
                             <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
-                                <h4 className={styles.sideCardTitle}>⚡ Pending Actions</h4>
+                                <h4 className={styles.sideCardTitle}>Pending Actions</h4>
                                 <ul className={styles.snapshotList}>
                                     <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
                                     <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
