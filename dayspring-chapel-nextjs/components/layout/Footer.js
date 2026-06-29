@@ -6,26 +6,57 @@ export default function Footer() {
 
     return (
         <footer className="bg-dark text-white px-12 pt-16 pb-4">
-            <div className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr] gap-8">
-                {/* Left Side - Logo and Address */}
-                <div className="flex flex-col items-center md:items-start justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-[1.6fr_2fr] gap-10">
+                {/* Left Side - Logo, Address, Map, Social */}
+                <div className="flex flex-col items-center md:items-start gap-6">
                     <Image
                         src="/logo.png"
                         alt="Dayspring Chapel Logo"
                         width={210}
                         height={110}
-                        className="w-[210px] h-[110px] md:w-[210px] md:h-[110px] mb-12 md:mb-0"
+                        className="w-[210px] h-[110px]"
                     />
 
-                    <ul className="hidden md:block mt-4">
-                        <li className="text-primary mb-4">Physical Address</li>
-                        <li>
-                            Dayspring Chapel Obantoko, Conoil, Abeokuta, Ogun State, Nigeria
-                        </li>
-                    </ul>
+                    {/* Address */}
+                    <div className="hidden md:block">
+                        <p className="text-primary mb-2 text-sm font-semibold tracking-wide">Physical Address</p>
+                        <p className="text-sm leading-relaxed opacity-80">
+                            Dayspring Chapel Obantoko,<br />
+                            Conoil, Abeokuta, Ogun State, Nigeria
+                        </p>
+                    </div>
 
-                    <ul className="hidden md:block mt-4">
-                        <li className="text-primary mb-4">Join Us</li>
+                    {/* Map embed */}
+                    <div className="hidden md:block w-full rounded-xl overflow-hidden"
+                        style={{ height: '190px', border: '1px solid rgba(255,255,255,0.10)' }}>
+                        <iframe
+                            src="https://www.google.com/maps?q=Dayspring+Chapel+Obantoko+Conoil+Abeokuta+Ogun+State+Nigeria&output=embed"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="Dayspring Chapel Location"
+                        />
+                    </div>
+
+                    {/* Get Directions link */}
+                    <a
+                        href="https://www.google.com/maps/search/Dayspring+Chapel+Obantoko+Conoil+Abeokuta+Ogun+State+Nigeria"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden md:inline-flex items-center gap-1.5 text-primary text-sm font-semibold hover:underline"
+                    >
+                        Get Directions
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+
+                    {/* Social */}
+                    <ul className="hidden md:block">
+                        <li className="text-primary mb-4 text-sm font-semibold tracking-wide">Join Us</li>
                         <ul className="flex items-center gap-4">
                             <li>
                                 <Image src="/fb.png" alt="Facebook" width={24} height={24} />
@@ -34,12 +65,7 @@ export default function Footer() {
                                 <Image src="/twitter.png" alt="Twitter" width={24} height={24} />
                             </li>
                             <li>
-                                <Image
-                                    src="/ig.png"
-                                    alt="Instagram"
-                                    width={24}
-                                    height={24}
-                                />
+                                <Image src="/ig.png" alt="Instagram" width={24} height={24} />
                             </li>
                             <li>
                                 <Image src="/yt.png" alt="YouTube" width={24} height={24} />
@@ -132,11 +158,21 @@ export default function Footer() {
                         </ul>
                     </ul>
 
-                    {/* Mobile Only - Address */}
+                    {/* Mobile Only - Address + map link */}
                     <ul className="md:hidden">
-                        <li className="text-primary mb-4">Physical Address</li>
-                        <li>
+                        <li className="text-primary mb-3">Physical Address</li>
+                        <li className="text-sm leading-relaxed opacity-80 mb-3">
                             Dayspring Chapel Obantoko, Conoil, Abeokuta, Ogun State, Nigeria
+                        </li>
+                        <li>
+                            <a
+                                href="https://www.google.com/maps/search/Dayspring+Chapel+Obantoko+Conoil+Abeokuta+Ogun+State+Nigeria"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary text-sm font-semibold inline-flex items-center gap-1"
+                            >
+                                View on Map →
+                            </a>
                         </li>
                     </ul>
                 </div>
