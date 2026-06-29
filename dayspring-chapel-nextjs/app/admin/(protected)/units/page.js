@@ -9,6 +9,7 @@ const emptyForm = {
     unitHead: '',
     countryCode: '+234',
     phoneNumber: '',
+    isContentUnit: false,
 };
 
 const formatPhone = (phone) => {
@@ -144,6 +145,7 @@ export default function UnitsPage() {
             unitHead: unit.unitHeadId || '',
             countryCode: phone?.countryCode || '+234',
             phoneNumber: phone?.number || '',
+            isContentUnit: unit.isContentUnit ?? false,
         });
         setUnitHeadSearch(memberNameById.get(unit.unitHeadId) || unit.unitHeadId || '');
     };
@@ -157,11 +159,9 @@ export default function UnitsPage() {
             description: formData.description,
             unitHead: formData.unitHead || null,
             unitHeadPhonenumber: formData.phoneNumber
-                ? {
-                    countryCode: formData.countryCode,
-                    number: formData.phoneNumber,
-                }
+                ? { countryCode: formData.countryCode, number: formData.phoneNumber }
                 : null,
+            isContentUnit: formData.isContentUnit,
         };
 
         try {
@@ -285,6 +285,20 @@ export default function UnitsPage() {
                                 />
                             </div>
                         </div>
+                        <label className="flex items-center gap-3 cursor-pointer select-none rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
+                            <input
+                                type="checkbox"
+                                checked={formData.isContentUnit}
+                                onChange={(event) => setFormData({ ...formData, isContentUnit: event.target.checked })}
+                                className="h-4 w-4 accent-orange-600"
+                            />
+                            <span className="text-sm font-semibold text-orange-800">
+                                Content / Media Unit
+                            </span>
+                            <span className="ml-auto text-xs text-orange-600 font-medium">
+                                Members eligible for content personnel roles
+                            </span>
+                        </label>
                         <button
                             type="submit"
                             disabled={saving}
@@ -305,6 +319,7 @@ export default function UnitsPage() {
                                     <tr>
                                         <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Unit</th>
                                         <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Description</th>
+                                        <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Type</th>
                                         <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Head</th>
                                         <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Phone</th>
                                         <th className="border-b border-gray-200 p-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-600">Actions</th>
@@ -315,6 +330,15 @@ export default function UnitsPage() {
                                         <tr key={unit.id} className="hover:bg-gray-50">
                                             <td className="border-t border-gray-200 p-4 text-sm font-semibold text-gray-900">{unit.unitName}</td>
                                             <td className="max-w-md border-t border-gray-200 p-4 text-sm text-gray-600">{unit.description}</td>
+                                            <td className="border-t border-gray-200 p-4">
+                                                {unit.isContentUnit ? (
+                                                    <span className="inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-bold text-orange-700">
+                                                        Content
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400">—</span>
+                                                )}
+                                            </td>
                                             <td className="border-t border-gray-200 p-4 text-sm text-gray-700">{memberNameById.get(unit.unitHeadId) || unit.unitHeadId || 'Not set'}</td>
                                             <td className="border-t border-gray-200 p-4 text-sm text-gray-700">{formatPhone(unit.unitHeadPhoneNumber)}</td>
                                             <td className="border-t border-gray-200 p-4">

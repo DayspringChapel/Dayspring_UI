@@ -336,6 +336,7 @@ class ApiClient {
             description: unit.description || unit.Description || '',
             unitHeadId: unit.unitHeadId || unit.UnitHeadId || '',
             unitHeadPhoneNumber: unit.unitHeadPhoneNumber || unit.UnitHeadPhoneNumber || null,
+            isContentUnit: unit.isContentUnit ?? unit.IsContentUnit ?? false,
         };
     }
 
@@ -750,6 +751,20 @@ class ApiClient {
     async getChurchOfficials() {
         const data = await this.request('/api/v1/ChurchsOfficial');
         return this.normalizeChurchOfficials(data);
+    }
+
+    async createChurchOfficial(payload) {
+        return this.request('/api/v1/ChurchsOfficial/create', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async assignMemberGroups(memberId, { unitId, smallGroupId }) {
+        return this.request(`/api/v1/Member/${memberId}/assign`, {
+            method: 'PATCH',
+            body: JSON.stringify({ unitId: unitId ?? null, smallGroupId: smallGroupId ?? null }),
+        });
     }
 
     async getBioDataById(id) {
