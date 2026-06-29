@@ -44,8 +44,12 @@ export default function SettingsPage() {
         facebook:  { active: false, url: '' },
         instagram: { active: false, url: '' },
     });
-    const [saving, setSaving] = useState(false);
-    const [status, setStatus]  = useState(null); // 'saved' | 'error'
+    const [saving, setSaving]   = useState(false);
+    const [status, setStatus]   = useState(null); // 'saved' | 'error'
+
+    const [announcement, setAnnouncement] = useState({ description: '', imageUrl: '' });
+    const [posting, setPosting]           = useState(false);
+    const [postResults, setPostResults]   = useState(null); // { facebook, twitter }
 
     const [botInfo, setBotInfo]       = useState('');
     const [savingBot, setSavingBot]   = useState(false);
@@ -54,13 +58,39 @@ export default function SettingsPage() {
     useEffect(() => {
         fetch('/api/livestream')
             .then((r) => r.json())
-            .then(setConfig)
+            .then((d) => {
+                setConfig({
+                    youtube:   d.youtube   || { active: false, url: '' },
+                    facebook:  d.facebook  || { active: false, url: '' },
+                    instagram: d.instagram || { active: false, url: '' },
+                });
+                setAnnouncement(d.announcement || { description: '', imageUrl: '' });
+            })
             .catch(() => {});
         fetch('/api/chatbot-config')
             .then((r) => r.json())
             .then((d) => setBotInfo(d.additionalInfo || ''))
             .catch(() => {});
     }, []);
+
+    const postAnnouncement = async () => {
+        if (!announcement.description.trim()) return;
+        setPosting(true);
+        setPostResults(null);
+        try {
+            const res  = await fetch('/api/announce', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(announcement),
+            });
+            const data = await res.json();
+            setPostResults(data);
+        } catch {
+            setPostResults({ error: 'Network error' });
+        } finally {
+            setPosting(false);
+        }
+    };
 
     const saveBot = async () => {
         setSavingBot(true);
@@ -95,7 +125,7 @@ export default function SettingsPage() {
             const res = await fetch('/api/livestream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(config),
+                body: JSON.stringify({ ...config, announcement }),
             });
             if (!res.ok) throw new Error();
             setStatus('saved');
@@ -215,8 +245,126 @@ export default function SettingsPage() {
                     })}
                 </div>
 
+                {/* Announcement section — only visible when any platform is live */}
+                {anyLive && (
+                    <div style={{
+                        marginTop: '1.5rem',
+                        borderTop: '1px solid rgba(15,23,42,0.08)',
+                        paddingTop: '1.25rem',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+                            <span style={{ fontSize: '1rem' }}>📢</span>
+                            <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
+                                Go-Live Announcement
+                            </p>
+                            <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '0.25rem' }}>
+                                Post to Facebook &amp; Twitter when you go live
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <textarea
+                                rows={3}
+                                value={announcement.description}
+                                onChange={(e) => setAnnouncement((a) => ({ ...a, description: e.target.value }))}
+                                placeholder="We're LIVE on YouTube! Join us now for today's service. 🙌 #DayspringChapel"
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.65rem 0.85rem',
+                                    border: '1.5px solid rgba(15,23,42,0.14)',
+                                    borderRadius: '0.65rem',
+                                    background: 'rgba(255,255,255,0.92)',
+                                    color: '#0f172a', fontSize: '0.84rem',
+                                    fontFamily: 'inherit', outline: 'none',
+                                    resize: 'vertical', lineHeight: 1.55,
+                                }}
+                                onFocus={(e) => { e.target.style.borderColor = '#F58634'; e.target.style.boxShadow = '0 0 0 3px rgba(245,134,52,0.14)'; }}
+                                onBlur={(e)  => { e.target.style.borderColor = 'rgba(15,23,42,0.14)'; e.target.style.boxShadow = 'none'; }}
+                            />
+
+                            <input
+                                type="url"
+                                value={announcement.imageUrl}
+                                onChange={(e) => setAnnouncement((a) => ({ ...a, imageUrl: e.target.value }))}
+                                placeholder="Image URL (optional) — paste a publicly accessible image link"
+                                style={{
+                                    width: '100%', boxSizing: 'border-box',
+                                    padding: '0.6rem 0.85rem',
+                                    border: '1.5px solid rgba(15,23,42,0.14)',
+                                    borderRadius: '0.65rem',
+                                    background: 'rgba(255,255,255,0.92)',
+                                    color: '#0f172a', fontSize: '0.84rem',
+                                    fontFamily: 'inherit', outline: 'none',
+                                }}
+                                onFocus={(e) => { e.target.style.borderColor = '#F58634'; e.target.style.boxShadow = '0 0 0 3px rgba(245,134,52,0.14)'; }}
+                                onBlur={(e)  => { e.target.style.borderColor = 'rgba(15,23,42,0.14)'; e.target.style.boxShadow = 'none'; }}
+                            />
+
+                            {/* Image preview */}
+                            {announcement.imageUrl && (
+                                <img
+                                    src={announcement.imageUrl}
+                                    alt="Announcement preview"
+                                    style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: '0.6rem', border: '1px solid rgba(15,23,42,0.10)' }}
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                            )}
+
+                            {/* Post button */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={postAnnouncement}
+                                    disabled={posting || !announcement.description.trim()}
+                                    style={{
+                                        padding: '0.62rem 1.4rem',
+                                        borderRadius: '0.65rem', border: 'none',
+                                        background: posting || !announcement.description.trim()
+                                            ? '#e2e8f0'
+                                            : 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+                                        color: posting || !announcement.description.trim() ? '#94a3b8' : '#fff',
+                                        fontWeight: 800, fontSize: '0.86rem',
+                                        cursor: posting || !announcement.description.trim() ? 'not-allowed' : 'pointer',
+                                        fontFamily: 'inherit',
+                                        boxShadow: !posting && announcement.description.trim() ? '0 4px 14px rgba(124,58,237,0.30)' : 'none',
+                                        transition: 'all 0.18s',
+                                    }}
+                                >
+                                    {posting ? 'Posting…' : '📢 Post Announcement'}
+                                </button>
+
+                                {/* Per-platform results */}
+                                {postResults && (
+                                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {['facebook', 'twitter'].map((p) => {
+                                            const r = postResults[p];
+                                            if (!r) return null;
+                                            const icon = p === 'facebook' ? '🔵' : '🐦';
+                                            const label = p === 'facebook' ? 'Facebook' : 'Twitter/X';
+                                            if (r.skipped) return (
+                                                <span key={p} style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    {icon} {label}: not configured
+                                                </span>
+                                            );
+                                            if (r.success) return (
+                                                <span key={p} style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    {icon} {label}: ✓ posted
+                                                </span>
+                                            );
+                                            return (
+                                                <span key={p} style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    {icon} {label}: ✗ {r.error}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Save button */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: '1.25rem' }}>
                     <button
                         onClick={save}
                         disabled={saving}

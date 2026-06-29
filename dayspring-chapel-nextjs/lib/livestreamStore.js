@@ -2,9 +2,10 @@ const DEFAULT = {
     youtube:   { active: false, url: '' },
     facebook:  { active: false, url: '' },
     instagram: { active: false, url: '' },
+    announcement: { description: '', imageUrl: '' },
+    _meta: { lastYouTubeCheck: 0 },
 };
 
-// global persists for the lifetime of the Node.js process (survives HMR in dev)
 if (!global.__dayspringStreams) {
     global.__dayspringStreams = structuredClone(DEFAULT);
 }
@@ -14,10 +15,21 @@ export function getStreams() {
 }
 
 export function setStreams(data) {
+    const s = global.__dayspringStreams;
     global.__dayspringStreams = {
-        youtube:   { ...global.__dayspringStreams.youtube,   ...(data.youtube   || {}) },
-        facebook:  { ...global.__dayspringStreams.facebook,  ...(data.facebook  || {}) },
-        instagram: { ...global.__dayspringStreams.instagram, ...(data.instagram || {}) },
+        youtube:   { ...s.youtube,   ...(data.youtube   || {}) },
+        facebook:  { ...s.facebook,  ...(data.facebook  || {}) },
+        instagram: { ...s.instagram, ...(data.instagram || {}) },
+        announcement: { ...s.announcement, ...(data.announcement || {}) },
+        _meta: s._meta,
     };
     return global.__dayspringStreams;
+}
+
+export function setYouTubeActive(active) {
+    global.__dayspringStreams.youtube.active = active;
+}
+
+export function touchYouTubeCheck() {
+    global.__dayspringStreams._meta.lastYouTubeCheck = Date.now();
 }
