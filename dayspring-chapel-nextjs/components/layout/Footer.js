@@ -62,6 +62,11 @@ export default function Footer() {
                         <li className="mb-3">
                             <Link href="/appointment">Appointment</Link>
                         </li>
+                        <li className="mb-3">
+                            <Link href="/admin/login" className="opacity-60 hover:opacity-100 transition-opacity text-sm">
+                                Staff Login
+                            </Link>
+                        </li>
                     </ul>
 
                     {/* About */}

@@ -1,3 +1,4 @@
+import { fetchEventsServer } from '@/lib/serverApi';
 import { EventProvider } from '@/context/EventContext';
 import EventsSlideshowHero from '@/components/sections/EventsSlideshowHero';
 import EventsContent from '@/components/sections/EventsContent';
@@ -8,10 +9,12 @@ export const metadata = {
     description: 'Join us for upcoming events and experience the presence of God.',
 };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+    const events = await fetchEventsServer();
+
     return (
         <main>
-            <EventProvider>
+            <EventProvider initialEvents={events}>
                 <EventsSlideshowHero />
                 <EventsContent />
             </EventProvider>
