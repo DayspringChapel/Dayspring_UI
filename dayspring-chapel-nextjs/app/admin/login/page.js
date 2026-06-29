@@ -31,36 +31,22 @@ export default function AdminLogin() {
         try {
             const response = await apiClient.login(formData.email, formData.password);
 
-            // Debug: Log the full response to see its structure
-            console.log('Login response:', response);
-
             if (response.token || response.success) {
-                // Extract the actual token string from the response
-                // The API returns: {token: {result: "actual_token_string", ...}, user: {...}}
                 const actualToken = response.token?.result || response.token;
 
                 if (actualToken) {
-                    console.log('Saving token:', actualToken);
                     apiClient.setToken(actualToken);
                 }
 
-                // Save user data if available
                 if (response.user || response.data) {
-                    console.log('Saving user data:', response.user || response.data);
                     apiClient.setUserData(response.user || response.data);
                 }
 
-                // Verify token was saved
-                const savedToken = apiClient.getToken();
-                console.log('Token saved successfully:', savedToken ? 'Yes' : 'No');
-
-                // Redirect to dashboard
                 router.replace('/admin/dashboard');
             } else {
                 setError('Login failed. Please check your credentials.');
             }
         } catch (err) {
-            console.error('Login error:', err);
             setError(err.message || 'Login failed. Please check your credentials.');
         } finally {
             setLoading(false);
