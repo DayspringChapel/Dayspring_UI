@@ -179,34 +179,37 @@ export default function SuperAdminDashboard({ userName }) {
                                 <BarChart bars={ministryBars} height={190} />
                             </div>
                         </section>
+
+                        <section className={styles.bottomPair}>
+                            <div className={styles.sideCard}>
+                                <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                                <div className={styles.actionRowWrap}>
+                                    {quickActions.map((a) => (
+                                        <ActionButtonRow
+                                            key={a.path}
+                                            {...a}
+                                            isNavigating={navigating === a.path}
+                                            anyNavigating={!!navigating}
+                                            onClick={() => navigate(a.path)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className={styles.sideCard}>
+                                <h4 className={styles.sideCardTitle}>System Snapshot</h4>
+                                <ul className={styles.snapshotList}>
+                                    <SnapItem label="Departments"  value={stats.units}        color="#a78bfa" />
+                                    <SnapItem label="Books"        value={stats.books}        color="#3b82f6" />
+                                    <SnapItem label="Appointments" value={stats.appointments} color="#be123c" />
+                                    <SnapItem label="Albums"       value={stats.albums}       color="#f59e0b" />
+                                    <SnapItem label="Rejected"     value={pipeline.rejected}  color="#ef4444" />
+                                </ul>
+                            </div>
+                        </section>
                     </main>
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
-                        <div className={styles.sideCard}>
-                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
-                            <div className={styles.sideActionGrid}>
-                                {quickActions.map((a) => (
-                                    <ActionButton
-                                        key={a.path}
-                                        {...a}
-                                        isNavigating={navigating === a.path}
-                                        anyNavigating={!!navigating}
-                                        onClick={() => navigate(a.path)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        <div className={styles.sideCard}>
-                            <h4 className={styles.sideCardTitle}>System Snapshot</h4>
-                            <ul className={styles.snapshotList}>
-                                <SnapItem label="Departments"  value={stats.units}        color="#a78bfa" />
-                                <SnapItem label="Books"        value={stats.books}        color="#3b82f6" />
-                                <SnapItem label="Appointments" value={stats.appointments} color="#be123c" />
-                                <SnapItem label="Albums"       value={stats.albums}       color="#f59e0b" />
-                                <SnapItem label="Rejected"     value={pipeline.rejected}  color="#ef4444" />
-                            </ul>
-                        </div>
                     </aside>
                 </div>
             </div>
@@ -248,6 +251,29 @@ function ActionButton({ label, color, icon, onClick, isNavigating, anyNavigating
                 <>
                     <span className={styles.actionIcon}>{icon}</span>
                     <span className={styles.actionLabel}>{label}</span>
+                </>
+            )}
+        </button>
+    );
+}
+
+function ActionButtonRow({ label, color, icon, onClick, isNavigating, anyNavigating }) {
+    return (
+        <button
+            className={`${styles.actionBtn} ${styles.actionBtnRow} ${isNavigating ? styles.navigating : ''}`}
+            style={{ '--ac': color }}
+            onClick={onClick}
+            disabled={anyNavigating}
+        >
+            {isNavigating ? (
+                <>
+                    <span className={styles.btnSpinner} />
+                    <span className={styles.actionLabelRow}>{label}</span>
+                </>
+            ) : (
+                <>
+                    <span className={styles.actionIconRow}>{icon}</span>
+                    <span className={styles.actionLabelRow}>{label}</span>
                 </>
             )}
         </button>

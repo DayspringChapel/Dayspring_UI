@@ -239,12 +239,28 @@
 /* ── 5. Layout ──────────────────────────────────────────────────────────── */
 .grid3col {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 1fr) 300px;
     gap: 1.5rem;
     align-items: start;
 }
 .col2       { min-width: 0; }
 .mainStack  { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Bottom pair: quick actions (left) + snapshot/summary panel (right) */
+.bottomPair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 236px;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* Horizontal action buttons container */
+.actionRowWrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 0.85rem;
+}
 
 .col1Sticky {
     position: sticky;
@@ -497,6 +513,36 @@
     line-height: 1.3;
 }
 
+/* Row-direction variant — icon left, label right, used in bottomPair */
+.actionBtnRow {
+    flex-direction: row;
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.actionIconRow {
+    font-size: 1.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+.actionBtnRow:hover .actionIconRow { transform: scale(1.12); }
+
+.actionLabelRow {
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+
 /* Spinner shown while navigating */
 .btnSpinner {
     width: 22px;
@@ -674,6 +720,7 @@
         flex-wrap: wrap;
     }
     .col1Sticky > * { flex: 1; min-width: 280px; }
+    .bottomPair { grid-template-columns: minmax(0, 1fr) 236px; }
 }
 
 @media (max-width: 860px) {
@@ -693,6 +740,7 @@
     .statGrid      { grid-template-columns: repeat(2, 1fr); }
     .actionGrid    { grid-template-columns: repeat(3, 1fr); }
     .sideActionGrid { grid-template-columns: repeat(3, 1fr); }
+    .bottomPair    { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 520px) {

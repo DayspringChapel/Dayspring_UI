@@ -182,34 +182,37 @@ export default function ChurchAdminDashboard({ userName }) {
                             <p className={styles.chartSub}>Key ministry metrics side by side</p>
                             <BarChart bars={ministryBars} height={190} />
                         </div>
+
+                        <section className={styles.bottomPair}>
+                            <div className={styles.sideCard}>
+                                <h4 className={styles.sideCardTitle}>Quick Actions</h4>
+                                <div className={styles.actionRowWrap}>
+                                    {quickActions.map((a) => (
+                                        <ActionButtonRow
+                                            key={a.path}
+                                            {...a}
+                                            isNavigating={navigating === a.path}
+                                            anyNavigating={!!navigating}
+                                            onClick={() => navigate(a.path)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            {stats.pendingAppts > 0 && (
+                                <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
+                                    <h4 className={styles.sideCardTitle}>Pending Actions</h4>
+                                    <ul className={styles.snapshotList}>
+                                        <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
+                                        <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
+                                        <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />
+                                    </ul>
+                                </div>
+                            )}
+                        </section>
                     </main>
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
-                        <div className={styles.sideCard}>
-                            <h4 className={styles.sideCardTitle}>Quick Actions</h4>
-                            <div className={styles.sideActionGrid}>
-                                {quickActions.map((a) => (
-                                    <ActionButton
-                                        key={a.path}
-                                        {...a}
-                                        isNavigating={navigating === a.path}
-                                        anyNavigating={!!navigating}
-                                        onClick={() => navigate(a.path)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        {stats.pendingAppts > 0 && (
-                            <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
-                                <h4 className={styles.sideCardTitle}>Pending Actions</h4>
-                                <ul className={styles.snapshotList}>
-                                    <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
-                                    <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
-                                    <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />
-                                </ul>
-                            </div>
-                        )}
                     </aside>
                 </div>
             </div>
@@ -251,6 +254,29 @@ function ActionButton({ label, color, icon, onClick, isNavigating, anyNavigating
                 <>
                     <span className={styles.actionIcon}>{icon}</span>
                     <span className={styles.actionLabel}>{label}</span>
+                </>
+            )}
+        </button>
+    );
+}
+
+function ActionButtonRow({ label, color, icon, onClick, isNavigating, anyNavigating }) {
+    return (
+        <button
+            className={`${styles.actionBtn} ${styles.actionBtnRow} ${isNavigating ? styles.navigating : ''}`}
+            style={{ '--ac': color }}
+            onClick={onClick}
+            disabled={anyNavigating}
+        >
+            {isNavigating ? (
+                <>
+                    <span className={styles.btnSpinner} />
+                    <span className={styles.actionLabelRow}>{label}</span>
+                </>
+            ) : (
+                <>
+                    <span className={styles.actionIconRow}>{icon}</span>
+                    <span className={styles.actionLabelRow}>{label}</span>
                 </>
             )}
         </button>
