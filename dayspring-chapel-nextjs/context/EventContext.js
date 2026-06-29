@@ -66,5 +66,7 @@ export function EventProvider({ children }) {
 }
 
 export function useEvents() {
-    return useContext(EventContext);
+    const ctx = useContext(EventContext);
+    if (!ctx) throw new Error('useEvents must be used inside <EventProvider>');
+    return ctx;
 }

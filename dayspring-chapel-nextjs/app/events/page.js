@@ -1,3 +1,4 @@
+import { EventProvider } from '@/context/EventContext';
 import EventsSlideshowHero from '@/components/sections/EventsSlideshowHero';
 import EventsContent from '@/components/sections/EventsContent';
 import NewsletterSection from '@/components/sections/NewsletterSection';
@@ -10,9 +11,10 @@ export const metadata = {
 export default function EventsPage() {
     return (
         <main>
-            <EventsSlideshowHero />
-
-            <EventsContent />
+            <EventProvider>
+                <EventsSlideshowHero />
+                <EventsContent />
+            </EventProvider>
 
             <NewsletterSection />
         </main>
