@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from '../panels/Panel.module.css';
+import AdminToast, { useToast } from '../AdminToast';
+import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
 // ── Enum maps ────────────────────────────────────────────────────
 const APELLATION_OPTIONS = [
@@ -49,6 +51,7 @@ export default function MembersPanel() {
     const [roles, setRoles]                   = useState([]);
     const [units, setUnits]                   = useState([]);
     const [smallGroups, setSmallGroups]       = useState([]);
+    const [occupations, setOccupations]       = useState([]);
     const [loading, setLoading]               = useState(true);
     const [saving, setSaving]                 = useState(false);
     const [showModal, setShowModal]           = useState(false);
@@ -64,17 +67,21 @@ export default function MembersPanel() {
     const [assigningId, setAssigningId]       = useState(null);
     const [assignDraft, setAssignDraft]       = useState({});
 
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
+
     useEffect(() => { loadData(); }, []);
 
     const loadData = async () => {
         try {
-            const [bioRes, membersRes, usersRes, rolesRes, unitsRes, sgRes] = await Promise.all([
+            const [bioRes, membersRes, usersRes, rolesRes, unitsRes, sgRes, occRes] = await Promise.all([
                 apiClient.getBioData().catch(() => []),
                 apiClient.getMembers().catch(() => []),
                 apiClient.getUsers().catch(() => []),
                 apiClient.getRoles().catch(() => []),
                 apiClient.getUnits().catch(() => []),
                 apiClient.getSmallGroups().catch(() => []),
+                apiClient.getOccupations().catch(() => []),
             ]);
             setBioData(Array.isArray(bioRes) ? bioRes : []);
             setMembers(Array.isArray(membersRes) ? membersRes : []);
@@ -82,6 +89,7 @@ export default function MembersPanel() {
             setRoles(Array.isArray(rolesRes) ? rolesRes : []);
             setUnits(Array.isArray(unitsRes) ? unitsRes : []);
             setSmallGroups(Array.isArray(sgRes) ? sgRes : []);
+            setOccupations(Array.isArray(occRes) ? occRes : []);
         } catch (err) {
             console.error('Failed to load member data:', err);
         } finally {
@@ -196,19 +204,24 @@ export default function MembersPanel() {
             await loadData();
             if (userMode === 'new') {
                 setTempPasswordResult({ userName: returnedUserName, email: returnedEmail, tempPassword });
+                notify('success', 'Member registered successfully!');
             } else {
                 handleCloseModal();
+                notify('success', editingMember ? 'Member record updated!' : 'Member linked successfully!');
             }
         } catch (err) {
             console.error('Failed to save member:', err);
-            alert(err.message || 'Failed to save member. Please try again.');
+            notify('error', err.message || 'Failed to save member. Please try again.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleQuickAssign = async (member) => {
-        if (!member.memberId) { alert('No member record linked. Create member first.'); return; }
+        if (!member.memberId) {
+            notify('warning', 'No member record linked. Create member first.');
+            return;
+        }
         setAssigningId(member.memberId);
         try {
             const draft = assignDraft[member.memberId] || {};
@@ -218,8 +231,9 @@ export default function MembersPanel() {
             });
             setAssignDraft((p) => { const n = { ...p }; delete n[member.memberId]; return n; });
             await loadData();
+            notify('success', 'Group assignment saved.');
         } catch (err) {
-            alert(err.message || 'Failed to assign. Try again.');
+            notify('error', err.message || 'Failed to assign. Try again.');
         } finally {
             setAssigningId(null);
         }
@@ -259,9 +273,20 @@ export default function MembersPanel() {
     };
 
     const handleDelete = async (member) => {
-        if (!confirm(`Delete ${member.firstName} ${member.lastName}?`)) return;
-        try { await apiClient.deleteBioData(member.id); await loadData(); }
-        catch (err) { alert(err.message || 'Failed to delete. Try again.'); }
+        const yes = await confirm({
+            title: 'Delete Member',
+            message: `Remove ${member.firstName} ${member.lastName} from the directory? This cannot be undone.`,
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
+        try {
+            await apiClient.deleteBioData(member.id);
+            await loadData();
+            notify('success', `${member.firstName} ${member.lastName} removed.`);
+        } catch (err) {
+            notify('error', err.message || 'Failed to delete. Try again.');
+        }
     };
 
     const s1 = (f) => (e) => setStep1((p) => ({ ...p, [f]: e.target.value }));
@@ -273,6 +298,8 @@ export default function MembersPanel() {
 
     return (
         <div className={styles.panel}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.panelHeader}>
                 <div>
                     <h2>Members Directory</h2>
@@ -495,7 +522,32 @@ export default function MembersPanel() {
                                             </div>
                                         </div>
                                         <div className={styles.formGroup}><label>Occupation</label>
-                                            <input value={step1.occupation} onChange={s1('occupation')} placeholder="Engineer, Teacher…" />
+                                            <select value={step1.occupation} onChange={s1('occupation')}>
+                                                <option value="">— Select occupation —</option>
+                                                {occupations.length > 0
+                                                    ? occupations.map((o) => {
+                                                        const name = typeof o === 'string' ? o : o.name || o.Name || '';
+                                                        return <option key={name} value={name}>{name}</option>;
+                                                    })
+                                                    : [
+                                                        'Accountant','Architect','Artist','Baker','Banker','Carpenter','Chef',
+                                                        'Civil Servant','Computer Programmer','Construction Worker','Counselor',
+                                                        'Data Scientist','Dentist','Designer','Doctor','Economist','Editor',
+                                                        'Electrician','Engineer','Farmer','Firefighter','Graphic Designer',
+                                                        'Hairdresser','Human Resources','IT Professional','Journalist','Judge',
+                                                        'Lawyer','Librarian','Machinist','Manager','Marketer','Mechanic',
+                                                        'Medical Doctor','Military','Musician','Nurse','Optician','Painter',
+                                                        'Paramedic','Pharmacist','Photographer','Physician','Pilot','Plumber',
+                                                        'Police Officer','Principal','Professor','Psychiatrist','Psychologist',
+                                                        'Real Estate Agent','Researcher','Salesperson','Scientist','Secretary',
+                                                        'Security Guard','Singer','Social Worker','Software Developer',
+                                                        'Student','Surgeon','Tailor','Teacher','Technician','Therapist',
+                                                        'Translator','Truck Driver','Urban Planner','Veterinarian',
+                                                        'Videographer','Waiter','Waitress','Web Developer','Writer',
+                                                        'Unemployed','Other',
+                                                    ].map((name) => <option key={name} value={name}>{name}</option>)
+                                                }
+                                            </select>
                                         </div>
                                         <div className={styles.formGroup}><label>Street Address *</label>
                                             <input required value={step1.street} onChange={s1('street')} placeholder="12 Church Road" />
@@ -610,7 +662,7 @@ export default function MembersPanel() {
                                             className={styles.submitBtn}
                                             onClick={() => {
                                                 if (!step1.firstName.trim() || !step1.lastName.trim() || !step1.street.trim() || !step1.city.trim() || !step1.state.trim()) {
-                                                    alert('Please fill in the required fields: First Name, Last Name, and Address.');
+                                                    notify('warning', 'Please fill in the required fields: First Name, Last Name, and Address.');
                                                     return;
                                                 }
                                                 setWizardStep(2);

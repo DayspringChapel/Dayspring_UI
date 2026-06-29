@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './BirthdayWidget.module.css';
+import AdminToast, { useToast } from '../AdminToast';
 
 export default function BirthdayWidget() {
     const [birthdays, setBirthdays] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { toast, notify, clearToast } = useToast();
     const [currentMonth] = useState(() => new Date().toLocaleString('default', { month: 'long' }));
 
     useEffect(() => {
@@ -61,6 +63,7 @@ export default function BirthdayWidget() {
 
     return (
         <div className={styles.widget}>
+            <AdminToast toast={toast} onClose={clearToast} />
             <div className={styles.header}>
                 <h3>{currentMonth} Birthdays</h3>
                 <span className={styles.count}>{birthdays.length}</span>
@@ -88,7 +91,7 @@ export default function BirthdayWidget() {
                             <button
                                 className={styles.wishBtn}
                                 title="Send Birthday Wish"
-                                onClick={() => alert(`Sending wish to ${member.firstName}...`)}
+                                onClick={() => notify('info', `Birthday wish sent to ${member.firstName}!`)}
                             >
                                 Wish
                             </button>

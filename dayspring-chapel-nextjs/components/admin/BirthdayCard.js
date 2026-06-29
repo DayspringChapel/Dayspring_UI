@@ -1,8 +1,10 @@
 'use client';
 
 import styles from './BirthdayCard.module.css';
+import AdminToast, { useToast } from './AdminToast';
 
 export default function BirthdayCard({ member }) {
+    const { toast, notify, clearToast } = useToast();
     const formatBirthday = (dateString) => {
         const date = new Date(dateString);
         const options = { month: 'long', day: 'numeric' };
@@ -30,7 +32,7 @@ export default function BirthdayCard({ member }) {
     };
 
     const handleSendWish = () => {
-        alert(`Sending birthday wish to ${member.firstName} ${member.lastName}...`);
+        notify('info', `Birthday wish sent to ${member.firstName} ${member.lastName}!`);
     };
 
     if (!member || !member.dateOfBirth) return null;
@@ -40,6 +42,7 @@ export default function BirthdayCard({ member }) {
 
     return (
         <div className={styles.card}>
+            <AdminToast toast={toast} onClose={clearToast} />
             <div className={styles.header}>
                 <div className={styles.avatar}>
                     {initials}

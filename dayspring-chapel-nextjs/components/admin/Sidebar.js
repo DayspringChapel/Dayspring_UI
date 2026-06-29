@@ -5,11 +5,13 @@ import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
+import AdminConfirm from './AdminConfirm';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
     const router = useRouter();
     const pathname = usePathname();
     const [loggingOut, setLoggingOut] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [mediaOpen, setMediaOpen] = useState(() =>
         pathname === '/admin/media' ||
         pathname === '/admin/workflow' ||
@@ -17,7 +19,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         pathname === '/admin/publishing'
     );
 
-    const handleLogout = () => {
+    const handleLogout = () => setShowLogoutConfirm(true);
+
+    const confirmLogout = () => {
+        setShowLogoutConfirm(false);
         setLoggingOut(true);
         setTimeout(() => {
             apiClient.logout();
@@ -370,6 +375,17 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     </button>
                 </div>
             </aside>
+
+            <AdminConfirm
+                dialog={showLogoutConfirm ? {
+                    title: 'Sign Out',
+                    message: 'Are you sure you want to log out of the dashboard?',
+                    confirmLabel: 'Yes, Logout',
+                    danger: false,
+                    onConfirm: confirmLogout,
+                } : null}
+                onClose={() => setShowLogoutConfirm(false)}
+            />
         </>
     );
 }

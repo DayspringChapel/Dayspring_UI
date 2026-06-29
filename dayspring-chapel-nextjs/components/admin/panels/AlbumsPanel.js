@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './Panel.module.css';
+import AdminToast, { useToast } from '../AdminToast';
+import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
 export default function AlbumsPanel() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         albumName: '',
@@ -15,9 +18,10 @@ export default function AlbumsPanel() {
         albumImage: null,
     });
 
-    useEffect(() => {
-        loadAlbums();
-    }, []);
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog }  = useConfirm();
+
+    useEffect(() => { loadAlbums(); }, []);
 
     const loadAlbums = async () => {
         try {
@@ -33,37 +37,42 @@ export default function AlbumsPanel() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-
+        setSaving(true);
         try {
             const formDataToSend = new FormData();
             formDataToSend.append('AlbumName', formData.albumName);
             formDataToSend.append('Description', formData.description);
             formDataToSend.append('AlbumYear', formData.albumYear);
-            if (formData.albumImage) {
-                formDataToSend.append('AlbumImage', formData.albumImage);
-            }
+            if (formData.albumImage) formDataToSend.append('AlbumImage', formData.albumImage);
 
             await apiClient.createAlbum(formDataToSend);
             await loadAlbums();
             handleCloseModal();
+            notify('success', 'Album created successfully!');
         } catch (error) {
             console.error('Failed to save album:', error);
-            alert('Failed to save album. Please try again.');
+            notify('error', error.message || 'Failed to save album. Please try again.');
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
     const handleDelete = async (albumId) => {
-        if (!confirm('Are you sure you want to delete this album?')) return;
+        const yes = await confirm({
+            title: 'Delete Album',
+            message: 'Are you sure you want to delete this album? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
 
         try {
             await apiClient.deleteAlbum(albumId);
             await loadAlbums();
+            notify('success', 'Album deleted.');
         } catch (error) {
             console.error('Failed to delete album:', error);
-            alert('Failed to delete album. Please try again.');
+            notify('error', error.message || 'Failed to delete album. Please try again.');
         }
     };
 
@@ -88,6 +97,9 @@ export default function AlbumsPanel() {
 
     return (
         <div className={styles.panel}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
+
             <div className={styles.panelHeader}>
                 <h2>Albums</h2>
                 <button className={styles.addBtn} onClick={() => setShowModal(true)}>
@@ -125,85 +137,47 @@ export default function AlbumsPanel() {
 
             {showModal && (
                 <div className={styles.modal} onClick={handleCloseModal}>
-                    <div
-                        className={styles.modalContent}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
                             <h3>Add New Album</h3>
-                            <button className={styles.closeBtn} onClick={handleCloseModal}>
-                                ×
-                            </button>
+                            <button className={styles.closeBtn} onClick={handleCloseModal}>×</button>
                         </div>
 
                         <form onSubmit={handleSubmit} className={styles.form}>
                             <div className={styles.formGroup}>
                                 <label htmlFor="albumName">Album Name *</label>
                                 <input
-                                    type="text"
-                                    id="albumName"
-                                    value={formData.albumName}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, albumName: e.target.value })
-                                    }
-                                    required
+                                    type="text" id="albumName" value={formData.albumName} required
                                     placeholder="Enter album name"
+                                    onChange={(e) => setFormData({ ...formData, albumName: e.target.value })}
                                 />
                             </div>
-
                             <div className={styles.formGroup}>
                                 <label htmlFor="description">Description *</label>
                                 <textarea
-                                    id="description"
-                                    value={formData.description}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, description: e.target.value })
-                                    }
-                                    required
-                                    rows={4}
+                                    id="description" value={formData.description} required rows={4}
                                     placeholder="Enter album description"
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 />
                             </div>
-
                             <div className={styles.formGroup}>
                                 <label htmlFor="albumYear">Album Year *</label>
                                 <input
-                                    type="date"
-                                    id="albumYear"
-                                    value={formData.albumYear}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, albumYear: e.target.value })
-                                    }
-                                    required
+                                    type="date" id="albumYear" value={formData.albumYear} required
+                                    onChange={(e) => setFormData({ ...formData, albumYear: e.target.value })}
                                 />
                             </div>
-
                             <div className={styles.formGroup}>
                                 <label htmlFor="albumImage">Album Cover</label>
                                 <input
-                                    type="file"
-                                    id="albumImage"
-                                    accept="image/*"
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, albumImage: e.target.files?.[0] || null })
-                                    }
+                                    type="file" id="albumImage" accept="image/*"
+                                    onChange={(e) => setFormData({ ...formData, albumImage: e.target.files?.[0] || null })}
                                 />
                             </div>
-
                             <div className={styles.formActions}>
-                                <button
-                                    type="button"
-                                    className={styles.cancelBtn}
-                                    onClick={handleCloseModal}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className={styles.submitBtn}
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Saving...' : 'Create'}
+                                <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>Cancel</button>
+                                <button type="submit" className={styles.submitBtn} disabled={saving}>
+                                    {saving ? 'Saving...' : 'Create'}
                                 </button>
                             </div>
                         </form>

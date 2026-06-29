@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import { useEvents } from '@/context/EventContext';
+import AdminToast, { useToast } from '../AdminToast';
+import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
 export default function EventsPanel() {
     // Use context events initially for instant load
@@ -12,7 +14,11 @@ export default function EventsPanel() {
     const [actionLoading, setActionLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [viewingEvent, setViewingEvent] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
     const [formData, setFormData] = useState({
         heading: '',
         description: '',
@@ -77,28 +83,33 @@ export default function EventsPanel() {
                 await apiClient.createEvent(formDataToSend);
             }
 
-            // Refresh global cache and local list
             refreshEvents();
-            // loadEvents() removed - context handles it
             handleCloseModal();
+            notify('success', editingEvent ? 'Event updated successfully!' : 'Event created successfully!');
         } catch (error) {
             console.error('Failed to save event:', error);
-            alert('Failed to save event. Please try again.');
+            notify('error', error.message || 'Failed to save event. Please try again.');
         } finally {
             setActionLoading(false);
         }
     };
 
     const handleDelete = async (eventId) => {
-        if (!confirm('Are you sure you want to delete this event?')) return;
+        const yes = await confirm({
+            title: 'Delete Event',
+            message: 'Are you sure you want to delete this event? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
 
         try {
             await apiClient.deleteEvent(eventId);
-            refreshEvents(); // Refresh global cache
-            // loadEvents() removed - context handles it
+            refreshEvents();
+            notify('success', 'Event deleted.');
         } catch (error) {
             console.error('Failed to delete event:', error);
-            alert('Failed to delete event. Please try again.');
+            notify('error', error.message || 'Failed to delete event. Please try again.');
         }
     };
 
@@ -132,6 +143,8 @@ export default function EventsPanel() {
 
     return (
         <div className="p-4 sm:p-6">
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             {/* Header - Stacks on mobile */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Events</h2>
@@ -155,8 +168,8 @@ export default function EventsPanel() {
                         <div className="col-span-1">Image</div>
                         <div className="col-span-3">Title</div>
                         <div className="col-span-2">Date</div>
-                        <div className="col-span-4">Description</div>
-                        <div className="col-span-2 text-right">Actions</div>
+                        <div className="col-span-3">Description</div>
+                        <div className="col-span-3 text-right">Actions</div>
                     </div>
 
                     {/* Table Rows */}
@@ -164,7 +177,8 @@ export default function EventsPanel() {
                         {events.map((event) => (
                             <div
                                 key={event.id}
-                                className="grid grid-cols-1 sm:grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center hover:bg-gray-50 transition-colors"
+                                onClick={() => setViewingEvent(event)}
+                                className="grid grid-cols-1 sm:grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center hover:bg-orange-50/40 transition-colors cursor-pointer"
                             >
                                 {/* Image */}
                                 <div className="col-span-1">
@@ -196,12 +210,22 @@ export default function EventsPanel() {
                                 </div>
 
                                 {/* Description */}
-                                <div className="col-span-4">
+                                <div className="col-span-3">
                                     <p className="text-sm text-gray-600 line-clamp-2">{event.description || 'No description'}</p>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="col-span-2 flex gap-2 justify-end">
+                                {/* Actions — stop row click propagation */}
+                                <div className="col-span-3 flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        onClick={() => setViewingEvent(event)}
+                                        className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
+                                        title="View"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </button>
                                     <button
                                         onClick={() => handleEdit(event)}
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -227,7 +251,88 @@ export default function EventsPanel() {
                 </div>
             )}
 
-            {/* Modal */}
+            {/* ── View Modal ──────────────────────────────────── */}
+            {viewingEvent && (
+                <div
+                    className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+                    onClick={() => setViewingEvent(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Image */}
+                        {viewingEvent.eventImage ? (
+                            <div className="relative w-full" style={{ height: 260 }}>
+                                <img
+                                    src={viewingEvent.eventImage}
+                                    alt={viewingEvent.heading || 'Event'}
+                                    className="w-full h-full object-cover rounded-t-2xl"
+                                />
+                                <div className="absolute inset-0 rounded-t-2xl"
+                                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
+                            </div>
+                        ) : (
+                            <div className="w-full rounded-t-2xl flex items-center justify-center bg-gray-100" style={{ height: 160 }}>
+                                <svg className="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        <div className="p-6">
+                            {/* Orange accent + title */}
+                            <div style={{ width: 36, height: 3, background: '#f58634', borderRadius: 2, marginBottom: '0.75rem' }} />
+                            <h3 className="text-2xl font-black text-gray-900 uppercase leading-tight mb-3">
+                                {viewingEvent.heading || 'Untitled'}
+                            </h3>
+
+                            {/* Date */}
+                            {viewingEvent.eventDate && (
+                                <p className="text-sm font-bold mb-4" style={{ color: '#f58634' }}>
+                                    📅 {new Date(viewingEvent.eventDate).toLocaleDateString('en-US', {
+                                        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+                                    })}
+                                </p>
+                            )}
+
+                            {/* Description */}
+                            {viewingEvent.description ? (
+                                <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                                    {viewingEvent.description}
+                                </p>
+                            ) : (
+                                <p className="text-gray-400 text-sm italic mb-6">No description provided.</p>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                    onClick={() => setViewingEvent(null)}
+                                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-all text-sm"
+                                >
+                                    Close
+                                </button>
+                                <button
+                                    onClick={() => { handleEdit(viewingEvent); setViewingEvent(null); }}
+                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all text-sm"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => { handleDelete(viewingEvent.id); setViewingEvent(null); }}
+                                    className="px-4 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all text-sm"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Edit / Create Modal ──────────────────────────── */}
             {showModal && (
                 <div
                     className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300"

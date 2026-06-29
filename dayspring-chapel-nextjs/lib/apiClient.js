@@ -712,6 +712,16 @@ class ApiClient {
         });
     }
 
+    async getOccupations() {
+        try {
+            const data = await this.request('/api/v1/Occupation');
+            const list = data?.data || data;
+            return Array.isArray(list) ? list : [];
+        } catch {
+            return [];
+        }
+    }
+
     async getBioData() {
         const data = await this.request('/api/v1/BioData/all');
         return this.normalizeArray(data, this.normalizeBioData);
