@@ -78,6 +78,70 @@ export function HeroCountdown({ targetDate }) {
     );
 }
 
+// ── Medium tile countdown (overlaid on event cards) ──────────────────────────
+export function CardCountdown({ targetDate }) {
+    const [t, setT] = useState(null);
+
+    useEffect(() => {
+        setT(calcTimeLeft(targetDate));
+        const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
+        return () => clearInterval(id);
+    }, [targetDate]);
+
+    if (!t) return null;
+    if (t.over) return (
+        <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            background: 'rgba(220,38,38,0.80)', color: '#fff',
+            borderRadius: '999px', padding: '0.35rem 1rem',
+            fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.05em',
+        }}>
+            🔴 Happening Now
+        </span>
+    );
+
+    const units = [
+        { val: t.days,    label: 'Days' },
+        { val: t.hours,   label: 'Hrs' },
+        { val: t.minutes, label: 'Mins' },
+        { val: t.seconds, label: 'Secs' },
+    ];
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            {units.map(({ val, label }, i) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.35rem' }}>
+                    <div style={{ textAlign: 'center' }}>
+                        <div style={{
+                            background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)',
+                            border: '1px solid rgba(245,134,52,0.40)',
+                            borderRadius: '0.55rem', padding: '0.45rem 0.7rem',
+                            minWidth: '2.6rem', fontWeight: 900, fontSize: '1.4rem',
+                            color: '#fff', lineHeight: 1,
+                            fontVariantNumeric: 'tabular-nums', textAlign: 'center',
+                        }}>
+                            {String(val).padStart(2, '0')}
+                        </div>
+                        <div style={{
+                            marginTop: '0.2rem', fontSize: '0.58rem', fontWeight: 700,
+                            textTransform: 'uppercase', letterSpacing: '0.1em',
+                            color: 'rgba(255,255,255,0.60)', textAlign: 'center',
+                        }}>
+                            {label}
+                        </div>
+                    </div>
+                    {i < 3 && (
+                        <span style={{
+                            color: 'rgba(245,134,52,0.70)', fontSize: '1.2rem',
+                            fontWeight: 900, lineHeight: 1, marginTop: '0.3rem',
+                        }}>:</span>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 // ── Small badge countdown (overlaid on cards) ─────────────────────────────────
 export default function CountdownBadge({ targetDate, dark = false }) {
     const [t, setT] = useState(null);

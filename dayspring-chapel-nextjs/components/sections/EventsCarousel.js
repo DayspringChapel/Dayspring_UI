@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import CountdownBadge from '@/components/CountdownTimer';
+import { useRouter } from 'next/navigation';
+import { CardCountdown } from '@/components/CountdownTimer';
 
 function formatDate(dateStr) {
     if (!dateStr) return null;
@@ -26,6 +27,7 @@ const STACK = [
 
 export default function EventsCarousel({ events }) {
     const [active, setActive] = useState(0);
+    const router = useRouter();
 
     if (!events || events.length === 0) return null;
 
@@ -50,16 +52,19 @@ export default function EventsCarousel({ events }) {
                     return (
                         <div
                             key={event.id}
-                            onClick={!isActive ? () => setActive(i) : undefined}
+                            onClick={
+                                isActive
+                                    ? () => router.push(`/content/event/${event.id}`)
+                                    : () => setActive(i)
+                            }
                             style={{
                                 position: 'absolute',
-                                // Base position: inset within the padding area
                                 top: 72, left: 0, right: 72, bottom: 0,
                                 transform: `translate(${cfg.tx}px, ${cfg.ty}px) rotate(${cfg.rot}deg) scale(${cfg.scale})`,
                                 opacity: tooFar ? 0 : cfg.opacity,
                                 zIndex: tooFar ? 0 : cfg.z,
                                 transition: 'all 0.45s cubic-bezier(0.34, 1.2, 0.64, 1)',
-                                cursor: isActive ? 'default' : 'pointer',
+                                cursor: 'pointer',
                                 pointerEvents: tooFar ? 'none' : 'auto',
                                 transformOrigin: 'bottom left',
                             }}
@@ -77,16 +82,23 @@ export default function EventsCarousel({ events }) {
 
                                 {/* Gradient */}
                                 <div className="absolute inset-0"
-                                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.50) 45%, rgba(0,0,0,0.15) 100%)' }} />
+                                    style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.10) 100%)' }} />
 
-                                {/* Countdown */}
+                                {/* Tile countdown — prominent top strip on active card */}
                                 {dateStr && isActive && (
-                                    <div className="absolute top-4 right-4 z-10">
-                                        <CountdownBadge targetDate={dateStr} />
+                                    <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4"
+                                        style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, transparent 100%)' }}>
+                                        <span style={{
+                                            color: 'rgba(255,255,255,0.55)', fontSize: '0.7rem',
+                                            fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em',
+                                        }}>
+                                            ⏱ Starts In
+                                        </span>
+                                        <CardCountdown targetDate={dateStr} />
                                     </div>
                                 )}
 
-                                {/* "Click to view" hint for behind cards */}
+                                {/* Hover hint for back cards */}
                                 {!isActive && (
                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200"
                                         style={{ background: 'rgba(0,0,0,0.30)' }}>
@@ -95,14 +107,13 @@ export default function EventsCarousel({ events }) {
                                             border: '1px solid rgba(255,255,255,0.25)', borderRadius: '999px',
                                             padding: '0.5rem 1.25rem', color: '#fff', fontWeight: 700, fontSize: '0.82rem',
                                         }}>
-                                            Click to view
+                                            Bring Forward
                                         </span>
                                     </div>
                                 )}
 
-                                {/* Card body — only fully rendered for active */}
+                                {/* Card body */}
                                 <div className="absolute bottom-0 left-0 right-0 p-7 z-10">
-                                    {/* Orange accent line */}
                                     <div style={{ width: 36, height: 3, background: '#f58634', borderRadius: 2, marginBottom: '0.8rem' }} />
 
                                     <h3 className="font-black text-white leading-tight"
@@ -132,22 +143,26 @@ export default function EventsCarousel({ events }) {
                                     )}
 
                                     {isActive && (
-                                        <Link
-                                            href={`/content/event/${event.id}`}
-                                            style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                                                background: '#f58634', color: '#fff',
-                                                padding: '0.7rem 1.6rem', borderRadius: '999px',
-                                                fontWeight: 800, fontSize: '0.88rem',
-                                                boxShadow: '0 4px 20px rgba(245,134,52,0.45)',
-                                            }}
-                                            className="hover:brightness-110 active:scale-95 transition-all"
+                                        <span
+                                            onClick={(e) => e.stopPropagation()}
                                         >
-                                            View Full Details
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M5 12h14M12 5l7 7-7 7" />
-                                            </svg>
-                                        </Link>
+                                            <Link
+                                                href={`/content/event/${event.id}`}
+                                                style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                                                    background: '#f58634', color: '#fff',
+                                                    padding: '0.7rem 1.6rem', borderRadius: '999px',
+                                                    fontWeight: 800, fontSize: '0.88rem',
+                                                    boxShadow: '0 4px 20px rgba(245,134,52,0.45)',
+                                                }}
+                                                className="hover:brightness-110 active:scale-95 transition-all"
+                                            >
+                                                More Info
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                                </svg>
+                                            </Link>
+                                        </span>
                                     )}
                                 </div>
                             </div>

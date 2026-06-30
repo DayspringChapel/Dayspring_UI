@@ -33,7 +33,7 @@ export default async function EventsSection() {
                 </div>
                 <p className="text-gray-500 text-base md:text-lg leading-relaxed"
                     style={{ maxWidth: '40rem', paddingLeft: '1.25rem', borderLeft: '1px solid #e5e7eb' }}>
-                    Click a card to bring it forward — click the front card to view full details.
+                    Click any card to bring it forward. Click the front card to open the event page.
                 </p>
             </div>
 

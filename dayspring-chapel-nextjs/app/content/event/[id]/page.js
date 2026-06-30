@@ -6,7 +6,8 @@ import { HeroCountdown } from '@/components/CountdownTimer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 
 export async function generateMetadata({ params }) {
-    const event = await fetchEventByIdServer(params.id);
+    const { id } = await params;
+    const event = await fetchEventByIdServer(id);
     if (!event) return { title: 'Event Not Found | DaySpring Chapel' };
     return {
         title: `${event.heading || 'Event'} | DaySpring Chapel`,
@@ -18,7 +19,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function EventDetailPage({ params }) {
-    const event = await fetchEventByIdServer(params.id);
+    const { id } = await params;
+    const event = await fetchEventByIdServer(id);
     if (!event) notFound();
 
     const title      = (event.heading || 'Event').toUpperCase();

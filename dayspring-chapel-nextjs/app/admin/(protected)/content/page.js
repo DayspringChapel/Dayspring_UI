@@ -20,7 +20,7 @@ function resolveRole() {
 }
 
 const ALL_TABS = [
-    { id: 'events',  label: 'Events',  icon: '🎉', roles: ['superAdmin', 'churchAdmin'] },
+    { id: 'events',  label: 'Events',  icon: '🎉', roles: 'all' },
     { id: 'sermons', label: 'Sermons', icon: '🎤', roles: 'all' },
     { id: 'series',  label: 'Series',  icon: '📺', roles: 'all' },
     { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },

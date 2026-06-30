@@ -689,7 +689,9 @@ class ApiClient {
             name:             giving.name             || giving.Name             || '',
             purposeOfGiving:  giving.purposeOfGiving  || giving.PurposeOfGiving  || '',
             accountNumber:    giving.accountNumber    || giving.AccountNumber    || '',
+            accountName:      giving.accountName      || giving.AccountName      || '',
             bankName:         giving.bankName         || giving.BankName         || '',
+            description:      giving.description      ?? giving.Description      ?? null,
             createdDate:      giving.createdDate      || giving.CreatedDate      || '',
         };
     }

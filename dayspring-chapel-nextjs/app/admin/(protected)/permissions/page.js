@@ -63,7 +63,7 @@ export default function PermissionsPage() {
     const callerRole = resolveRole();
 
     useEffect(() => {
-        if (callerRole !== 'superAdmin') {
+        if (callerRole === 'churchMedia') {
             router.replace('/admin/dashboard');
             return;
         }

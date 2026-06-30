@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 
 const emptyForm = {
     unitName: '',
@@ -32,6 +34,8 @@ export default function UnitsPage() {
     const [editingUnit, setEditingUnit] = useState(null);
     const [formData, setFormData] = useState(emptyForm);
     const [unitHeadSearch, setUnitHeadSearch] = useState('');
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
         loadData();
@@ -168,28 +172,37 @@ export default function UnitsPage() {
         try {
             if (editingUnit) {
                 await apiClient.updateUnit(editingUnit.id, payload);
+                notify('success', 'Unit updated successfully.');
             } else {
                 await apiClient.createUnit(payload);
+                notify('success', 'Unit created successfully.');
             }
             resetForm();
             await loadData();
         } catch (error) {
             console.error('Failed to save unit:', error);
-            alert('Failed to save unit. Please check the details and try again.');
+            notify('error', error.message || 'Failed to save unit. Please check the details and try again.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (unitId) => {
-        if (!confirm('Delete this unit?')) return;
+        const yes = await confirm({
+            title: 'Delete Unit',
+            message: 'Remove this unit? Members in this unit will lose their unit assignment.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
 
         try {
             await apiClient.deleteUnit(unitId);
             await loadData();
+            notify('success', 'Unit deleted.');
         } catch (error) {
             console.error('Failed to delete unit:', error);
-            alert('Failed to delete unit. Please try again.');
+            notify('error', error.message || 'Failed to delete unit. Please try again.');
         }
     };
 
@@ -206,6 +219,8 @@ export default function UnitsPage() {
 
     return (
         <div className="mx-auto max-w-[1400px] px-4">
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className="mb-8">
                 <h1 className="mb-2 text-2xl font-bold" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Units</h1>
                 <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage church departments, heads, and contact details.</p>

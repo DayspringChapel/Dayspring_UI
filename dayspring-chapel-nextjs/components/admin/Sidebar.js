@@ -148,7 +148,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Media',
             path: '/admin/media',
-            roles: ['superAdmin', 'churchMedia'],
+            roles: 'all',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V13C18 14.1046 17.1046 15 16 15H4C2.89543 15 2 14.1046 2 13V4ZM8 6C7.44772 6 7 6.44772 7 7V11C7 11.3688 7.20302 11.7077 7.52652 11.8817C7.85003 12.0557 8.2429 12.0366 8.5477 11.8321L12.5477 9.16542C12.8217 8.98169 12.99 8.68065 12.99 8.35714C12.99 8.03363 12.8217 7.73259 12.5477 7.54885L8.5477 4.88218C8.2429 4.67766 7.85003 4.65851 7.52652 4.83253C7.20302 5.00655 7 5.34547 7 5.71429V6H8ZM4 16H16C16.3506 16 16.6872 15.9398 17 15.8293V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V15.8293C3.31278 15.9398 3.64936 16 4 16Z" fill="currentColor" />
@@ -200,7 +200,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Permissions',
             path: '/admin/permissions',
-            roles: ['superAdmin'],
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6V7H4C3.44772 7 3 7.44772 3 8V17C3 17.5523 3.44772 18 4 18H16C16.5523 18 17 17.5523 17 17V8C17 7.44772 16.5523 7 16 7H15V6C15 3.23858 12.7614 1 10 1ZM13 7V6C13 4.34315 11.6569 3 10 3C8.34315 3 7 4.34315 7 6V7H13ZM10 10C9.44772 10 9 10.4477 9 11V14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14V11C11 10.4477 10.5523 10 10 10Z" fill="currentColor" />
@@ -210,7 +210,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Settings',
             path: '/admin/settings',
-            roles: ['superAdmin'],
+            roles: 'all',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" fill="currentColor" />

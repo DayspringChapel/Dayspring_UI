@@ -9,7 +9,9 @@ const EMPTY_FORM = {
     name: '',
     purposeOfGiving: '',
     accountNumber: '',
+    accountName: '',
     bankName: '',
+    description: '',
 };
 
 function formatDate(dateStr) {
@@ -61,6 +63,7 @@ export default function GivingPage() {
         if (!form.name.trim())            { setFormError('Name is required'); return; }
         if (!form.purposeOfGiving.trim()) { setFormError('Purpose of giving is required'); return; }
         if (!form.accountNumber.trim())   { setFormError('Account number is required'); return; }
+        if (!form.accountName.trim())     { setFormError('Account name is required'); return; }
         if (!form.bankName.trim())        { setFormError('Bank name is required'); return; }
 
         setSaving(true);
@@ -70,7 +73,9 @@ export default function GivingPage() {
                 name:            form.name.trim(),
                 purposeOfGiving: form.purposeOfGiving.trim(),
                 accountNumber:   form.accountNumber.trim(),
+                accountName:     form.accountName.trim(),
                 bankName:        form.bankName.trim(),
+                description:     form.description.trim() || null,
             });
             await load();
             closeModal();
@@ -99,7 +104,9 @@ export default function GivingPage() {
         return (
             g.name?.toLowerCase().includes(q) ||
             g.purposeOfGiving?.toLowerCase().includes(q) ||
-            g.bankName?.toLowerCase().includes(q)
+            g.accountName?.toLowerCase().includes(q) ||
+            g.bankName?.toLowerCase().includes(q) ||
+            g.description?.toLowerCase().includes(q)
         );
     });
 
@@ -131,7 +138,7 @@ export default function GivingPage() {
             {/* Search */}
             <input
                 type="text"
-                placeholder="Search by name, purpose or bank…"
+                placeholder="Search by name, purpose, account name or bank…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className={styles.searchInput}
@@ -155,7 +162,9 @@ export default function GivingPage() {
                                 <th className={styles.th}>Name</th>
                                 <th className={styles.th}>Purpose</th>
                                 <th className={styles.th}>Account Number</th>
+                                <th className={styles.th}>Account Name</th>
                                 <th className={styles.th}>Bank</th>
+                                <th className={styles.th}>Description</th>
                                 <th className={styles.th}>Date Added</th>
                                 <th className={styles.th}>Actions</th>
                             </tr>
@@ -163,7 +172,7 @@ export default function GivingPage() {
                         <tbody>
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className={styles.empty}>
+                                    <td colSpan={8} className={styles.empty}>
                                         {search
                                             ? 'No accounts match your search'
                                             : 'No giving accounts yet — click "+ Add Account" to begin'}
@@ -181,7 +190,13 @@ export default function GivingPage() {
                                                 {g.accountNumber || '—'}
                                             </code>
                                         </td>
+                                        <td className={styles.td}>{g.accountName || '—'}</td>
                                         <td className={styles.td}>{g.bankName || '—'}</td>
+                                        <td className={styles.td}>
+                                            <span style={{ color: '#9ca3af', fontStyle: g.description ? 'normal' : 'italic' }}>
+                                                {g.description || 'None'}
+                                            </span>
+                                        </td>
                                         <td className={styles.td}>{formatDate(g.createdDate)}</td>
                                         <td className={styles.td}>
                                             <div className={styles.actionCell}>
@@ -244,14 +259,36 @@ export default function GivingPage() {
                                     />
                                 </div>
                                 <div className={styles.fieldGroup}>
-                                    <label className={styles.label}>Bank Name *</label>
+                                    <label className={styles.label}>Account Name *</label>
                                     <input
                                         className={styles.input}
-                                        value={form.bankName}
-                                        onChange={(e) => handleField('bankName', e.target.value)}
-                                        placeholder="e.g. GTBank, Access Bank"
+                                        value={form.accountName}
+                                        onChange={(e) => handleField('accountName', e.target.value)}
+                                        placeholder="e.g. Dayspring Chapel"
                                     />
                                 </div>
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Bank Name *</label>
+                                <input
+                                    className={styles.input}
+                                    value={form.bankName}
+                                    onChange={(e) => handleField('bankName', e.target.value)}
+                                    placeholder="e.g. GTBank, Access Bank"
+                                />
+                            </div>
+
+                            <div className={styles.fieldGroup}>
+                                <label className={styles.label}>Description</label>
+                                <textarea
+                                    className={styles.input}
+                                    value={form.description}
+                                    onChange={(e) => handleField('description', e.target.value)}
+                                    placeholder="Optional notes about this giving account…"
+                                    rows={3}
+                                    style={{ resize: 'vertical' }}
+                                />
                             </div>
 
                             {formError && <p className={styles.formError}>{formError}</p>}
