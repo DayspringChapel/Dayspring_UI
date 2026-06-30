@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import apiClient from '@/lib/apiClient';
 import { EventProvider } from '@/context/EventContext';
 import EventsPanel from '@/components/admin/panels/EventsPanel';
 import SermonsPanel from '@/components/admin/panels/SermonsPanel';
@@ -8,20 +9,31 @@ import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
 import SeriesPanel from '@/components/admin/panels/SeriesPanel';
 
-export default function ContentManagement() {
-    const [activeTab, setActiveTab] = useState('events');
+function resolveRole() {
+    const userData = apiClient.getUserData();
+    if (!userData) return 'churchAdmin';
+    const r = userData.role || userData.Role || {};
+    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
+    if (name.includes('super')) return 'superAdmin';
+    if (name.includes('media')) return 'churchMedia';
+    return 'churchAdmin';
+}
 
-    const tabs = [
-        { id: 'events', label: 'Events', icon: '🎉' },
-        { id: 'sermons', label: 'Sermons', icon: '🎤' },
-        { id: 'series', label: 'Series', icon: '📺' },
-        { id: 'books', label: 'Books', icon: '📚' },
-        { id: 'albums', label: 'Albums', icon: '📸' },
-    ];
+const ALL_TABS = [
+    { id: 'events',  label: 'Events',  icon: '🎉', roles: ['superAdmin', 'churchAdmin'] },
+    { id: 'sermons', label: 'Sermons', icon: '🎤', roles: 'all' },
+    { id: 'series',  label: 'Series',  icon: '📺', roles: 'all' },
+    { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },
+    { id: 'albums',  label: 'Albums',  icon: '📸', roles: 'all' },
+];
+
+export default function ContentManagement() {
+    const role = resolveRole();
+    const tabs = ALL_TABS.filter(t => t.roles === 'all' || t.roles.includes(role));
+    const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? 'sermons');
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                     Content Management
@@ -31,7 +43,6 @@ export default function ContentManagement() {
                 </p>
             </div>
 
-            {/* Tabs - Wrap on Mobile */}
             <div className="mb-6 border-b-2 border-gray-200">
                 <div className="flex flex-wrap gap-2 pb-2">
                     {tabs.map((tab) => (
@@ -55,13 +66,12 @@ export default function ContentManagement() {
                 </div>
             </div>
 
-            {/* Content Area */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                {activeTab === 'events' && <EventProvider><EventsPanel /></EventProvider>}
+                {activeTab === 'events'  && <EventProvider><EventsPanel /></EventProvider>}
                 {activeTab === 'sermons' && <SermonsPanel />}
-                {activeTab === 'series' && <SeriesPanel />}
-                {activeTab === 'books' && <BooksPanel />}
-                {activeTab === 'albums' && <AlbumsPanel />}
+                {activeTab === 'series'  && <SeriesPanel />}
+                {activeTab === 'books'   && <BooksPanel />}
+                {activeTab === 'albums'  && <AlbumsPanel />}
             </div>
         </div>
     );

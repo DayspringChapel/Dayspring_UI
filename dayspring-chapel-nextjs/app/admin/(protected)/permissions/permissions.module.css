@@ -1,0 +1,210 @@
+.roleTabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.roleTab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 999px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+
+.roleTab:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.roleTabActive {
+    font-weight: 700;
+}
+
+.roleTabDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    flex-shrink: 0;
+    transition: background 0.18s;
+}
+
+.roleTabName {
+    line-height: 1;
+}
+
+.roleTabCount {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #475569;
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+}
+
+/* Matrix header */
+.matrixHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.matrixTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.matrixSub {
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+/* Groups grid */
+.groupsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.groupCard {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.groupTitle {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    margin: 0 0 0.75rem;
+}
+
+.permList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.permItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+}
+
+.permGranted {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.permDenied {
+    background: transparent;
+    color: #94a3b8;
+}
+
+.permIcon {
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 14px;
+    flex-shrink: 0;
+}
+
+.permName {
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+/* Compare table */
+.compareSection {
+    margin-top: 1rem;
+}
+
+.tableWrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-top: 0.75rem;
+}
+
+.compareTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.compareTable thead tr {
+    background: #f1f5f9;
+}
+
+.compareTable thead th {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.compareTable tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s;
+}
+
+.compareTable tbody tr:hover {
+    background: #f8fafc;
+}
+
+.permCol {
+    min-width: 220px;
+    color: #1e293b;
+}
+
+.roleCol {
+    min-width: 110px;
+    text-align: center !important;
+    font-weight: 700 !important;
+    text-transform: capitalize;
+}
+
+.permCell {
+    padding: 0.45rem 0.75rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: #334155;
+}
+
+.checkCell {
+    padding: 0.45rem 0.75rem;
+    text-align: center;
+}
+
+.checkYes {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.checkNo {
+    color: #e2e8f0;
+    font-size: 0.85rem;
+}

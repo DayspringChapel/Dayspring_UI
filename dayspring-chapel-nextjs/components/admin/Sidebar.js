@@ -7,17 +7,26 @@ import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
 import AdminConfirm from './AdminConfirm';
 
+function resolveRole() {
+    const userData = apiClient.getUserData();
+    if (!userData) return 'churchAdmin';
+    const r = userData.role || userData.Role || {};
+    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
+    if (name.includes('super')) return 'superAdmin';
+    if (name.includes('media')) return 'churchMedia';
+    return 'churchAdmin';
+}
+
 export default function Sidebar({ isOpen, setIsOpen }) {
     const router = useRouter();
     const pathname = usePathname();
     const [loggingOut, setLoggingOut] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [mediaOpen, setMediaOpen] = useState(() =>
-        pathname === '/admin/media' ||
-        pathname === '/admin/workflow' ||
-        pathname === '/admin/approvals' ||
-        pathname === '/admin/publishing'
+        ['/admin/media', '/admin/workflow', '/admin/approvals', '/admin/publishing'].includes(pathname)
     );
+
+    const role = resolveRole();
 
     const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -30,192 +39,119 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         }, 1600);
     };
 
+    // 'all' means every role can see it; array restricts to listed roles
     const menuItems = [
         {
             title: 'Dashboard',
             path: '/admin/dashboard',
+            roles: 'all',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        d="M3 4C3 3.44772 3.44772 3 4 3H7C7.55228 3 8 3.44772 8 4V7C8 7.55228 7.55228 8 7 8H4C3.44772 8 3 7.55228 3 7V4Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M3 13C3 12.4477 3.44772 12 4 12H7C7.55228 12 8 12.4477 8 13V16C8 16.5523 7.55228 17 7 17H4C3.44772 17 3 16.5523 3 16V13Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M12 4C12 3.44772 12.4477 3 13 3H16C16.5523 3 17 3.44772 17 4V7C17 7.55228 16.5523 8 16 8H13C12.4477 8 12 7.55228 12 7V4Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M12 13C12 12.4477 12.4477 12 13 12H16C16.5523 12 17 12.4477 17 13V16C17 16.5523 16.5523 17 16 17H13C12.4477 17 12 16.5523 12 16V13Z"
-                        fill="currentColor"
-                    />
+                    <path d="M3 4C3 3.44772 3.44772 3 4 3H7C7.55228 3 8 3.44772 8 4V7C8 7.55228 7.55228 8 7 8H4C3.44772 8 3 7.55228 3 7V4Z" fill="currentColor" />
+                    <path d="M3 13C3 12.4477 3.44772 12 4 12H7C7.55228 12 8 12.4477 8 13V16C8 16.5523 7.55228 17 7 17H4C3.44772 17 3 16.5523 3 16V13Z" fill="currentColor" />
+                    <path d="M12 4C12 3.44772 12.4477 3 13 3H16C16.5523 3 17 3.44772 17 4V7C17 7.55228 16.5523 8 16 8H13C12.4477 8 12 7.55228 12 7V4Z" fill="currentColor" />
+                    <path d="M12 13C12 12.4477 12.4477 12 13 12H16C16.5523 12 17 12.4477 17 13V16C17 16.5523 16.5523 17 16 17H13C12.4477 17 12 16.5523 12 16V13Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Content',
             path: '/admin/content',
+            roles: 'all',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        d="M4 4C4 3.44772 4.44772 3 5 3H15C15.5523 3 16 3.44772 16 4V6C16 6.55228 15.5523 7 15 7H5C4.44772 7 4 6.55228 4 6V4Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M4 10C4 9.44772 4.44772 9 5 9H15C15.5523 9 16 9.44772 16 10V12C16 12.5523 15.5523 13 15 13H5C4.44772 13 4 12.5523 4 12V10Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M5 15C4.44772 15 4 15.4477 4 16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16C16 15.4477 15.5523 15 15 15H5Z"
-                        fill="currentColor"
-                    />
+                    <path d="M4 4C4 3.44772 4.44772 3 5 3H15C15.5523 3 16 3.44772 16 4V6C16 6.55228 15.5523 7 15 7H5C4.44772 7 4 6.55228 4 6V4Z" fill="currentColor" />
+                    <path d="M4 10C4 9.44772 4.44772 9 5 9H15C15.5523 9 16 9.44772 16 10V12C16 12.5523 15.5523 13 15 13H5C4.44772 13 4 12.5523 4 12V10Z" fill="currentColor" />
+                    <path d="M5 15C4.44772 15 4 15.4477 4 16C4 16.5523 4.44772 17 5 17H15C15.5523 17 16 16.5523 16 16C16 15.4477 15.5523 15 15 15H5Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Appointments',
             path: '/admin/appointments',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H12V2C12 1.44772 12.4477 1 13 1C13.5523 1 14 1.44772 14 2V3H15C16.6569 3 18 4.34315 18 6V15C18 16.6569 16.6569 18 15 18H5C3.34315 18 2 16.6569 2 15V6C2 4.34315 3.34315 3 5 3H6V2ZM5 5C4.44772 5 4 5.44772 4 6V7H16V6C16 5.44772 15.5523 5 15 5H5ZM16 9H4V15C4 15.5523 4.44772 16 5 16H15C15.5523 16 16 15.5523 16 15V9Z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H12V2C12 1.44772 12.4477 1 13 1C13.5523 1 14 1.44772 14 2V3H15C16.6569 3 18 4.34315 18 6V15C18 16.6569 16.6569 18 15 18H5C3.34315 18 2 16.6569 2 15V6C2 4.34315 3.34315 3 5 3H6V2ZM5 5C4.44772 5 4 5.44772 4 6V7H16V6C16 5.44772 15.5523 5 15 5H5ZM16 9H4V15C4 15.5523 4.44772 16 5 16H15C15.5523 16 16 15.5523 16 15V9Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Requisitions',
             path: '/admin/requisitions',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M4 2C2.89543 2 2 2.89543 2 4V16C2 17.1046 2.89543 18 4 18H16C17.1046 18 18 17.1046 18 16V4C18 2.89543 17.1046 2 16 2H4ZM7 6C6.44772 6 6 6.44772 6 7C6 7.55228 6.44772 8 7 8H13C13.5523 8 14 7.55228 14 7C14 6.44772 13.5523 6 13 6H7ZM6 10C6 9.44772 6.44772 9 7 9H13C13.5523 9 14 9.44772 14 10C14 10.5523 13.5523 11 13 11H7C6.44772 11 6 10.5523 6 10ZM7 12C6.44772 12 6 12.4477 6 13C6 13.5523 6.44772 14 7 14H10C10.5523 14 11 13.5523 11 13C11 12.4477 10.5523 12 10 12H7Z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M4 2C2.89543 2 2 2.89543 2 4V16C2 17.1046 2.89543 18 4 18H16C17.1046 18 18 17.1046 18 16V4C18 2.89543 17.1046 2 16 2H4ZM7 6C6.44772 6 6 6.44772 6 7C6 7.55228 6.44772 8 7 8H13C13.5523 8 14 7.55228 14 7C14 6.44772 13.5523 6 13 6H7ZM6 10C6 9.44772 6.44772 9 7 9H13C13.5523 9 14 9.44772 14 10C14 10.5523 13.5523 11 13 11H7C6.44772 11 6 10.5523 6 10ZM7 12C6.44772 12 6 12.4477 6 13C6 13.5523 6.44772 14 7 14H10C10.5523 14 11 13.5523 11 13C11 12.4477 10.5523 12 10 12H7Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Giving',
             path: '/admin/giving',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10.75 5.75C10.75 5.33579 10.4142 5 10 5C9.58579 5 9.25 5.33579 9.25 5.75V6.5H8.5C7.67157 6.5 7 7.17157 7 8C7 8.82843 7.67157 9.5 8.5 9.5H9.25V10.5H8C7.17157 10.5 6.5 11.1716 6.5 12C6.5 12.8284 7.17157 13.5 8 13.5H9.25V14.25C9.25 14.6642 9.58579 15 10 15C10.4142 15 10.75 14.6642 10.75 14.25V13.5H11.5C12.3284 13.5 13 12.8284 13 12C13 11.1716 12.3284 10.5 11.5 10.5H10.75V9.5H12C12.8284 9.5 13.5 8.82843 13.5 8C13.5 7.17157 12.8284 6.5 12 6.5H10.75V5.75Z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10.75 5.75C10.75 5.33579 10.4142 5 10 5C9.58579 5 9.25 5.33579 9.25 5.75V6.5H8.5C7.67157 6.5 7 7.17157 7 8C7 8.82843 7.67157 9.5 8.5 9.5H9.25V10.5H8C7.17157 10.5 6.5 11.1716 6.5 12C6.5 12.8284 7.17157 13.5 8 13.5H9.25V14.25C9.25 14.6642 9.58579 15 10 15C10.4142 15 10.75 14.6642 10.75 14.25V13.5H11.5C12.3284 13.5 13 12.8284 13 12C13 11.1716 12.3284 10.5 11.5 10.5H10.75V9.5H12C12.8284 9.5 13.5 8.82843 13.5 8C13.5 7.17157 12.8284 6.5 12 6.5H10.75V5.75Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Members',
             path: '/admin/members',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        d="M9 6C9 7.65685 7.65685 9 6 9C4.34315 9 3 7.65685 3 6C3 4.34315 4.34315 3 6 3C7.65685 3 9 4.34315 9 6Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M17 6C17 7.65685 15.6569 9 14 9C12.3431 9 11 7.65685 11 6C11 4.34315 12.3431 3 14 3C15.6569 3 17 4.34315 17 6Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M6 11C3.23858 11 1 13.2386 1 16V17H11V16C11 13.2386 8.76142 11 6 11Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M14 11C11.2386 11 9 13.2386 9 16V17H19V16C19 13.2386 16.7614 11 14 11Z"
-                        fill="currentColor"
-                    />
+                    <path d="M9 6C9 7.65685 7.65685 9 6 9C4.34315 9 3 7.65685 3 6C3 4.34315 4.34315 3 6 3C7.65685 3 9 4.34315 9 6Z" fill="currentColor" />
+                    <path d="M17 6C17 7.65685 15.6569 9 14 9C12.3431 9 11 7.65685 11 6C11 4.34314 12.3431 3 14 3C15.6569 3 17 4.34314 17 6Z" fill="currentColor" />
+                    <path d="M6 11C3.23858 11 1 13.2386 1 16V17H11V16C11 13.2386 8.76142 11 6 11Z" fill="currentColor" />
+                    <path d="M14 11C11.2386 11 9 13.2386 9 16V17H19V16C19 13.2386 16.7614 11 14 11Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Units',
             path: '/admin/units',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M4 3C3.44772 3 3 3.44772 3 4V8C3 8.55228 3.44772 9 4 9H8C8.55228 9 9 8.55228 9 8V4C9 3.44772 8.55228 3 8 3H4ZM12 3C11.4477 3 11 3.44772 11 4V8C11 8.55228 11.4477 9 12 9H16C16.5523 9 17 8.55228 17 8V4C17 3.44772 16.5523 3 16 3H12ZM4 11C3.44772 11 3 11.4477 3 12V16C3 16.5523 3.44772 17 4 17H8C8.55228 17 9 16.5523 9 16V12C9 11.4477 8.55228 11 8 11H4ZM12 11C11.4477 11 11 11.4477 11 12V16C11 16.5523 11.4477 17 12 17H16C16.5523 17 17 16.5523 17 16V12C17 11.4477 16.5523 11 16 11H12Z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M4 3C3.44772 3 3 3.44772 3 4V8C3 8.55228 3.44772 9 4 9H8C8.55228 9 9 8.55228 9 8V4C9 3.44772 8.55228 3 8 3H4ZM12 3C11.4477 3 11 3.44772 11 4V8C11 8.55228 11.4477 9 12 9H16C16.5523 9 17 8.55228 17 8V4C17 3.44772 16.5523 3 16 3H12ZM4 11C3.44772 11 3 11.4477 3 12V16C3 16.5523 3.44772 17 4 17H8C8.55228 17 9 16.5523 9 16V12C9 11.4477 8.55228 11 8 11H4ZM12 11C11.4477 11 11 11.4477 11 12V16C11 16.5523 11.4477 17 12 17H16C16.5523 17 17 16.5523 17 16V12C17 11.4477 16.5523 11 16 11H12Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Small Groups',
             path: '/admin/small-groups',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        d="M10 3C8.34315 3 7 4.34315 7 6C7 7.65685 8.34315 9 10 9C11.6569 9 13 7.65685 13 6C13 4.34315 11.6569 3 10 3Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M5 5C3.89543 5 3 5.89543 3 7C3 8.10457 3.89543 9 5 9C6.10457 9 7 8.10457 7 7C7 5.89543 6.10457 5 5 5Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M15 5C13.8954 5 13 5.89543 13 7C13 8.10457 13.8954 9 15 9C16.1046 9 17 8.10457 17 7C17 5.89543 16.1046 5 15 5Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M10 10C7.23858 10 5 12.2386 5 15V17H15V15C15 12.2386 12.7614 10 10 10Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M3.5 11C2.11929 11 1 12.1193 1 13.5V15H4.15C4.42311 13.4708 5.18672 12.1103 6.25 11.0932C5.91489 11.032 5.56698 11 5.20833 11H3.5Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        d="M13.75 11.0932C14.8133 12.1103 15.5769 13.4708 15.85 15H19V13.5C19 12.1193 17.8807 11 16.5 11H14.7917C14.433 11 14.0851 11.032 13.75 11.0932Z"
-                        fill="currentColor"
-                    />
+                    <path d="M10 3C8.34315 3 7 4.34315 7 6C7 7.65685 8.34315 9 10 9C11.6569 9 13 7.65685 13 6C13 4.34315 11.6569 3 10 3Z" fill="currentColor" />
+                    <path d="M5 5C3.89543 5 3 5.89543 3 7C3 8.10457 3.89543 9 5 9C6.10457 9 7 8.10457 7 7C7 5.89543 6.10457 5 5 5Z" fill="currentColor" />
+                    <path d="M15 5C13.8954 5 13 5.89543 13 7C13 8.10457 13.8954 9 15 9C16.1046 9 17 8.10457 17 7C17 5.89543 16.1046 5 15 5Z" fill="currentColor" />
+                    <path d="M10 10C7.23858 10 5 12.2386 5 15V17H15V15C15 12.2386 12.7614 10 10 10Z" fill="currentColor" />
+                    <path d="M3.5 11C2.11929 11 1 12.1193 1 13.5V15H4.15C4.42311 13.4708 5.18672 12.1103 6.25 11.0932C5.91489 11.032 5.56698 11 5.20833 11H3.5Z" fill="currentColor" />
+                    <path d="M13.75 11.0932C14.8133 12.1103 15.5769 13.4708 15.85 15H19V13.5C19 12.1193 17.8807 11 16.5 11H14.7917C14.433 11 14.0851 11.032 13.75 11.0932Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Birthdays',
             path: '/admin/birthdays',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        d="M10 2C10 1.44772 10.4477 1 11 1C11.5523 1 12 1.44772 12 2V3H13C14.6569 3 16 4.34315 16 6V7H4V6C4 4.34315 5.34315 3 7 3H8V2C8 1.44772 8.44772 1 9 1C9.55228 1 10 1.44772 10 2V3H10V2Z"
-                        fill="currentColor"
-                    />
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M4 9V15C4 16.6569 5.34315 18 7 18H13C14.6569 18 16 16.6569 16 15V9H4ZM7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11ZM9 12C9 11.4477 9.44772 11 10 11C10.5523 11 11 11.4477 11 12C11 12.5523 10.5523 13 10 13C9.44772 13 9 12.5523 9 12ZM13 11C12.4477 11 12 11.4477 12 12C12 12.5523 12.4477 13 13 13C13.5523 13 14 12.5523 14 12C14 11.4477 13.5523 11 13 11ZM6 15C6 14.4477 6.44772 14 7 14C7.55228 14 8 14.4477 8 15C8 15.5523 7.55228 16 7 16C6.44772 16 6 15.5523 6 15ZM10 14C9.44772 14 9 14.4477 9 15C9 15.5523 9.44772 16 10 16C10.5523 16 11 15.5523 11 15C11 14.4477 10.5523 14 10 14Z"
-                        fill="currentColor"
-                    />
+                    <path d="M10 2C10 1.44772 10.4477 1 11 1C11.5523 1 12 1.44772 12 2V3H13C14.6569 3 16 4.34315 16 6V7H4V6C4 4.34315 5.34315 3 7 3H8V2C8 1.44772 8.44772 1 9 1C9.55228 1 10 1.44772 10 2V3H10V2Z" fill="currentColor" />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M4 9V15C4 16.6569 5.34315 18 7 18H13C14.6569 18 16 16.6569 16 15V9H4ZM7 11C6.44772 11 6 11.4477 6 12C6 12.5523 6.44772 13 7 13C7.55228 13 8 12.5523 8 12C8 11.4477 7.55228 11 7 11ZM9 12C9 11.4477 9.44772 11 10 11C10.5523 11 11 11.4477 11 12C11 12.5523 10.5523 13 10 13C9.44772 13 9 12.5523 9 12ZM13 11C12.4477 11 12 11.4477 12 12C12 12.5523 12.4477 13 13 13C13.5523 13 14 12.5523 14 12C14 11.4477 13.5523 11 13 11Z" fill="currentColor" />
                 </svg>
             ),
         },
         {
             title: 'Media',
             path: '/admin/media',
+            roles: ['superAdmin', 'churchMedia'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V13C18 14.1046 17.1046 15 16 15H4C2.89543 15 2 14.1046 2 13V4ZM8 6C7.44772 6 7 6.44772 7 7V11C7 11.3688 7.20302 11.7077 7.52652 11.8817C7.85003 12.0557 8.2429 12.0366 8.5477 11.8321L12.5477 9.16542C12.8217 8.98169 12.99 8.68065 12.99 8.35714C12.99 8.03363 12.8217 7.73259 12.5477 7.54885L8.5477 4.88218C8.2429 4.67766 7.85003 4.65851 7.52652 4.83253C7.20302 5.00655 7 5.34547 7 5.71429V6H8ZM4 16H16C16.3506 16 16.6872 15.9398 17 15.8293V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V15.8293C3.31278 15.9398 3.64936 16 4 16Z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V13C18 14.1046 17.1046 15 16 15H4C2.89543 15 2 14.1046 2 13V4ZM8 6C7.44772 6 7 6.44772 7 7V11C7 11.3688 7.20302 11.7077 7.52652 11.8817C7.85003 12.0557 8.2429 12.0366 8.5477 11.8321L12.5477 9.16542C12.8217 8.98169 12.99 8.68065 12.99 8.35714C12.99 8.03363 12.8217 7.73259 12.5477 7.54885L8.5477 4.88218C8.2429 4.67766 7.85003 4.65851 7.52652 4.83253C7.20302 5.00655 7 5.34547 7 5.71429V6H8ZM4 16H16C16.3506 16 16.6872 15.9398 17 15.8293V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V15.8293C3.31278 15.9398 3.64936 16 4 16Z" fill="currentColor" />
                 </svg>
             ),
             children: [
@@ -224,15 +160,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     path: '/admin/workflow',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M2 5C2 3.89543 2.89543 3 4 3H7C8.10457 3 9 3.89543 9 5V7C9 8.10457 8.10457 9 7 9H4C2.89543 9 2 8.10457 2 7V5ZM11 5C11 3.89543 11.8954 3 13 3H16C17.1046 3 18 3.89543 18 5V7C18 8.10457 17.1046 9 16 9H13C11.8954 9 11 8.10457 11 7V5ZM2 13C2 11.8954 2.89543 11 4 11H7C8.10457 11 9 11.8954 9 13V15C9 16.1046 8.10457 17 7 17H4C2.89543 17 2 16.1046 2 15V13ZM9 14H11M11 14V12C11 11.4477 11.4477 11 12 11H14M14 11V9M14 9H16M14 9H12"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                fill="none"
-                            />
+                            <path fillRule="evenodd" clipRule="evenodd" d="M2 5C2 3.89543 2.89543 3 4 3H7C8.10457 3 9 3.89543 9 5V7C9 8.10457 8.10457 9 7 9H4C2.89543 9 2 8.10457 2 7V5ZM11 5C11 3.89543 11.8954 3 13 3H16C17.1046 3 18 3.89543 18 5V7C18 8.10457 17.1046 9 16 9H13C11.8954 9 11 8.10457 11 7V5ZM2 13C2 11.8954 2.89543 11 4 11H7C8.10457 11 9 11.8954 9 13V15C9 16.1046 8.10457 17 7 17H4C2.89543 17 2 16.1046 2 15V13ZM9 14H11M11 14V12C11 11.4477 11.4477 11 12 11H14M14 11V9M14 9H16M14 9H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                         </svg>
                     ),
                 },
@@ -241,12 +169,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     path: '/admin/approvals',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z"
-                                fill="currentColor"
-                            />
+                            <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z" fill="currentColor" />
                         </svg>
                     ),
                 },
@@ -255,47 +178,55 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     path: '/admin/publishing',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                            <path
-                                d="M3 13H17M10 3V10"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                            />
-                            <path
-                                d="M6.5 6.5L10 3L13.5 6.5"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
+                            <path d="M3 13H17M10 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            <path d="M6.5 6.5L10 3L13.5 6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     ),
                 },
             ],
         },
         {
-            title: 'Settings',
-            path: '/admin/settings',
+            title: 'User Roles',
+            path: '/admin/roles',
+            roles: ['superAdmin', 'churchAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                        fill="currentColor"
-                    />
+                    <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6C5 8.76142 7.23858 11 10 11C12.7614 11 15 8.76142 15 6C15 3.23858 12.7614 1 10 1ZM7 6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6C13 7.65685 11.6569 9 10 9C8.34315 9 7 7.65685 7 6Z" fill="currentColor" />
+                    <path d="M14 13H6C4.34315 13 3 14.3431 3 16V18H5V16C5 15.4477 5.44772 15 6 15H14C14.5523 15 15 15.4477 15 16V18H17V16C17 14.3431 15.6569 13 14 13Z" fill="currentColor" />
+                    <path d="M16 7V9M16 9V11M16 9H14M16 9H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+            ),
+        },
+        {
+            title: 'Permissions',
+            path: '/admin/permissions',
+            roles: ['superAdmin'],
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6V7H4C3.44772 7 3 7.44772 3 8V17C3 17.5523 3.44772 18 4 18H16C16.5523 18 17 17.5523 17 17V8C17 7.44772 16.5523 7 16 7H15V6C15 3.23858 12.7614 1 10 1ZM13 7V6C13 4.34315 11.6569 3 10 3C8.34315 3 7 4.34315 7 6V7H13ZM10 10C9.44772 10 9 10.4477 9 11V14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14V11C11 10.4477 10.5523 10 10 10Z" fill="currentColor" />
+                </svg>
+            ),
+        },
+        {
+            title: 'Settings',
+            path: '/admin/settings',
+            roles: ['superAdmin'],
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" fill="currentColor" />
                 </svg>
             ),
         },
     ];
 
+    const visible = menuItems.filter(item =>
+        item.roles === 'all' || item.roles.includes(role)
+    );
+
     return (
         <>
             <BrandedSplash visible={loggingOut} mode="logout" />
-            {/* Overlay for mobile */}
-            {isOpen && (
-                <div className={styles.overlay} onClick={() => setIsOpen(false)} />
-            )}
+            {isOpen && <div className={styles.overlay} onClick={() => setIsOpen(false)} />}
 
             <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
                 <div className={styles.header}>
@@ -304,7 +235,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 </div>
 
                 <nav className={styles.nav}>
-                    {menuItems.map((item) => {
+                    {visible.map((item) => {
                         if (item.children) {
                             const isGroupActive = pathname === item.path ||
                                 item.children.some((c) => pathname === c.path);
@@ -364,12 +295,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 <div className={styles.footer}>
                     <button onClick={handleLogout} className={styles.logoutBtn}>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M3 3C2.44772 3 2 3.44772 2 4V16C2 16.5523 2.44772 17 3 17H10C10.5523 17 11 16.5523 11 16C11 15.4477 10.5523 15 10 15H4V5H10C10.5523 5 11 4.55228 11 4C11 3.44772 10.5523 3 10 3H3ZM14.2929 6.29289C14.6834 5.90237 15.3166 5.90237 15.7071 6.29289L18.7071 9.29289C19.0976 9.68342 19.0976 10.3166 18.7071 10.7071L15.7071 13.7071C15.3166 14.0976 14.6834 14.0976 14.2929 13.7071C13.9024 13.3166 13.9024 12.6834 14.2929 12.2929L15.5858 11H9C8.44772 11 8 10.5523 8 10C8 9.44772 8.44772 9 9 9H15.5858L14.2929 7.70711C13.9024 7.31658 13.9024 6.68342 14.2929 6.29289Z"
-                                fill="currentColor"
-                            />
+                            <path fillRule="evenodd" clipRule="evenodd" d="M3 3C2.44772 3 2 3.44772 2 4V16C2 16.5523 2.44772 17 3 17H10C10.5523 17 11 16.5523 11 16C11 15.4477 10.5523 15 10 15H4V5H10C10.5523 5 11 4.55228 11 4C11 3.44772 10.5523 3 10 3H3ZM14.2929 6.29289C14.6834 5.90237 15.3166 5.90237 15.7071 6.29289L18.7071 9.29289C19.0976 9.68342 19.0976 10.3166 18.7071 10.7071L15.7071 13.7071C15.3166 14.0976 14.6834 14.0976 14.2929 13.7071C13.9024 13.3166 13.9024 12.6834 14.2929 12.2929L15.5858 11H9C8.44772 11 8 10.5523 8 10C8 9.44772 8.44772 9 9 9H15.5858L14.2929 7.70711C13.9024 7.31658 13.9024 6.68342 14.2929 6.29289Z" fill="currentColor" />
                         </svg>
                         Logout
                     </button>
