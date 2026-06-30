@@ -708,6 +708,13 @@ class ApiClient {
         });
     }
 
+    async updateGiving(givingId, givingData) {
+        return this.request(`/api/v1/Givings/${givingId}/update-giving`, {
+            method: 'PUT',
+            body: JSON.stringify(givingData),
+        });
+    }
+
     async deleteGiving(givingId) {
         return this.request(`/api/v1/Givings/${givingId}/delete-giving`, {
             method: 'DELETE',
