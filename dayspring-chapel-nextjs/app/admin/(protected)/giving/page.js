@@ -5,6 +5,37 @@ import apiClient from '@/lib/apiClient';
 import styles from './giving.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
+const NIGERIAN_BANKS = [
+    'Access Bank',
+    'Citibank Nigeria',
+    'Ecobank Nigeria',
+    'Fidelity Bank',
+    'First Bank of Nigeria',
+    'First City Monument Bank (FCMB)',
+    'Globus Bank',
+    'Guaranty Trust Bank (GTBank)',
+    'Heritage Bank',
+    'Keystone Bank',
+    'Lotus Bank',
+    'Optimus Bank',
+    'Parallex Bank',
+    'Polaris Bank',
+    'Premium Trust Bank',
+    'Providus Bank',
+    'Signature Bank',
+    'Stanbic IBTC Bank',
+    'Standard Chartered Bank',
+    'Sterling Bank',
+    'SunTrust Bank',
+    'Titan Trust Bank',
+    'Union Bank of Nigeria',
+    'United Bank for Africa (UBA)',
+    'Unity Bank',
+    'VFD Microfinance Bank',
+    'Wema Bank',
+    'Zenith Bank',
+];
+
 const EMPTY_FORM = {
     name: '',
     purposeOfGiving: '',
@@ -299,9 +330,13 @@ export default function GivingPage() {
 
                             <div className={styles.fieldGroup}>
                                 <label className={styles.label}>Bank Name *</label>
-                                <input className={styles.input} value={form.bankName}
-                                    onChange={(e) => handleField('bankName', e.target.value)}
-                                    placeholder="e.g. GTBank, Access Bank" />
+                                <select className={styles.input} value={form.bankName}
+                                    onChange={(e) => handleField('bankName', e.target.value)}>
+                                    <option value="">— Select a bank —</option>
+                                    {NIGERIAN_BANKS.map((bank) => (
+                                        <option key={bank} value={bank}>{bank}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className={styles.fieldGroup}>
