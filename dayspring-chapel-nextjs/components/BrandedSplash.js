@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import styles from './BrandedSplash.module.css';
 
 const SUBTITLE = {
@@ -30,7 +31,7 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
             <div className={styles.glowRing} />
 
             <div className={styles.content}>
-                {/* Cross icon */}
+                {/* Church logo */}
                 <div className={styles.iconWrap}>
                     <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
                         {/* Outer rings */}
@@ -42,12 +43,15 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
                             <animateTransform attributeName="transform" type="rotate"
                                 from="0 36 36" to="360 36 36" dur="28s" repeatCount="indefinite" />
                         </circle>
-                        {/* Cross */}
-                        <rect x="33" y="14" width="6" height="44" rx="3" fill="#F58634" />
-                        <rect x="19" y="30" width="34" height="6" rx="3" fill="#F58634" />
-                        {/* Center highlight */}
-                        <circle cx="36" cy="36" r="5" fill="rgba(245,134,52,0.35)" />
                     </svg>
+                    <Image
+                        src="/logo.png"
+                        alt="Dayspring Chapel"
+                        width={56}
+                        height={30}
+                        className={styles.logoImage}
+                        priority
+                    />
                 </div>
 
                 {/* Church name */}

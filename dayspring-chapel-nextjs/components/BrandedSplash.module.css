@@ -48,9 +48,26 @@
 
 /* Icon */
 .iconWrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 0.25rem;
     animation: iconPop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
     filter: drop-shadow(0 0 22px rgba(245,134,52,0.55));
+}
+
+.iconWrap svg {
+    position: absolute;
+    inset: 0;
+}
+
+.logoImage {
+    position: relative;
+    z-index: 1;
+    object-fit: contain;
 }
 
 /* Church name */
