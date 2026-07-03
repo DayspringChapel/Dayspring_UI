@@ -68,6 +68,19 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
         },
         {
+            title: 'Calendar',
+            path: '/admin/calendar',
+            roles: 'all',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H12V2C12 1.44772 12.4477 1 13 1C13.5523 1 14 1.44772 14 2V3H15C16.6569 3 18 4.34315 18 6V15C18 16.6569 16.6569 18 15 18H5C3.34315 18 2 16.6569 2 15V6C2 4.34315 3.34315 3 5 3H6V2ZM5 5C4.44772 5 4 5.44772 4 6V7H16V6C16 5.44772 15.5523 5 15 5H5ZM16 9H4V15C4 15.5523 4.44772 16 5 16H15C15.5523 16 16 15.5523 16 15V9Z" fill="currentColor" />
+                    <circle cx="7" cy="12" r="1" fill="currentColor" />
+                    <circle cx="10" cy="12" r="1" fill="currentColor" />
+                    <circle cx="13" cy="12" r="1" fill="currentColor" />
+                </svg>
+            ),
+        },
+        {
             title: 'Appointments',
             path: '/admin/appointments',
             roles: ['superAdmin', 'churchAdmin'],
@@ -138,7 +151,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Birthdays',
             path: '/admin/birthdays',
-            roles: ['superAdmin', 'churchAdmin'],
+            roles: 'all',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M10 2C10 1.44772 10.4477 1 11 1C11.5523 1 12 1.44772 12 2V3H13C14.6569 3 16 4.34315 16 6V7H4V6C4 4.34315 5.34315 3 7 3H8V2C8 1.44772 8.44772 1 9 1C9.55228 1 10 1.44772 10 2V3H10V2Z" fill="currentColor" />

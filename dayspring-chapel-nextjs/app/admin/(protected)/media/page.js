@@ -110,7 +110,7 @@ export default function MediaPage() {
                                         <h3 className={styles.cardTitle}>{item.title}</h3>
                                         <span className={`${styles.badge} ${badge.cls}`}>{badge.label}</span>
                                     </div>
-                                    <p className={styles.cardMeta}>{item.contentTypeName} · {item.category}</p>
+                                    <p className={styles.cardMeta}>{item.contentTypeName} · {item.categoryName}</p>
                                     <p className={styles.cardOwner}>By {item.ownerName}</p>
                                     <div className={styles.cardActions}>
                                         <button

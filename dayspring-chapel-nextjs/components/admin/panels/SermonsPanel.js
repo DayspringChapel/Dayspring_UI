@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
 export default function SermonsPanel() {
+    const router = useRouter();
     const [sermons, setSermons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -14,7 +16,7 @@ export default function SermonsPanel() {
     const [editingSermon, setEditingSermon] = useState(null);
     const [calendarYears, setCalendarYears] = useState([]);
     const [formData, setFormData] = useState({
-        title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null, calendarYearId: '',
+        title: '', preacherName: '', sermonDate: '', calendarYearId: '',
     });
 
     const { toast, notify, clearToast } = useToast();
@@ -39,27 +41,16 @@ export default function SermonsPanel() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!editingSermon) return;
         setSaving(true);
         try {
-            if (editingSermon) {
-                await apiClient.updateSermon(editingSermon.id, {
-                    title: formData.title, seriesTitle: formData.seriesTitle,
-                    preacherName: formData.preacherName, sermonDate: formData.sermonDate,
-                    calendarYearId: formData.calendarYearId || null,
-                });
-                notify('success', 'Sermon updated successfully!');
-            } else {
-                const fd = new FormData();
-                fd.append('Title', formData.title);
-                fd.append('SeriesTitle', formData.seriesTitle);
-                fd.append('PreacherName', formData.preacherName);
-                fd.append('SermonDate', formData.sermonDate);
-                if (formData.image)     fd.append('Image',     formData.image);
-                if (formData.audioFile) fd.append('AudioFile', formData.audioFile);
-                if (formData.calendarYearId) fd.append('CalendarYearId', formData.calendarYearId);
-                await apiClient.createSermon(fd);
-                notify('success', 'Sermon created successfully!');
-            }
+            await apiClient.updateSermon(editingSermon.id, {
+                title: formData.title,
+                preacherName: formData.preacherName,
+                sermonDate: formData.sermonDate,
+                calendarYearId: formData.calendarYearId || null,
+            });
+            notify('success', 'Sermon updated successfully!');
             await loadSermons();
             handleCloseModal();
         } catch (error) {
@@ -92,10 +83,9 @@ export default function SermonsPanel() {
     const handleEdit = (sermon) => {
         setEditingSermon(sermon);
         setFormData({
-            title: sermon.title || '', image: null,
-            seriesTitle: sermon.seriesTitle || '', preacherName: sermon.preacherName || '',
+            title: sermon.title || '',
+            preacherName: sermon.preacherName || '',
             sermonDate: sermon.sermonDate ? sermon.sermonDate.split('T')[0] : '',
-            audioFile: null,
             calendarYearId: sermon.calendarYearId || '',
         });
         setShowModal(true);
@@ -104,7 +94,7 @@ export default function SermonsPanel() {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingSermon(null);
-        setFormData({ title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null, calendarYearId: '' });
+        setFormData({ title: '', preacherName: '', sermonDate: '', calendarYearId: '' });
     };
 
     if (loading && sermons.length === 0) {
@@ -120,11 +110,16 @@ export default function SermonsPanel() {
 
             <div className={styles.panelHeader}>
                 <h2>Sermons</h2>
-                <button className={styles.addBtn} onClick={() => setShowModal(true)}>+ Add Sermon</button>
+                <button className={styles.addBtn} onClick={() => router.push('/admin/media/create')}>
+                    + Upload New Sermon
+                </button>
             </div>
+            <p className={styles.cardDescription} style={{ margin: '-0.5rem 0 1rem' }}>
+                New sermons are uploaded as media, reviewed, and published from the Publishing page. This panel manages sermons already in the library.
+            </p>
 
             {sermons.length === 0 ? (
-                <div className={styles.empty}><p>No sermons found. Create your first sermon!</p></div>
+                <div className={styles.empty}><p>No sermons found yet. Upload one to get started.</p></div>
             ) : (
                 <div className={styles.grid}>
                     {sermons.map((sermon) => (
@@ -132,7 +127,9 @@ export default function SermonsPanel() {
                             {sermon.image && <img src={sermon.image} alt={sermon.title} className={styles.cardImage} />}
                             <div className={styles.cardContent}>
                                 <h3 className={styles.cardTitle}>{sermon.title}</h3>
-                                <p className={styles.cardDescription}>By {sermon.preacherName} • {sermon.seriesTitle}</p>
+                                <p className={styles.cardDescription}>
+                                    By {sermon.preacherName} • {sermon.sermonType === 2 ? 'Video' : 'Audio'}
+                                </p>
                                 <div className={styles.cardActions}>
                                     <button className={styles.editBtn} onClick={() => handleEdit(sermon)}>Edit</button>
                                     <button className={styles.deleteBtn} onClick={() => handleDelete(sermon.id)}>Delete</button>
@@ -143,11 +140,11 @@ export default function SermonsPanel() {
                 </div>
             )}
 
-            {showModal && (
+            {showModal && editingSermon && (
                 <div className={styles.modal} onClick={handleCloseModal}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
-                            <h3>{editingSermon ? 'Edit Sermon' : 'Add New Sermon'}</h3>
+                            <h3>Edit Sermon</h3>
                             <button className={styles.closeBtn} onClick={handleCloseModal}>×</button>
                         </div>
                         <form onSubmit={handleSubmit} className={styles.form}>
@@ -160,11 +157,6 @@ export default function SermonsPanel() {
                                 <label>Preacher Name *</label>
                                 <input type="text" value={formData.preacherName} required placeholder="Enter preacher name"
                                     onChange={(e) => setFormData({ ...formData, preacherName: e.target.value })} />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Series Title</label>
-                                <input type="text" value={formData.seriesTitle} placeholder="Enter series title"
-                                    onChange={(e) => setFormData({ ...formData, seriesTitle: e.target.value })} />
                             </div>
                             <div className={styles.formGroup}>
                                 <label>Sermon Date *</label>
@@ -181,20 +173,10 @@ export default function SermonsPanel() {
                                     ))}
                                 </select>
                             </div>
-                            <div className={styles.formGroup}>
-                                <label>Image</label>
-                                <input type="file" accept="image/*"
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })} />
-                            </div>
-                            <div className={styles.formGroup}>
-                                <label>Audio File{editingSermon ? '' : ' *'}</label>
-                                <input type="file" accept="audio/*" required={!editingSermon}
-                                    onChange={(e) => setFormData({ ...formData, audioFile: e.target.files?.[0] || null })} />
-                            </div>
                             <div className={styles.formActions}>
                                 <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>Cancel</button>
                                 <button type="submit" className={styles.submitBtn} disabled={saving}>
-                                    {saving ? 'Saving...' : editingSermon ? 'Update' : 'Create'}
+                                    {saving ? 'Saving...' : 'Update'}
                                 </button>
                             </div>
                         </form>

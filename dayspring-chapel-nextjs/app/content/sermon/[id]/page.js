@@ -5,6 +5,11 @@ import { fetchSermonByIdServer } from '@/lib/serverApi';
 import SermonPlayer from '@/components/SermonPlayer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 
+function extractYouTubeId(url) {
+    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
+    return m?.[1] || null;
+}
+
 export async function generateMetadata({ params }) {
     const sermon = await fetchSermonByIdServer(params.id);
     if (!sermon) return { title: 'Sermon Not Found | DaySpring Chapel' };
@@ -91,7 +96,19 @@ export default async function SermonDetailPage({ params }) {
                 </div>
 
                 {/* ── Player ──────────────────────────────────────────── */}
-                <SermonPlayer audioUrl={sermon.audioLink} title={sermon.title} />
+                {sermon.sermonType === 2 && extractYouTubeId(sermon.youtubeUrl) ? (
+                    <div className="rounded-2xl overflow-hidden shadow-sm bg-white" style={{ aspectRatio: '16 / 9' }}>
+                        <iframe
+                            src={`https://www.youtube-nocookie.com/embed/${extractYouTubeId(sermon.youtubeUrl)}?modestbranding=1&rel=0`}
+                            title={sermon.title}
+                            className="w-full h-full"
+                            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        />
+                    </div>
+                ) : (
+                    <SermonPlayer audioUrl={sermon.audioLink} title={sermon.title} />
+                )}
             </div>
 
             <NewsletterSection />

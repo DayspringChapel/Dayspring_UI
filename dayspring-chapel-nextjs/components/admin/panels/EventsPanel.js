@@ -1,15 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
-import { useEvents } from '@/context/EventContext';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
+function resolveRole() {
+    const userData = apiClient.getUserData();
+    if (!userData) return 'member';
+    const r = userData.role || userData.Role || {};
+    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
+    if (name.includes('super')) return 'superAdmin';
+    if (name.includes('media')) return 'churchMedia';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
+}
+
 export default function EventsPanel() {
-    // Use context events initially for instant load
-    // Use context events directly
-    const { events, loading: contextLoading, refreshEvents } = useEvents();
+    const router = useRouter();
+    const [events, setEvents] = useState([]);
+    const [contextLoading, setContextLoading] = useState(true);
     // Local loading state only for actions
     const [actionLoading, setActionLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -27,6 +38,23 @@ export default function EventsPanel() {
         eventImage: null,
         calendarYearId: '',
     });
+
+    const role = resolveRole();
+    const canPublish = role === 'churchMedia' || role === 'superAdmin';
+
+    const refreshEvents = async () => {
+        try {
+            const data = await apiClient.getAllEventsInternal();
+            setEvents(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to load events:', error);
+            setEvents([]);
+        } finally {
+            setContextLoading(false);
+        }
+    };
+
+    useEffect(() => { refreshEvents(); }, []);
 
     useEffect(() => {
         apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
@@ -180,9 +208,10 @@ export default function EventsPanel() {
                     {/* Table Header */}
                     <div className="hidden sm:grid sm:grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         <div className="col-span-1">Image</div>
-                        <div className="col-span-3">Title</div>
+                        <div className="col-span-2">Title</div>
                         <div className="col-span-2">Date</div>
-                        <div className="col-span-3">Description</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-2">Description</div>
                         <div className="col-span-3 text-right">Actions</div>
                     </div>
 
@@ -212,7 +241,7 @@ export default function EventsPanel() {
                                 </div>
 
                                 {/* Title */}
-                                <div className="col-span-3">
+                                <div className="col-span-2">
                                     <p className="font-semibold text-gray-900 truncate">{event.heading || 'Untitled'}</p>
                                 </div>
 
@@ -223,13 +252,31 @@ export default function EventsPanel() {
                                     </p>
                                 </div>
 
+                                {/* Status */}
+                                <div className="col-span-2">
+                                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${event.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        {event.isPublished ? 'Published' : 'Draft'}
+                                    </span>
+                                </div>
+
                                 {/* Description */}
-                                <div className="col-span-3">
+                                <div className="col-span-2">
                                     <p className="text-sm text-gray-600 line-clamp-2">{event.description || 'No description'}</p>
                                 </div>
 
                                 {/* Actions — stop row click propagation */}
                                 <div className="col-span-3 flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                                    {!event.isPublished && canPublish && (
+                                        <button
+                                            onClick={() => router.push('/admin/media/create')}
+                                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                            title="Upload a flier to publish this event (goes through review)"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => setViewingEvent(event)}
                                         className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
@@ -551,6 +598,7 @@ export default function EventsPanel() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

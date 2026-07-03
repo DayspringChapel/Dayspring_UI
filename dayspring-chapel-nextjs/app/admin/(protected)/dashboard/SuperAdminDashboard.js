@@ -127,6 +127,13 @@ export default function SuperAdminDashboard({ userName }) {
         { label: 'Albums',   value: stats.albums,      color: '#be123c' },
     ];
 
+    const contentLibraryBars = [
+        { label: 'Media',   value: stats.media,   color: '#a78bfa' },
+        { label: 'Sermons', value: stats.sermons,  color: '#f59e0b' },
+        { label: 'Albums',  value: stats.albums,   color: '#be123c' },
+        { label: 'Books',   value: stats.books,    color: '#3b82f6' },
+    ];
+
     const quickActions = [
         { label: 'Add Member',      path: '/admin/members/create', color: '#7c3aed', icon: '👤' },
         { label: 'Approve Content', path: '/admin/approvals',      color: '#ef4444', icon: '✅' },
@@ -179,6 +186,12 @@ export default function SuperAdminDashboard({ userName }) {
                                 <BarChart bars={ministryBars} height={190} />
                             </div>
                         </section>
+
+                        <div className={styles.chartCard}>
+                            <h3 className={styles.chartTitle}>Content Library</h3>
+                            <p className={styles.chartSub}>Media, sermons, albums, and books across the system</p>
+                            <BarChart bars={contentLibraryBars} height={160} />
+                        </div>
 
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>

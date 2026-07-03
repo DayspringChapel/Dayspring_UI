@@ -1,4 +1,5 @@
 import { getStreams, setStreams, setYouTubeActive, touchYouTubeCheck } from '@/lib/livestreamStore';
+import { hasServerPermission } from '@/lib/serverApi';
 
 const YT_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -50,6 +51,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+    if (!(await hasServerPermission(request, 'CanManageLivestream'))) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
     try {
         const body = await request.json();
         return Response.json(setStreams(body));

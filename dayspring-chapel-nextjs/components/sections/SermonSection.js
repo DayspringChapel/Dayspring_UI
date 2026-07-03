@@ -4,11 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import SermonPlayer from '@/components/SermonPlayer';
+
+function extractYouTubeId(url) {
+    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
+    return m?.[1] || null;
+}
 
 export default function SermonSection() {
     const [sermons, setSermons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [expandedId, setExpandedId] = useState(null);
 
     useEffect(() => {
         fetchSermons();
@@ -102,32 +109,57 @@ export default function SermonSection() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                        {sermons.map((sermon, index) => (
-                            <div key={index} className="bg-primary rounded-2xl p-4 flex items-center shadow-lg">
-                                {/* Circular Image Container */}
-                                <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-white overflow-hidden flex-shrink-0 border-4 border-white -ml-8 md:-ml-12 shadow-md z-10">
-                                    <Image
-                                        src={sermon.imageUrl || "/headset.png"}
-                                        alt="Sermon Headset"
-                                        fill
-                                        className="object-cover p-2"
-                                    />
-                                </div>
+                        {sermons.map((sermon, index) => {
+                            const sermonId = sermon.id || sermon.sermonId;
+                            const isExpanded = expandedId === sermonId;
+                            const isVideo = sermon.sermonType === 2;
+                            const youtubeId = isVideo ? extractYouTubeId(sermon.youtubeUrl) : null;
+                            return (
+                                <div key={index} className="flex flex-col gap-3">
+                                    <div className="bg-primary rounded-2xl p-4 flex items-center shadow-lg">
+                                        {/* Circular Image Container */}
+                                        <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-white overflow-hidden flex-shrink-0 border-4 border-white -ml-8 md:-ml-12 shadow-md z-10">
+                                            <Image
+                                                src={sermon.imageUrl || "/headset.png"}
+                                                alt="Sermon Headset"
+                                                fill
+                                                className="object-cover p-2"
+                                            />
+                                        </div>
 
-                                {/* Button/Dropdown Area */}
-                                <div className="flex-grow ml-4 md:ml-8">
-                                    <Link
-                                        href={`/content/sermon/${sermon.id || sermon.sermonId}`}
-                                        className="w-full bg-white text-black font-bold py-3 px-6 rounded-lg flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors"
-                                    >
-                                        <span className="text-base md:text-lg truncate mr-2">{sermon.title}</span>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                                            <polygon points="5 3 19 12 5 21 5 3" />
-                                        </svg>
-                                    </Link>
+                                        {/* Button/Dropdown Area */}
+                                        <div className="flex-grow ml-4 md:ml-8">
+                                            <button
+                                                type="button"
+                                                onClick={() => setExpandedId(isExpanded ? null : sermonId)}
+                                                className="w-full bg-white text-black font-bold py-3 px-6 rounded-lg flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors"
+                                            >
+                                                <span className="text-base md:text-lg truncate mr-2">{sermon.title}</span>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                                                    {isExpanded ? <polyline points="18 15 12 9 6 15" /> : <polygon points="5 3 19 12 5 21 5 3" />}
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {isExpanded && (
+                                        isVideo && youtubeId ? (
+                                            <div className="rounded-2xl overflow-hidden shadow-sm" style={{ aspectRatio: '16 / 9' }}>
+                                                <iframe
+                                                    src={`https://www.youtube-nocookie.com/embed/${youtubeId}?modestbranding=1&rel=0`}
+                                                    title={sermon.title}
+                                                    className="w-full h-full"
+                                                    allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                        ) : (
+                                            <SermonPlayer audioUrl={sermon.audioLink} title={sermon.title} />
+                                        )
+                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

@@ -153,6 +153,20 @@ class ApiClient {
             datetime: eventDate,
             eventImage,
             calendarYearId: event.calendarYearId || event.CalendarYearId || null,
+            isPublished: event.isPublished ?? event.IsPublished ?? false,
+        };
+    }
+
+    normalizeChurchProgram(churchProgram) {
+        if (!churchProgram) return null;
+
+        return {
+            ...churchProgram,
+            id: churchProgram.id || churchProgram.Id,
+            title: churchProgram.title || churchProgram.Title,
+            description: churchProgram.description || churchProgram.Description || '',
+            programDate: churchProgram.programDate || churchProgram.ProgramDate,
+            calendarYearId: churchProgram.calendarYearId || churchProgram.CalendarYearId || null,
         };
     }
 
@@ -229,6 +243,8 @@ class ApiClient {
             audioLink,
             link: audioLink,
             calendarYearId: sermon.calendarYearId || sermon.CalendarYearId || null,
+            sermonType: sermon.sermonType ?? sermon.SermonType ?? 1,
+            youtubeUrl: sermon.youtubeUrl || sermon.YoutubeUrl || null,
         };
     }
 
@@ -589,8 +605,17 @@ class ApiClient {
         return this.normalizeArray(data, this.normalizeEvent);
     }
 
+    async getAllEventsInternal() {
+        const data = await this.request('/api/v1/Events/all');
+        return this.normalizeArray(data, this.normalizeEvent);
+    }
+
     async createEvent(formData) {
         return this.upload('/api/v1/Events/add-event', formData, 'POST');
+    }
+
+    async publishEvent(eventId, formData) {
+        return this.upload(`/api/v1/Events/${eventId}/publish`, formData, 'PATCH');
     }
 
     async updateEvent(eventId, formData) {
@@ -678,6 +703,31 @@ class ApiClient {
 
     async deleteCalendarYear(calendarYearId) {
         return this.request(`/api/v1/CalendarYears/${calendarYearId}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
+    async getChurchPrograms() {
+        const data = await this.request('/api/v1/ChurchPrograms');
+        return this.normalizeArray(data, this.normalizeChurchProgram);
+    }
+
+    async createChurchProgram(churchProgramData) {
+        return this.request('/api/v1/ChurchPrograms/add-program', {
+            method: 'POST',
+            body: JSON.stringify(churchProgramData),
+        });
+    }
+
+    async updateChurchProgram(churchProgramId, churchProgramData) {
+        return this.request(`/api/v1/ChurchPrograms/${churchProgramId}/update`, {
+            method: 'PATCH',
+            body: JSON.stringify(churchProgramData),
+        });
+    }
+
+    async deleteChurchProgram(churchProgramId) {
+        return this.request(`/api/v1/ChurchPrograms/${churchProgramId}/delete`, {
             method: 'DELETE',
         });
     }
@@ -941,6 +991,12 @@ class ApiClient {
         });
     }
 
+    async removeRole(userId, roleId) {
+        return this.request(`/api/v1/Roles/${userId}/remove-role?roleId=${roleId}`, {
+            method: 'POST',
+        });
+    }
+
     // ── Auth ─────────────────────────────────────────────────────────────────
 
     async refreshToken(token, refreshToken) {
@@ -972,13 +1028,29 @@ class ApiClient {
             thumbnailUrl: item.thumbnailUrl || item.ThumbnailUrl || null,
             ownerId: item.ownerId || item.OwnerId || '',
             ownerName: item.ownerName || item.OwnerName || '',
-            category: item.category || item.Category || '',
+            category: item.category ?? item.Category ?? 0,
+            categoryName: item.categoryName || item.CategoryName || '',
+            youtubeUrl: item.youtubeUrl || item.YoutubeUrl || null,
             tags: item.tags || item.Tags || '',
             workflowStatus: item.workflowStatus ?? item.WorkflowStatus ?? 0,
             workflowStatusName: item.workflowStatusName || item.WorkflowStatusName || '',
             createdBy: item.createdBy || item.CreatedBy || '',
             createdDate: item.createdDate || item.CreatedDate || '',
         };
+    }
+
+    async requestAmendment(contentId, comment) {
+        return this.request('/api/v1/Approvals/request-amendment', {
+            method: 'POST',
+            body: JSON.stringify({ contentId, approved: false, comment }),
+        });
+    }
+
+    async publishToDestination(payload) {
+        return this.request('/api/v1/Publishing/publish-to-destination', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
     }
 
     async getMediaContents() {

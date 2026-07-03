@@ -45,9 +45,27 @@ export async function fetchSermonByIdServer(id) {
             seriesTitle: s.seriesTitle || s.SeriesTitle || '',
             audioLink: toHttps(s.audioFile || s.AudioFile || s.audioLink || s.AudioLink || s.link || null),
             imageUrl: toHttps(s.imageUrl || s.ImageUrl || s.image || s.Image || null),
+            sermonType: s.sermonType ?? s.SermonType ?? 1,
+            youtubeUrl: s.youtubeUrl || s.YoutubeUrl || null,
         };
     } catch {
         return null;
+    }
+}
+
+export async function hasServerPermission(request, permission) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) return false;
+    try {
+        const res = await fetch(
+            `${API_BASE}/api/v1/Users/has-permission?permission=${encodeURIComponent(permission)}`,
+            { headers: { Authorization: authHeader }, cache: 'no-store' }
+        );
+        if (!res.ok) return false;
+        const data = await res.json();
+        return !!data.hasPermission;
+    } catch {
+        return false;
     }
 }
 

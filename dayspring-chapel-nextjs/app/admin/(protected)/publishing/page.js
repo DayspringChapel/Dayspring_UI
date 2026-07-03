@@ -10,8 +10,19 @@ const PLATFORMS = [
     { value: 3, label: 'X (Twitter)' },
     { value: 4, label: 'YouTube' },
     { value: 5, label: 'WhatsApp' },
-    { value: 6, label: 'Church Website' },
 ];
+
+const CATEGORY_DESTINATION = {
+    1: 'gallery',   // Gallery
+    2: 'library',   // SermonAudio
+    3: 'library',   // SermonVideo
+    4: 'event',     // EventFlier
+};
+
+const EMPTY_DESTINATION_FORM = {
+    contentId: '', albumId: '', eventId: '', preacherName: '', sermonDate: '',
+    socialPlatforms: [], socialCaption: '',
+};
 
 const STREAM_PLATFORM_META = {
     youtube:   { label: 'YouTube',   color: '#FF0000', emoji: '▶' },
@@ -37,14 +48,19 @@ const POST_STATUS = {
 const EMPTY_FORM = { contentId: '', platforms: [], scheduledAt: '', caption: '' };
 
 export default function PublishingPage() {
-    const [activeTab, setActiveTab] = useState('scheduled');
+    const [activeTab, setActiveTab] = useState('ready');
     const [scheduledPosts, setScheduledPosts] = useState([]);
     const [publishedPosts, setPublishedPosts] = useState([]);
     const [readyContents, setReadyContents] = useState([]);
+    const [albums, setAlbums] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(EMPTY_FORM);
     const [submitting, setSubmitting] = useState(false);
+    const [showDestForm, setShowDestForm] = useState(false);
+    const [destForm, setDestForm] = useState(EMPTY_DESTINATION_FORM);
+    const [destSubmitting, setDestSubmitting] = useState(false);
 
     // Live streams state
     const [streams, setStreams]           = useState(null);
@@ -54,20 +70,64 @@ export default function PublishingPage() {
 
     useEffect(() => {
         const load = async () => {
-            const [sched, pub, ready, streamRes] = await Promise.allSettled([
+            const [sched, pub, ready, streamRes, albumsRes, eventsRes] = await Promise.allSettled([
                 apiClient.getAllScheduledPosts(),
                 apiClient.getAllPublishedPosts(),
                 apiClient.getMediaContentsByStatus(7),
                 fetch('/api/livestream').then((r) => r.json()),
+                apiClient.getAlbums(),
+                apiClient.getAllEventsInternal(),
             ]);
             if (sched.status     === 'fulfilled') setScheduledPosts(sched.value     || []);
             if (pub.status       === 'fulfilled') setPublishedPosts(pub.value       || []);
             if (ready.status     === 'fulfilled') setReadyContents(ready.value      || []);
             if (streamRes.status === 'fulfilled') setStreams(streamRes.value);
+            if (albumsRes.status === 'fulfilled') setAlbums(albumsRes.value || []);
+            if (eventsRes.status === 'fulfilled') setEvents((eventsRes.value || []).filter((e) => !e.isPublished));
             setLoading(false);
         };
         load();
     }, []);
+
+    const selectedDestContent = readyContents.find((c) => c.id === destForm.contentId) || null;
+    const destKind = selectedDestContent ? CATEGORY_DESTINATION[selectedDestContent.category] : null;
+
+    const toggleDestPlatform = (val) => {
+        setDestForm((prev) => ({
+            ...prev,
+            socialPlatforms: prev.socialPlatforms.includes(val)
+                ? prev.socialPlatforms.filter((p) => p !== val)
+                : [...prev.socialPlatforms, val],
+        }));
+    };
+
+    const handlePublishToDestination = async (e) => {
+        e.preventDefault();
+        if (!destForm.contentId) { alert('Select content to publish.'); return; }
+        if (destKind === 'event' && !destForm.eventId) { alert('Select an event to attach this flier to.'); return; }
+        if (destKind === 'library' && !destForm.preacherName.trim()) { alert('Enter a preacher name.'); return; }
+        setDestSubmitting(true);
+        try {
+            await apiClient.publishToDestination({
+                contentId: destForm.contentId,
+                albumId: destKind === 'gallery' ? (destForm.albumId || null) : null,
+                eventId: destKind === 'event' ? destForm.eventId : null,
+                preacherName: destKind === 'library' ? destForm.preacherName.trim() : null,
+                sermonDate: destKind === 'library' && destForm.sermonDate ? destForm.sermonDate : null,
+                socialPlatforms: destForm.socialPlatforms.length ? destForm.socialPlatforms : null,
+                socialCaption: destForm.socialCaption.trim() || null,
+            });
+            setReadyContents((prev) => prev.filter((c) => c.id !== destForm.contentId));
+            const pub = await apiClient.getAllPublishedPosts().catch(() => null);
+            if (pub) setPublishedPosts(pub);
+            setShowDestForm(false);
+            setDestForm(EMPTY_DESTINATION_FORM);
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setDestSubmitting(false);
+        }
+    };
 
     const handleCancel = async (postId) => {
         if (!confirm('Cancel this scheduled post?')) return;
@@ -148,6 +208,7 @@ export default function PublishingPage() {
     };
 
     const TABS = [
+        { id: 'ready',        label: `Ready to Publish (${readyContents.length})` },
         { id: 'scheduled',    label: `Scheduled (${scheduledPosts.length})` },
         { id: 'published',    label: `Published (${publishedPosts.length})` },
         { id: 'live-streams', label: `Live Streams${liveStreamItems.length ? ` (${liveStreamItems.length})` : ''}` },
@@ -158,11 +219,16 @@ export default function PublishingPage() {
             <div className={styles.header}>
                 <div className={styles.headerText}>
                     <h1>Publishing</h1>
-                    <p>Schedule and track content publishing across platforms</p>
+                    <p>Publish approved content to its destination, and schedule/track social posts</p>
                 </div>
-                {activeTab !== 'live-streams' && (
+                {activeTab === 'scheduled' && (
                     <button className={styles.btnPrimary} onClick={() => setShowForm(true)}>
                         + Schedule Post
+                    </button>
+                )}
+                {activeTab === 'ready' && readyContents.length > 0 && (
+                    <button className={styles.btnPrimary} onClick={() => setShowDestForm(true)}>
+                        + Publish to Destination
                     </button>
                 )}
             </div>
@@ -180,6 +246,29 @@ export default function PublishingPage() {
             </div>
 
             {loading && <div className={styles.loading}>Loading…</div>}
+
+            {!loading && activeTab === 'ready' && (
+                readyContents.length === 0
+                    ? <div className={styles.empty}>No content is ready to publish yet — approve items in the Approval Queue first</div>
+                    : <div className={styles.list}>
+                        {readyContents.map((c) => (
+                            <div key={c.id} className={styles.row}>
+                                <div className={styles.rowInfo}>
+                                    <h3>{c.title}</h3>
+                                    <p>{c.categoryName} · {c.contentTypeName} · by {c.ownerName}</p>
+                                </div>
+                                <div className={styles.rowActions}>
+                                    <button
+                                        className={styles.btnPrimary}
+                                        onClick={() => { setDestForm({ ...EMPTY_DESTINATION_FORM, contentId: c.id }); setShowDestForm(true); }}
+                                    >
+                                        Publish
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+            )}
 
             {!loading && activeTab === 'scheduled' && (
                 scheduledPosts.length === 0
@@ -441,6 +530,119 @@ export default function PublishingPage() {
                                 </button>
                                 <button type="submit" className={styles.btnModalSubmit} disabled={submitting}>
                                     {submitting ? 'Scheduling…' : 'Schedule Post'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Publish to Destination modal */}
+            {showDestForm && (
+                <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowDestForm(false)}>
+                    <div className={styles.modal}>
+                        <h2>Publish to Destination</h2>
+                        <form onSubmit={handlePublishToDestination}>
+                            <div className={styles.formGroup}>
+                                <label>Content *</label>
+                                <select
+                                    value={destForm.contentId}
+                                    onChange={(e) => setDestForm((p) => ({ ...EMPTY_DESTINATION_FORM, contentId: e.target.value }))}
+                                    required
+                                >
+                                    <option value="">Select ready-to-publish content…</option>
+                                    {readyContents.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.title} — {c.categoryName}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {destKind === 'gallery' && (
+                                <div className={styles.formGroup}>
+                                    <label>Album (optional)</label>
+                                    <select
+                                        value={destForm.albumId}
+                                        onChange={(e) => setDestForm((p) => ({ ...p, albumId: e.target.value }))}
+                                    >
+                                        <option value="">No album — add to general gallery</option>
+                                        {albums.map((a) => (
+                                            <option key={a.id} value={a.id}>{a.title || a.albumName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {destKind === 'event' && (
+                                <div className={styles.formGroup}>
+                                    <label>Attach to Event *</label>
+                                    <select
+                                        value={destForm.eventId}
+                                        onChange={(e) => setDestForm((p) => ({ ...p, eventId: e.target.value }))}
+                                        required
+                                    >
+                                        <option value="">Select a draft event…</option>
+                                        {events.map((ev) => (
+                                            <option key={ev.id} value={ev.id}>{ev.heading}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {destKind === 'library' && (
+                                <div className={styles.row2}>
+                                    <div className={styles.formGroup}>
+                                        <label>Preacher Name *</label>
+                                        <input
+                                            value={destForm.preacherName}
+                                            onChange={(e) => setDestForm((p) => ({ ...p, preacherName: e.target.value }))}
+                                            required
+                                        />
+                                    </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Sermon Date</label>
+                                        <input
+                                            type="date"
+                                            value={destForm.sermonDate}
+                                            onChange={(e) => setDestForm((p) => ({ ...p, sermonDate: e.target.value }))}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={styles.formGroup}>
+                                <label>Also post to social platforms (optional)</label>
+                                <div className={styles.platformChips}>
+                                    {PLATFORMS.map((p) => (
+                                        <button
+                                            key={p.value}
+                                            type="button"
+                                            onClick={() => toggleDestPlatform(p.value)}
+                                            className={`${styles.platformChip} ${destForm.socialPlatforms.includes(p.value) ? styles.platformChipActive : ''}`}
+                                        >
+                                            {p.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {destForm.socialPlatforms.length > 0 && (
+                                <div className={styles.formGroup}>
+                                    <label>Social Caption</label>
+                                    <textarea
+                                        rows={2}
+                                        value={destForm.socialCaption}
+                                        onChange={(e) => setDestForm((p) => ({ ...p, socialCaption: e.target.value }))}
+                                        placeholder="Optional caption for the social posts…"
+                                    />
+                                </div>
+                            )}
+
+                            <div className={styles.modalActions}>
+                                <button type="button" className={styles.btnModalCancel} onClick={() => setShowDestForm(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className={styles.btnModalSubmit} disabled={destSubmitting || !destForm.contentId}>
+                                    {destSubmitting ? 'Publishing…' : 'Publish'}
                                 </button>
                             </div>
                         </form>

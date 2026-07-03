@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import apiClient from '@/lib/apiClient';
-import { EventProvider } from '@/context/EventContext';
 import EventsPanel from '@/components/admin/panels/EventsPanel';
 import SermonsPanel from '@/components/admin/panels/SermonsPanel';
 import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
-import SeriesPanel from '@/components/admin/panels/SeriesPanel';
 import CalendarYearsPanel from '@/components/admin/panels/CalendarYearsPanel';
+import ChurchProgramsPanel from '@/components/admin/panels/ChurchProgramsPanel';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
@@ -24,8 +23,8 @@ function resolveRole() {
 const ALL_TABS = [
     { id: 'events',  label: 'Events',  icon: '🎉', roles: 'all' },
     { id: 'sermons', label: 'Sermons', icon: '🎤', roles: 'all' },
-    { id: 'series',  label: 'Series',  icon: '📺', roles: 'all' },
     { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', roles: 'all' },
+    { id: 'programs', label: 'Programs', icon: '⛪', roles: 'all' },
     { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },
     { id: 'albums',  label: 'Albums',  icon: '📸', roles: 'all' },
 ];
@@ -70,10 +69,10 @@ export default function ContentManagement() {
             </div>
 
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                {activeTab === 'events'  && <EventProvider><EventsPanel /></EventProvider>}
+                {activeTab === 'events'  && <EventsPanel />}
                 {activeTab === 'sermons' && <SermonsPanel />}
-                {activeTab === 'series'  && <SeriesPanel />}
                 {activeTab === 'calendarYears' && <CalendarYearsPanel />}
+                {activeTab === 'programs' && <ChurchProgramsPanel />}
                 {activeTab === 'books'   && <BooksPanel />}
                 {activeTab === 'albums'  && <AlbumsPanel />}
             </div>

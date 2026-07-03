@@ -1,6 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import apiClient from '@/lib/apiClient';
+
+function resolveRole() {
+    const userData = apiClient.getUserData();
+    if (!userData) return 'member';
+    const r = userData.role || userData.Role || {};
+    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
+    if (name.includes('super')) return 'superAdmin';
+    if (name.includes('media')) return 'churchMedia';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
+}
 
 const PLATFORMS = [
     {
@@ -61,6 +73,10 @@ const fieldStyle = (focused, color = '#F58634') => ({
 });
 
 export default function SettingsPage() {
+    const role = resolveRole();
+    const canManageLivestream = role === 'churchMedia' || role === 'superAdmin';
+    const canManageChatbot = role === 'churchAdmin' || role === 'superAdmin';
+
     const [config, setConfig] = useState({
         youtube:   { active: false, url: '', description: '' },
         facebook:  { active: false, url: '', description: '' },
@@ -116,7 +132,7 @@ export default function SettingsPage() {
         try {
             const res = await fetch('/api/livestream', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiClient.getToken()}` },
                 body: JSON.stringify({ ...config, imageUrl }),
             });
             if (!res.ok) throw new Error();
@@ -161,7 +177,7 @@ export default function SettingsPage() {
         try {
             const res = await fetch('/api/chatbot-config', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiClient.getToken()}` },
                 body: JSON.stringify({ additionalInfo: botInfo }),
             });
             if (!res.ok) throw new Error();
@@ -187,6 +203,7 @@ export default function SettingsPage() {
             </div>
 
             {/* ── Live Stream Card ───────────────────────────────────────── */}
+            {canManageLivestream && (
             <div style={{
                 background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(22px)',
                 border: '1px solid rgba(255,255,255,0.90)', borderRadius: '1.25rem',
@@ -432,8 +449,10 @@ export default function SettingsPage() {
                     {status === 'error' && <span style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: 700 }}>✗ Failed to save</span>}
                 </div>
             </div>
+            )}
 
             {/* ── Chatbot Knowledge Base Card ───────────────────────────── */}
+            {canManageChatbot && (
             <div style={{
                 background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(22px)',
                 border: '1px solid rgba(255,255,255,0.90)', borderRadius: '1.25rem',
@@ -487,6 +506,13 @@ export default function SettingsPage() {
                     {botStatus === 'error' && <span style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: 700 }}>✗ Failed</span>}
                 </div>
             </div>
+            )}
+
+            {!canManageLivestream && !canManageChatbot && (
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', textAlign: 'center', padding: '2rem 0' }}>
+                    You don&apos;t have access to any settings sections.
+                </p>
+            )}
 
             <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', textAlign: 'center' }}>
                 Live stream settings are held in server memory and reset on server restart.
