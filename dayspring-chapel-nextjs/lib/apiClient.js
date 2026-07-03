@@ -439,7 +439,9 @@ class ApiClient {
                 ...(options.body !== undefined ? { body: options.body } : {}),
             });
 
-            if (response.status === 401) {
+            const isLoginRequest = /\/Users\/login$/i.test(normalizedEndpoint);
+
+            if (response.status === 401 && !isLoginRequest) {
                 this.removeToken();
                 if (typeof window !== 'undefined') {
                     window.location.href = '/admin/login';
