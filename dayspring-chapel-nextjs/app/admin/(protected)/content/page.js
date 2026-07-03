@@ -8,21 +8,24 @@ import SermonsPanel from '@/components/admin/panels/SermonsPanel';
 import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
 import SeriesPanel from '@/components/admin/panels/SeriesPanel';
+import CalendarYearsPanel from '@/components/admin/panels/CalendarYearsPanel';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
-    if (!userData) return 'churchAdmin';
+    if (!userData) return 'member';
     const r = userData.role || userData.Role || {};
     const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
     if (name.includes('super')) return 'superAdmin';
     if (name.includes('media')) return 'churchMedia';
-    return 'churchAdmin';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
 }
 
 const ALL_TABS = [
     { id: 'events',  label: 'Events',  icon: '🎉', roles: 'all' },
     { id: 'sermons', label: 'Sermons', icon: '🎤', roles: 'all' },
     { id: 'series',  label: 'Series',  icon: '📺', roles: 'all' },
+    { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', roles: 'all' },
     { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },
     { id: 'albums',  label: 'Albums',  icon: '📸', roles: 'all' },
 ];
@@ -70,6 +73,7 @@ export default function ContentManagement() {
                 {activeTab === 'events'  && <EventProvider><EventsPanel /></EventProvider>}
                 {activeTab === 'sermons' && <SermonsPanel />}
                 {activeTab === 'series'  && <SeriesPanel />}
+                {activeTab === 'calendarYears' && <CalendarYearsPanel />}
                 {activeTab === 'books'   && <BooksPanel />}
                 {activeTab === 'albums'  && <AlbumsPanel />}
             </div>

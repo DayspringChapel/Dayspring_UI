@@ -12,14 +12,18 @@ export default function SermonsPanel() {
     const [saving, setSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingSermon, setEditingSermon] = useState(null);
+    const [calendarYears, setCalendarYears] = useState([]);
     const [formData, setFormData] = useState({
-        title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null,
+        title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null, calendarYearId: '',
     });
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => { loadSermons(); }, []);
+    useEffect(() => {
+        apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
+    }, []);
 
     const loadSermons = async () => {
         try {
@@ -41,6 +45,7 @@ export default function SermonsPanel() {
                 await apiClient.updateSermon(editingSermon.id, {
                     title: formData.title, seriesTitle: formData.seriesTitle,
                     preacherName: formData.preacherName, sermonDate: formData.sermonDate,
+                    calendarYearId: formData.calendarYearId || null,
                 });
                 notify('success', 'Sermon updated successfully!');
             } else {
@@ -51,6 +56,7 @@ export default function SermonsPanel() {
                 fd.append('SermonDate', formData.sermonDate);
                 if (formData.image)     fd.append('Image',     formData.image);
                 if (formData.audioFile) fd.append('AudioFile', formData.audioFile);
+                if (formData.calendarYearId) fd.append('CalendarYearId', formData.calendarYearId);
                 await apiClient.createSermon(fd);
                 notify('success', 'Sermon created successfully!');
             }
@@ -90,6 +96,7 @@ export default function SermonsPanel() {
             seriesTitle: sermon.seriesTitle || '', preacherName: sermon.preacherName || '',
             sermonDate: sermon.sermonDate ? sermon.sermonDate.split('T')[0] : '',
             audioFile: null,
+            calendarYearId: sermon.calendarYearId || '',
         });
         setShowModal(true);
     };
@@ -97,7 +104,7 @@ export default function SermonsPanel() {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingSermon(null);
-        setFormData({ title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null });
+        setFormData({ title: '', image: null, seriesTitle: '', preacherName: '', sermonDate: '', audioFile: null, calendarYearId: '' });
     };
 
     if (loading && sermons.length === 0) {
@@ -163,6 +170,16 @@ export default function SermonsPanel() {
                                 <label>Sermon Date *</label>
                                 <input type="date" value={formData.sermonDate} required
                                     onChange={(e) => setFormData({ ...formData, sermonDate: e.target.value })} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label>Calendar Year</label>
+                                <select value={formData.calendarYearId}
+                                    onChange={(e) => setFormData({ ...formData, calendarYearId: e.target.value })}>
+                                    <option value="">— None —</option>
+                                    {calendarYears.map((cy) => (
+                                        <option key={cy.id} value={cy.id}>{cy.year}{cy.label ? ` — ${cy.label}` : ''}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className={styles.formGroup}>
                                 <label>Image</label>

@@ -16,6 +16,7 @@ export default function EventsPanel() {
     const [editingEvent, setEditingEvent] = useState(null);
     const [viewingEvent, setViewingEvent] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [calendarYears, setCalendarYears] = useState([]);
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
@@ -24,7 +25,12 @@ export default function EventsPanel() {
         description: '',
         datetime: '',
         eventImage: null,
+        calendarYearId: '',
     });
+
+    useEffect(() => {
+        apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
+    }, []);
 
     // Helper to clear form
     const resetForm = () => {
@@ -33,6 +39,7 @@ export default function EventsPanel() {
             description: '',
             datetime: '',
             eventImage: null,
+            calendarYearId: '',
         });
         setImagePreview(null);
         setEditingEvent(null);
@@ -69,6 +76,9 @@ export default function EventsPanel() {
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
                 }
+                if (formData.calendarYearId) {
+                    formDataToSend.append('CalendarYearId', formData.calendarYearId);
+                }
                 await apiClient.updateEvent(editingEvent.id, formDataToSend);
             } else {
                 // Create new event logic ...
@@ -79,6 +89,9 @@ export default function EventsPanel() {
                 formDataToSend.append('Datetime', isoDatetime);
                 if (formData.eventImage) {
                     formDataToSend.append('EventImage', formData.eventImage);
+                }
+                if (formData.calendarYearId) {
+                    formDataToSend.append('CalendarYearId', formData.calendarYearId);
                 }
                 await apiClient.createEvent(formDataToSend);
             }
@@ -120,6 +133,7 @@ export default function EventsPanel() {
             description: event.description || '',
             datetime: event.datetime ? new Date(event.datetime).toISOString().slice(0, 16) : '',
             eventImage: null,
+            calendarYearId: event.calendarYearId || '',
         });
         setImagePreview(event.eventImage || null);
         setShowModal(true);
@@ -128,7 +142,7 @@ export default function EventsPanel() {
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingEvent(null);
-        setFormData({ heading: '', description: '', datetime: '', eventImage: null });
+        setFormData({ heading: '', description: '', datetime: '', eventImage: null, calendarYearId: '' });
         setImagePreview(null);
     };
 
@@ -399,6 +413,29 @@ export default function EventsPanel() {
                                     />
                                     {/* The calendar icon is usually provided by the browser, but consistent padding helps */}
                                 </div>
+                            </div>
+
+                            {/* Calendar Year */}
+                            <div>
+                                <label
+                                    htmlFor="calendarYearId"
+                                    className="block text-sm font-semibold text-gray-700 mb-2"
+                                >
+                                    Calendar Year
+                                </label>
+                                <select
+                                    id="calendarYearId"
+                                    value={formData.calendarYearId}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, calendarYearId: e.target.value })
+                                    }
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all font-medium"
+                                >
+                                    <option value="">— None —</option>
+                                    {calendarYears.map((cy) => (
+                                        <option key={cy.id} value={cy.id}>{cy.year}{cy.label ? ` — ${cy.label}` : ''}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Description */}

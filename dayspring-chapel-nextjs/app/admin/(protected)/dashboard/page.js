@@ -4,14 +4,16 @@ import apiClient from '@/lib/apiClient';
 import SuperAdminDashboard from './SuperAdminDashboard';
 import ChurchAdminDashboard from './ChurchAdminDashboard';
 import ChurchMediaDashboard from './ChurchMediaDashboard';
+import MemberDashboard from './MemberDashboard';
 
 function resolveRole(userData) {
-    if (!userData) return 'churchAdmin';
+    if (!userData) return 'member';
     const r = userData.role || userData.Role || {};
     const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
     if (name.includes('super')) return 'superAdmin';
     if (name.includes('media')) return 'churchMedia';
-    return 'churchAdmin';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
 }
 
 function resolveUserName(userData) {
@@ -26,5 +28,6 @@ export default function DashboardPage() {
 
     if (role === 'superAdmin') return <SuperAdminDashboard userName={userName} />;
     if (role === 'churchMedia') return <ChurchMediaDashboard userName={userName} />;
-    return <ChurchAdminDashboard userName={userName} />;
+    if (role === 'churchAdmin') return <ChurchAdminDashboard userName={userName} />;
+    return <MemberDashboard userName={userName} userData={userData} />;
 }

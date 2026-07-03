@@ -12,12 +12,16 @@ export default function SeriesPanel() {
     const [saving, setSaving] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingSeries, setEditingSeries] = useState(null);
-    const [formData, setFormData] = useState({ title: '', image: '' });
+    const [calendarYears, setCalendarYears] = useState([]);
+    const [formData, setFormData] = useState({ title: '', image: '', calendarYearId: '' });
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => { loadSeries(); }, []);
+    useEffect(() => {
+        apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
+    }, []);
 
     const loadSeries = async () => {
         try {
@@ -35,11 +39,12 @@ export default function SeriesPanel() {
         e.preventDefault();
         setSaving(true);
         try {
+            const payload = { ...formData, calendarYearId: formData.calendarYearId || null };
             if (editingSeries) {
-                await apiClient.updateSeries(editingSeries.id, formData);
+                await apiClient.updateSeries(editingSeries.id, payload);
                 notify('success', 'Series updated successfully!');
             } else {
-                await apiClient.createSeries(formData);
+                await apiClient.createSeries(payload);
                 notify('success', 'Series created successfully!');
             }
             await loadSeries();
@@ -73,14 +78,14 @@ export default function SeriesPanel() {
 
     const handleEdit = (item) => {
         setEditingSeries(item);
-        setFormData({ title: item.title || '', image: item.image || '' });
+        setFormData({ title: item.title || '', image: item.image || '', calendarYearId: item.calendarYearId || '' });
         setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingSeries(null);
-        setFormData({ title: '', image: '' });
+        setFormData({ title: '', image: '', calendarYearId: '' });
     };
 
     if (loading && series.length === 0) {
@@ -140,6 +145,16 @@ export default function SeriesPanel() {
                                 <input type="url" id="image" value={formData.image}
                                     placeholder="https://example.com/image.jpg"
                                     onChange={(e) => setFormData({ ...formData, image: e.target.value })} />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="calendarYearId">Calendar Year</label>
+                                <select id="calendarYearId" value={formData.calendarYearId}
+                                    onChange={(e) => setFormData({ ...formData, calendarYearId: e.target.value })}>
+                                    <option value="">— None —</option>
+                                    {calendarYears.map((cy) => (
+                                        <option key={cy.id} value={cy.id}>{cy.year}{cy.label ? ` — ${cy.label}` : ''}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className={styles.formActions}>
                                 <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>Cancel</button>

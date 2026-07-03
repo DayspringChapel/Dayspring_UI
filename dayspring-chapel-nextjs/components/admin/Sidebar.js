@@ -9,12 +9,13 @@ import AdminConfirm from './AdminConfirm';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
-    if (!userData) return 'churchAdmin';
+    if (!userData) return 'member';
     const r = userData.role || userData.Role || {};
     const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
     if (name.includes('super')) return 'superAdmin';
     if (name.includes('media')) return 'churchMedia';
-    return 'churchAdmin';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
 }
 
 export default function Sidebar({ isOpen, setIsOpen }) {
@@ -99,7 +100,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Members',
             path: '/admin/members',
-            roles: ['superAdmin', 'churchAdmin'],
+            roles: ['superAdmin', 'churchAdmin', 'churchMedia'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M9 6C9 7.65685 7.65685 9 6 9C4.34315 9 3 7.65685 3 6C3 4.34315 4.34315 3 6 3C7.65685 3 9 4.34315 9 6Z" fill="currentColor" />

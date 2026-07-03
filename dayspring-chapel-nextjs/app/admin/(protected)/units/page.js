@@ -50,7 +50,7 @@ export default function UnitsPage() {
 
             return {
                 ...member,
-                label: name || member.userId || member.memberId,
+                label: name || member.memberId,
                 phoneNumber: bio?.phoneNumberObject || null,
             };
         });
@@ -60,7 +60,6 @@ export default function UnitsPage() {
         const map = new Map();
         memberOptions.forEach((member) => {
             map.set(member.memberId, member.label);
-            map.set(member.userId, member.label);
         });
         return map;
     }, [memberOptions]);
@@ -72,8 +71,7 @@ export default function UnitsPage() {
         return memberOptions.filter((member) => (
             getMemberSearchValue(member).toLowerCase().includes(search) ||
             member.label.toLowerCase().includes(search) ||
-            member.memberId?.toLowerCase().includes(search) ||
-            member.userId?.toLowerCase().includes(search)
+            member.memberId?.toLowerCase().includes(search)
         ));
     }, [memberOptions, unitHeadSearch]);
 
@@ -117,8 +115,7 @@ export default function UnitsPage() {
         const selectedMember = memberOptions.find((member) => (
             getMemberSearchValue(member).toLowerCase() === value.trim().toLowerCase() ||
             member.label.toLowerCase() === value.trim().toLowerCase() ||
-            member.memberId?.toLowerCase() === value.trim().toLowerCase() ||
-            member.userId?.toLowerCase() === value.trim().toLowerCase()
+            member.memberId?.toLowerCase() === value.trim().toLowerCase()
         ));
 
         if (!selectedMember) {

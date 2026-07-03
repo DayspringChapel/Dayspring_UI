@@ -152,6 +152,18 @@ class ApiClient {
             eventDate,
             datetime: eventDate,
             eventImage,
+            calendarYearId: event.calendarYearId || event.CalendarYearId || null,
+        };
+    }
+
+    normalizeCalendarYear(calendarYear) {
+        if (!calendarYear) return null;
+
+        return {
+            ...calendarYear,
+            id: calendarYear.id || calendarYear.Id,
+            year: calendarYear.year ?? calendarYear.Year,
+            label: calendarYear.label || calendarYear.Label || '',
         };
     }
 
@@ -216,6 +228,7 @@ class ApiClient {
             audioFile: audioLink,
             audioLink,
             link: audioLink,
+            calendarYearId: sermon.calendarYearId || sermon.CalendarYearId || null,
         };
     }
 
@@ -329,6 +342,7 @@ class ApiClient {
             userId: member.userId || member.UserId,
             smallGroupId: member.smallGroupId || member.SmallGroupId || null,
             unitId: member.unitId || member.UnitId || null,
+            contentRole: member.contentRole ?? member.ContentRole ?? null,
         };
     }
 
@@ -641,6 +655,31 @@ class ApiClient {
         });
     }
 
+    async getCalendarYears() {
+        const data = await this.request('/api/v1/CalendarYears');
+        return this.normalizeArray(data, this.normalizeCalendarYear);
+    }
+
+    async createCalendarYear(calendarYearData) {
+        return this.request('/api/v1/CalendarYears/add-calendar-year', {
+            method: 'POST',
+            body: JSON.stringify(calendarYearData),
+        });
+    }
+
+    async updateCalendarYear(calendarYearId, calendarYearData) {
+        return this.request(`/api/v1/CalendarYears/${calendarYearId}/update`, {
+            method: 'PATCH',
+            body: JSON.stringify(calendarYearData),
+        });
+    }
+
+    async deleteCalendarYear(calendarYearId) {
+        return this.request(`/api/v1/CalendarYears/${calendarYearId}/delete`, {
+            method: 'DELETE',
+        });
+    }
+
     async getImages() {
         const data = await this.request('/api/v1/Images/get-all');
         return this.normalizeArray(data, this.normalizeImage);
@@ -739,6 +778,30 @@ class ApiClient {
     async getMembers() {
         const data = await this.request('/api/v1/Member');
         return this.normalizeArray(data, this.normalizeMember);
+    }
+
+    async getMembersByUnit(unitId) {
+        const data = await this.request(`/api/v1/Member/by-unit/${unitId}`);
+        return this.normalizeArray(data, this.normalizeMember);
+    }
+
+    async getMemberByUserId(userId) {
+        const data = await this.request(`/api/v1/Member/get-by-user/${userId}`);
+        return this.normalizeMember(data);
+    }
+
+    // Role values: 1 = Media, 2 = Graphics, 3 = SocialMedia
+    async assignContentRole(memberId, role) {
+        return this.request(`/api/v1/Member/${memberId}/content-role`, {
+            method: 'PATCH',
+            body: JSON.stringify({ role }),
+        });
+    }
+
+    async revokeContentRole(memberId) {
+        return this.request(`/api/v1/Member/${memberId}/content-role`, {
+            method: 'DELETE',
+        });
     }
 
     async getUnits() {
