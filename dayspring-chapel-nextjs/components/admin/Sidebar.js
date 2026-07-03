@@ -202,7 +202,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'User Roles',
             path: '/admin/roles',
-            roles: ['superAdmin', 'churchAdmin'],
+            roles: ['superAdmin'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6C5 8.76142 7.23858 11 10 11C12.7614 11 15 8.76142 15 6C15 3.23858 12.7614 1 10 1ZM7 6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6C13 7.65685 11.6569 9 10 9C8.34315 9 7 7.65685 7 6Z" fill="currentColor" />

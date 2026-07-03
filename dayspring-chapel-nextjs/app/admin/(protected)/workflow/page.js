@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import styles from './workflow.module.css';
 
 const TAB_STATUSES = {
@@ -21,12 +23,26 @@ const TABS = [
     { id: 'ready',            label: 'Ready to Publish' },
 ];
 
+function resolveRole() {
+    const userData = apiClient.getUserData();
+    if (!userData) return 'member';
+    const r = userData.role || userData.Role || {};
+    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
+    if (name.includes('super')) return 'superAdmin';
+    if (name.includes('media')) return 'churchMedia';
+    if (name.includes('admin')) return 'churchAdmin';
+    return 'member';
+}
+
 export default function WorkflowPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('submitted');
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
+
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
         setLoading(true);
@@ -41,30 +57,44 @@ export default function WorkflowPage() {
         try {
             await apiClient.forwardForApproval(contentId, null);
             setItems((prev) => prev.filter((i) => i.id !== contentId));
+            notify('success', 'Content forwarded for approval.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to forward content. Please try again.');
         } finally {
             setActionLoading(null);
         }
     };
 
     const handleSendBack = async (contentId) => {
-        const comment = prompt('Reason for sending back (optional):');
+        const comment = await confirm({
+            title: 'Send Back to Draft',
+            message: 'This will return the content to Draft status.',
+            confirmLabel: 'Send Back',
+            showInput: true,
+            inputLabel: 'Reason (optional)',
+            inputPlaceholder: 'Describe what needs to change…',
+        });
         setActionLoading(contentId);
         try {
-            await apiClient.sendBackToDraft(contentId, comment);
+            await apiClient.sendBackToDraft(contentId, comment || null);
             setItems((prev) => prev.filter((i) => i.id !== contentId));
+            notify('success', 'Content sent back to draft.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to send content back. Please try again.');
         } finally {
             setActionLoading(null);
         }
     };
 
-    const canAct = activeTab === 'submitted' || activeTab === 'media-review';
+    const role = resolveRole();
+    const canReview = role === 'churchMedia' || role === 'superAdmin';
+    const canAct = canReview && (activeTab === 'submitted' || activeTab === 'media-review');
+    const isAdminApproval = activeTab === 'admin-approval';
 
     return (
         <div className={styles.page}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.header}>
                 <h1>Workflow Dashboard</h1>
                 <p>Review and route content through the approval pipeline</p>
@@ -119,6 +149,14 @@ export default function WorkflowPage() {
                                             Forward
                                         </button>
                                     </>
+                                )}
+                                {isAdminApproval && (
+                                    <button
+                                        className={styles.btnPrimary}
+                                        onClick={() => router.push('/admin/approvals')}
+                                    >
+                                        Review &amp; Approve →
+                                    </button>
                                 )}
                             </div>
                         </div>

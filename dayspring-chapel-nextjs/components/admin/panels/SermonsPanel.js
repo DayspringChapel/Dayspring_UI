@@ -111,11 +111,11 @@ export default function SermonsPanel() {
             <div className={styles.panelHeader}>
                 <h2>Sermons</h2>
                 <button className={styles.addBtn} onClick={() => router.push('/admin/media/create')}>
-                    + Upload New Sermon
+                    + Upload Media
                 </button>
             </div>
             <p className={styles.cardDescription} style={{ margin: '-0.5rem 0 1rem' }}>
-                New sermons are uploaded as media, reviewed, and published from the Publishing page. This panel manages sermons already in the library.
+                New sermons are uploaded from Media, reviewed, and published from the Publishing page. This panel manages sermons already in the library.
             </p>
 
             {sermons.length === 0 ? (

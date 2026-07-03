@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AdminConfirm({ dialog, onClose }) {
+    const [inputValue, setInputValue] = useState('');
+
+    useEffect(() => {
+        setInputValue('');
+    }, [dialog]);
+
     if (!dialog) return null;
 
     const {
@@ -11,6 +17,9 @@ export default function AdminConfirm({ dialog, onClose }) {
         confirmLabel = 'Confirm',
         cancelLabel  = 'Cancel',
         danger       = false,
+        showInput    = false,
+        inputLabel,
+        inputPlaceholder,
         onConfirm,
     } = dialog;
 
@@ -58,6 +67,29 @@ export default function AdminConfirm({ dialog, onClose }) {
                     {message}
                 </p>
 
+                {showInput && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        {inputLabel && (
+                            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '0.4rem' }}>
+                                {inputLabel}
+                            </label>
+                        )}
+                        <textarea
+                            autoFocus
+                            rows={3}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            placeholder={inputPlaceholder}
+                            style={{
+                                width: '100%', boxSizing: 'border-box', padding: '0.6rem 0.75rem',
+                                border: '1.5px solid #e2e8f0', borderRadius: '0.6rem',
+                                fontSize: '0.85rem', fontFamily: 'inherit', color: '#111',
+                                resize: 'vertical', outline: 'none',
+                            }}
+                        />
+                    </div>
+                )}
+
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
                         onClick={onClose}
@@ -70,7 +102,7 @@ export default function AdminConfirm({ dialog, onClose }) {
                         {cancelLabel}
                     </button>
                     <button
-                        onClick={onConfirm}
+                        onClick={() => onConfirm(inputValue)}
                         style={{
                             flex: 1, padding: '0.7rem', borderRadius: '0.625rem',
                             border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem',
@@ -97,11 +129,11 @@ export default function AdminConfirm({ dialog, onClose }) {
 export function useConfirm() {
     const [dialog, setDialog] = useState(null);
 
-    const confirm = ({ title, message, confirmLabel = 'Confirm', danger = false }) =>
+    const confirm = ({ title, message, confirmLabel = 'Confirm', danger = false, showInput = false, inputLabel, inputPlaceholder }) =>
         new Promise((resolve) => {
             setDialog({
-                title, message, confirmLabel, danger,
-                onConfirm: () => { resolve(true);  setDialog(null); },
+                title, message, confirmLabel, danger, showInput, inputLabel, inputPlaceholder,
+                onConfirm: (value) => { resolve(showInput ? (value || '') : true); setDialog(null); },
             });
         });
 

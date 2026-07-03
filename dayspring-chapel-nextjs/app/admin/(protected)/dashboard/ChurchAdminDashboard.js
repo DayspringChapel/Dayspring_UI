@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
+import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import styles from './dashboard.module.css';
@@ -46,9 +47,22 @@ export default function ChurchAdminDashboard({ userName }) {
             ]);
 
             const v = (r) => (r.status === 'fulfilled' ? r.value || [] : []);
-            const apptsArr = v(appts);
-            const reqArr   = v(requisitions);
-            const givArr   = Array.isArray(v(givings)) ? v(givings) : [];
+            const apptsArr  = v(appts);
+            const reqArr    = v(requisitions);
+            const givArr    = Array.isArray(v(givings)) ? v(givings) : [];
+            const memberArr = v(members);
+
+            // Monthly distribution of new members over the last 6 months
+            const now = new Date();
+            const memberGrowth = Array.from({ length: 6 }, (_, i) => {
+                const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+                const count = memberArr.filter((m) => {
+                    if (!m.createdDate) return false;
+                    const cd = new Date(m.createdDate);
+                    return cd.getFullYear() === d.getFullYear() && cd.getMonth() === d.getMonth();
+                }).length;
+                return { label: d.toLocaleDateString('en-US', { month: 'short' }), value: count, color: '#0d9488' };
+            });
 
             const apptStatus = {
                 pending:   apptsArr.filter(a => (a.status ?? 0) === 0).length,
@@ -76,6 +90,7 @@ export default function ChurchAdminDashboard({ userName }) {
                 },
                 apptStatus,
                 reqStatus,
+                memberGrowth,
             });
         } finally {
             setLoading(false);
@@ -88,7 +103,7 @@ export default function ChurchAdminDashboard({ userName }) {
     }, [router]);
 
     if (loading) return <DashSkeleton />;
-    const { stats, apptStatus, reqStatus } = data;
+    const { stats, apptStatus, reqStatus, memberGrowth } = data;
 
     const topStats = [
         { label: 'Members',              value: stats.members,      color: '#0d9488', note: 'Church members',     icon: '👥' },
@@ -137,7 +152,7 @@ export default function ChurchAdminDashboard({ userName }) {
             <div className={styles.page} style={THEME}>
                 <header className={styles.hero}>
                     <div>
-                        <span className={styles.badge}>Church Administrator</span>
+                        <span className={styles.badge}>Admin</span>
                         <h1 className={styles.heroTitle}>Welcome, {userName}</h1>
                         <p className={styles.heroSub}>Oversee pastoral appointments, members, departments, and resources.</p>
                     </div>
@@ -183,6 +198,12 @@ export default function ChurchAdminDashboard({ userName }) {
                             <BarChart bars={ministryBars} height={190} />
                         </div>
 
+                        <div className={styles.chartCard}>
+                            <h3 className={styles.chartTitle}>New Members</h3>
+                            <p className={styles.chartSub}>Monthly member sign-ups over the last 6 months</p>
+                            <BarChart bars={memberGrowth} height={160} />
+                        </div>
+
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>
                             <div className={styles.actionRowWrap}>
@@ -201,6 +222,7 @@ export default function ChurchAdminDashboard({ userName }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
+                        <QuickGuideWidget />
                         {stats.pendingAppts > 0 && (
                             <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
                                 <h4 className={styles.sideCardTitle}>Pending Actions</h4>

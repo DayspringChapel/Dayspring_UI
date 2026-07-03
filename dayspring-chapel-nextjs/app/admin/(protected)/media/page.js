@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import styles from './media.module.css';
 
 const STATUS_BADGES = {
@@ -41,6 +43,9 @@ export default function MediaPage() {
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('all');
 
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
+
     useEffect(() => {
         apiClient.getMediaContents()
             .then((data) => setContents(data || []))
@@ -49,12 +54,19 @@ export default function MediaPage() {
     }, []);
 
     const handleDelete = async (id) => {
-        if (!confirm('Delete this media content? This cannot be undone.')) return;
+        const yes = await confirm({
+            title: 'Delete Media Content',
+            message: 'Are you sure you want to delete this media content? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
         try {
             await apiClient.deleteMediaContent(id);
             setContents((prev) => prev.filter((c) => c.id !== id));
+            notify('success', 'Media content deleted.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to delete media content. Please try again.');
         }
     };
 
@@ -64,6 +76,8 @@ export default function MediaPage() {
 
     return (
         <div className={styles.page}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.header}>
                 <div className={styles.headerText}>
                     <h1>Media Content</h1>

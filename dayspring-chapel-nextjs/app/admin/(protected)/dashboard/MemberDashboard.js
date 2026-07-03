@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
+import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import styles from './dashboard.module.css';
 
@@ -22,12 +23,12 @@ const CONTENT_ROLE_LABELS = { 1: 'Media', 2: 'Graphics', 3: 'Social Media' };
 // Content role: 1 = Media, 2 = Graphics, 3 = SocialMedia
 const QUICK_ACTIONS_BY_ROLE = {
     1: [
-        { label: 'Upload Content', path: '/admin/media/create', color: '#0d9488', icon: '⬆️' },
-        { label: 'My Content',     path: '/admin/media',        color: '#3b82f6', icon: '🎬' },
+        { label: 'Upload Media', path: '/admin/media/create', color: '#0d9488', icon: '⬆️' },
+        { label: 'My Content',   path: '/admin/media',        color: '#3b82f6', icon: '🎬' },
     ],
     2: [
-        { label: 'Upload Graphics', path: '/admin/media/create', color: '#0d9488', icon: '🎨' },
-        { label: 'My Content',      path: '/admin/media',        color: '#3b82f6', icon: '🖼️' },
+        { label: 'Upload Media', path: '/admin/media/create', color: '#0d9488', icon: '🎨' },
+        { label: 'My Content',   path: '/admin/media',        color: '#3b82f6', icon: '🖼️' },
     ],
     3: [
         { label: 'Publishing Queue', path: '/admin/publishing', color: '#3b82f6', icon: '📤' },
@@ -188,6 +189,7 @@ export default function MemberDashboard({ userName, userData }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
+                        <QuickGuideWidget />
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>My Profile</h4>
                             <ul className={styles.snapshotList}>

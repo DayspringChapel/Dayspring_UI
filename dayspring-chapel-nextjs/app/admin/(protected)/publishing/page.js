@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import styles from './publishing.module.css';
 
 const PLATFORMS = [
@@ -68,6 +70,9 @@ export default function PublishingPage() {
     const [streamPosting, setStreamPosting] = useState(null); // platform key being posted
     const [streamPostResults, setStreamPostResults] = useState({});
 
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
+
     useEffect(() => {
         const load = async () => {
             const [sched, pub, ready, streamRes, albumsRes, eventsRes] = await Promise.allSettled([
@@ -103,9 +108,9 @@ export default function PublishingPage() {
 
     const handlePublishToDestination = async (e) => {
         e.preventDefault();
-        if (!destForm.contentId) { alert('Select content to publish.'); return; }
-        if (destKind === 'event' && !destForm.eventId) { alert('Select an event to attach this flier to.'); return; }
-        if (destKind === 'library' && !destForm.preacherName.trim()) { alert('Enter a preacher name.'); return; }
+        if (!destForm.contentId) { notify('warning', 'Select content to publish.'); return; }
+        if (destKind === 'event' && !destForm.eventId) { notify('warning', 'Select an event to attach this flier to.'); return; }
+        if (destKind === 'library' && !destForm.preacherName.trim()) { notify('warning', 'Enter a preacher name.'); return; }
         setDestSubmitting(true);
         try {
             await apiClient.publishToDestination({
@@ -122,25 +127,38 @@ export default function PublishingPage() {
             if (pub) setPublishedPosts(pub);
             setShowDestForm(false);
             setDestForm(EMPTY_DESTINATION_FORM);
+            notify('success', 'Content published.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to publish content. Please try again.');
         } finally {
             setDestSubmitting(false);
         }
     };
 
     const handleCancel = async (postId) => {
-        if (!confirm('Cancel this scheduled post?')) return;
+        const yes = await confirm({
+            title: 'Cancel Scheduled Post',
+            message: 'Are you sure you want to cancel this scheduled post?',
+            confirmLabel: 'Cancel Post',
+            danger: true,
+        });
+        if (!yes) return;
         try {
             await apiClient.cancelScheduledPost(postId);
             setScheduledPosts((prev) => prev.filter((p) => p.id !== postId));
-        } catch (err) { alert(err.message); }
+            notify('success', 'Scheduled post cancelled.');
+        } catch (err) {
+            notify('error', err.message || 'Failed to cancel scheduled post.');
+        }
     };
 
     const handleRetry = async (postId) => {
         try {
             await apiClient.retryPublish(postId);
-        } catch (err) { alert(err.message); }
+            notify('success', 'Retry queued.');
+        } catch (err) {
+            notify('error', err.message || 'Failed to retry publish.');
+        }
     };
 
     const togglePlatform = (val) => {
@@ -155,7 +173,7 @@ export default function PublishingPage() {
     const handleSchedule = async (e) => {
         e.preventDefault();
         if (!form.contentId || form.platforms.length === 0 || !form.scheduledAt) {
-            alert('Select content, at least one platform, and a date/time.');
+            notify('warning', 'Select content, at least one platform, and a date/time.');
             return;
         }
         setSubmitting(true);
@@ -170,8 +188,9 @@ export default function PublishingPage() {
             setScheduledPosts(updated || []);
             setShowForm(false);
             setForm(EMPTY_FORM);
+            notify('success', 'Post scheduled.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to schedule post. Please try again.');
         } finally {
             setSubmitting(false);
         }
@@ -183,7 +202,7 @@ export default function PublishingPage() {
 
     const handleStreamPost = async (platformKey) => {
         if (!Object.values(streamTargets).some(Boolean)) {
-            alert('Select at least one announcement target.');
+            notify('warning', 'Select at least one announcement target.');
             return;
         }
         setStreamPosting(platformKey);
@@ -216,6 +235,8 @@ export default function PublishingPage() {
 
     return (
         <div className={styles.page}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.header}>
                 <div className={styles.headerText}>
                     <h1>Publishing</h1>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
+import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import styles from './dashboard.module.css';
@@ -153,7 +154,7 @@ export default function ChurchMediaDashboard({ userName }) {
             <div className={styles.page} style={THEME}>
                 <header className={styles.hero}>
                     <div>
-                        <span className={styles.badge}>Media Team</span>
+                        <span className={styles.badge}>Head Media</span>
                         <h1 className={styles.heroTitle}>Welcome, {userName}</h1>
                         <p className={styles.heroSub}>Manage uploads, track the content pipeline, and push to platforms.</p>
                     </div>
@@ -215,6 +216,7 @@ export default function ChurchMediaDashboard({ userName }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
+                        <QuickGuideWidget />
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
                             <ul className={styles.snapshotList}>

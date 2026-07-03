@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import Sidebar from '@/components/admin/Sidebar';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ProfileBadge from '@/components/admin/ProfileBadge';
 import styles from './admin.module.css';
 
 export default function ProtectedAdminLayout({ children }) {
@@ -67,7 +68,10 @@ export default function ProtectedAdminLayout({ children }) {
                             />
                         </svg>
                     </button>
-                    <h1 className={styles.pageTitle}>Admin Dashboard</h1>
+                    <h1 className={styles.pageTitle}>Dayspring CMS</h1>
+                    <div style={{ marginLeft: 'auto' }}>
+                        <ProfileBadge />
+                    </div>
                 </header>
                 <main className={styles.content}>{children}</main>
             </div>

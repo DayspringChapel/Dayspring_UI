@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 
 const emptyForm = {
     smallGroupName: '',
@@ -26,6 +28,9 @@ export default function SmallGroupsPage() {
     const [saving, setSaving] = useState(false);
     const [editingGroup, setEditingGroup] = useState(null);
     const [formData, setFormData] = useState(emptyForm);
+
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
         loadData();
@@ -128,9 +133,10 @@ export default function SmallGroupsPage() {
             }
             resetForm();
             await loadData();
+            notify('success', editingGroup ? 'Small group updated.' : 'Small group created.');
         } catch (error) {
             console.error('Failed to save small group:', error);
-            alert('Failed to save small group. Please check the details and try again.');
+            notify('error', 'Failed to save small group. Please check the details and try again.');
         } finally {
             setSaving(false);
         }
@@ -138,7 +144,7 @@ export default function SmallGroupsPage() {
 
     const handleAssignLeader = async (group) => {
         if (!formData.leaderMemberId) {
-            alert('Select a leader first.');
+            notify('warning', 'Select a leader first.');
             return;
         }
 
@@ -146,23 +152,31 @@ export default function SmallGroupsPage() {
         try {
             await apiClient.assignSmallGroupLeader(group.id, formData.leaderMemberId, phonePayload);
             await loadData();
+            notify('success', 'Leader assigned.');
         } catch (error) {
             console.error('Failed to assign leader:', error);
-            alert('Failed to assign leader. Please try again.');
+            notify('error', 'Failed to assign leader. Please try again.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (groupId) => {
-        if (!confirm('Delete this small group?')) return;
+        const yes = await confirm({
+            title: 'Delete Small Group',
+            message: 'Are you sure you want to delete this small group? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!yes) return;
 
         try {
             await apiClient.deleteSmallGroup(groupId);
             await loadData();
+            notify('success', 'Small group deleted.');
         } catch (error) {
             console.error('Failed to delete small group:', error);
-            alert('Failed to delete small group. Please try again.');
+            notify('error', 'Failed to delete small group. Please try again.');
         }
     };
 
@@ -174,6 +188,8 @@ export default function SmallGroupsPage() {
 
     return (
         <div className="mx-auto max-w-[1400px] px-4">
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className="mb-8">
                 <h1 className="mb-2 text-2xl font-bold" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Small Groups</h1>
                 <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage care groups and assign small group leaders.</p>

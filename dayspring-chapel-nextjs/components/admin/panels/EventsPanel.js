@@ -270,7 +270,7 @@ export default function EventsPanel() {
                                         <button
                                             onClick={() => router.push('/admin/media/create')}
                                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                            title="Upload a flier to publish this event (goes through review)"
+                                            title="Upload Media (goes through review, then attach it to this event to publish)"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

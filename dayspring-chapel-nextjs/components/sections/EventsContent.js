@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
 import CountdownBadge from '@/components/CountdownTimer';
-import apiClient from '@/lib/apiClient';
 
 function formatDate(dateStr) {
     if (!dateStr) return null;
@@ -151,26 +149,16 @@ function Skeleton() {
 // ── Main export ───────────────────────────────────────────────────────────────
 export default function EventsContent() {
     const { events, loading, error, refreshEvents } = useEvents();
-    const [calendarYears, setCalendarYears] = useState([]);
-    const [selectedYearId, setSelectedYearId] = useState('');
-
-    useEffect(() => {
-        apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
-    }, []);
-
-    const yearFilteredEvents = selectedYearId
-        ? events.filter((e) => e.calendarYearId === selectedYearId)
-        : events;
 
     // Separate upcoming from past, sorted by date
     const now = new Date();
-    const upcoming = yearFilteredEvents
+    const upcoming = events
         .filter((e) => new Date(e.eventDate || e.datetime || 0) >= now)
         .sort((a, b) =>
             new Date(a.eventDate || a.datetime || 0) -
             new Date(b.eventDate || b.datetime || 0)
         );
-    const past = yearFilteredEvents
+    const past = events
         .filter((e) => new Date(e.eventDate || e.datetime || 0) < now)
         .sort((a, b) =>
             new Date(b.eventDate || b.datetime || 0) -
@@ -183,21 +171,6 @@ export default function EventsContent() {
     return (
         <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
-
-                {calendarYears.length > 0 && (
-                    <div className="flex justify-end mb-6">
-                        <select
-                            value={selectedYearId}
-                            onChange={(e) => setSelectedYearId(e.target.value)}
-                            className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
-                        >
-                            <option value="">All Calendar Years</option>
-                            {calendarYears.map((cy) => (
-                                <option key={cy.id} value={cy.id}>{cy.year}{cy.label ? ` — ${cy.label}` : ''}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
 
                 {/* ── Upcoming section ─────────────────────────────── */}
                 <div className="mb-14">

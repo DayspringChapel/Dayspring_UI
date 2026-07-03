@@ -6,8 +6,10 @@ import AppointmentModal from '@/components/admin/AppointmentModal';
 import AppointmentCalendar from '@/components/admin/AppointmentCalendar';
 import { getAppointmentVenueLabel } from '@/lib/constants';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
 
 export default function AppointmentsPage() {
+    const { toast, notify, clearToast } = useToast();
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [churchOfficials, setChurchOfficials] = useState([]);
@@ -113,7 +115,7 @@ export default function AppointmentsPage() {
             handleCloseModal();
         } catch (error) {
             console.error('Failed to confirm appointment:', error);
-            alert('Failed to confirm appointment. Please try again.');
+            notify('error', 'Failed to confirm appointment. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -127,7 +129,7 @@ export default function AppointmentsPage() {
             handleCloseModal();
         } catch (error) {
             console.error('Failed to cancel appointment:', error);
-            alert('Failed to cancel appointment. Please try again.');
+            notify('error', 'Failed to cancel appointment. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -145,7 +147,7 @@ export default function AppointmentsPage() {
             await loadAppointments();
         } catch (error) {
             console.error('Failed to update appointment venue:', error);
-            alert('Failed to update appointment venue. Please try again.');
+            notify('error', 'Failed to update appointment venue. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -179,6 +181,7 @@ export default function AppointmentsPage() {
 
     return (
         <div className="max-w-[1400px] mx-auto px-4">
+            <AdminToast toast={toast} onClose={clearToast} />
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold mb-2" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Appointments</h1>

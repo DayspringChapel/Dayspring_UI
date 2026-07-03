@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import styles from './detail.module.css';
 
 const STATUS_BADGES = {
@@ -27,6 +29,9 @@ function MediaDetail() {
     const [commentText, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
+
     useEffect(() => {
         if (!id) { setLoading(false); return; }
         Promise.allSettled([
@@ -41,12 +46,20 @@ function MediaDetail() {
     }, [id]);
 
     const handleSubmitForReview = async () => {
-        if (!confirm('Submit this content for review?')) return;
+        const yes = await confirm({
+            title: 'Submit for Review',
+            message: 'Submit this content for review?',
+            confirmLabel: 'Submit',
+        });
+        if (!yes) return;
         try {
             await apiClient.submitForReview(id, null);
             const updated = await apiClient.getMediaContentById(id);
             setContent(updated);
-        } catch (err) { alert(err.message); }
+            notify('success', 'Content submitted for review.');
+        } catch (err) {
+            notify('error', err.message || 'Failed to submit for review. Please try again.');
+        }
     };
 
     const handleComment = async (e) => {
@@ -58,7 +71,7 @@ function MediaDetail() {
             setComments((prev) => [...prev, newComment]);
             setComment('');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Failed to post comment. Please try again.');
         } finally {
             setSubmitting(false);
         }
@@ -72,6 +85,8 @@ function MediaDetail() {
 
     return (
         <div className={styles.page}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <button className={styles.backBtn} onClick={() => router.back()}>
                 ← Back to Media
             </button>

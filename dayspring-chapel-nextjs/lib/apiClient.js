@@ -359,6 +359,7 @@ class ApiClient {
             smallGroupId: member.smallGroupId || member.SmallGroupId || null,
             unitId: member.unitId || member.UnitId || null,
             contentRole: member.contentRole ?? member.ContentRole ?? null,
+            createdDate: member.createdDate || member.CreatedDate || null,
         };
     }
 

@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './requisitions.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 
 export default function RequisitionsPage() {
     const [requisitions, setRequisitions] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
         loadRequisitions();
@@ -26,14 +31,20 @@ export default function RequisitionsPage() {
     };
 
     const handleApprove = async (id) => {
-        if (!confirm('Are you sure you want to approve this requisition?')) return;
+        const yes = await confirm({
+            title: 'Approve Requisition',
+            message: 'Are you sure you want to approve this requisition?',
+            confirmLabel: 'Approve',
+        });
+        if (!yes) return;
 
         try {
             await apiClient.approveRequisition(id);
             await loadRequisitions();
+            notify('success', 'Requisition approved.');
         } catch (error) {
             console.error('Failed to approve requisition:', error);
-            alert('Failed to approve requisition. Please try again.');
+            notify('error', 'Failed to approve requisition. Please try again.');
         }
     };
 
@@ -53,6 +64,8 @@ export default function RequisitionsPage() {
 
     return (
         <div className={styles.container}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.header}>
                 <h1>Requisitions</h1>
                 <p>Review and approve requisition requests</p>

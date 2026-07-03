@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import styles from './approvals.module.css';
 
 export default function ApprovalsPage() {
@@ -13,6 +14,8 @@ export default function ApprovalsPage() {
     const [actionLoading, setActionLoading] = useState(null);
     const [modal, setModal] = useState(null); // { type: 'approve'|'reject', contentId }
     const [comment, setComment] = useState('');
+
+    const { toast, notify, clearToast } = useToast();
 
     useEffect(() => {
         setLoading(true);
@@ -45,8 +48,9 @@ export default function ApprovalsPage() {
             }
             setItems((prev) => prev.filter((i) => i.contentId !== modal.contentId));
             closeModal();
+            notify('success', 'Action completed successfully.');
         } catch (err) {
-            alert(err.message);
+            notify('error', err.message || 'Something went wrong. Please try again.');
         } finally {
             setActionLoading(null);
         }
@@ -59,6 +63,7 @@ export default function ApprovalsPage() {
 
     return (
         <div className={styles.page}>
+            <AdminToast toast={toast} onClose={clearToast} />
             <div className={styles.header}>
                 <h1>Approval Queue</h1>
                 <p>Review and approve or reject pending content submissions</p>
