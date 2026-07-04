@@ -5,6 +5,11 @@ import { fetchEventByIdServer } from '@/lib/serverApi';
 import { HeroCountdown } from '@/components/CountdownTimer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 
+function extractYouTubeId(url) {
+    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
+    return m?.[1] || null;
+}
+
 export async function generateMetadata({ params }) {
     const { id } = await params;
     const event = await fetchEventByIdServer(id);
@@ -33,6 +38,9 @@ export default async function EventDetailPage({ params }) {
               weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
           })
         : null;
+
+    const youtubeId = extractYouTubeId(event.highlightYoutubeUrl);
+    const hasHighlightVideo = !!(youtubeId || event.highlightVideoUrl);
 
     return (
         <main>
@@ -101,6 +109,31 @@ export default async function EventDetailPage({ params }) {
                                 Starts In
                             </p>
                             <HeroCountdown targetDate={dateStr} />
+                        </div>
+                    )}
+
+                    {hasHighlightVideo && (
+                        <div className="mb-10">
+                            <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-5">
+                                Event Highlight
+                            </h2>
+                            {youtubeId ? (
+                                <div className="rounded-2xl overflow-hidden shadow-sm" style={{ aspectRatio: '16 / 9' }}>
+                                    <iframe
+                                        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?modestbranding=1&rel=0`}
+                                        title={`${title} highlight video`}
+                                        className="w-full h-full"
+                                        allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </div>
+                            ) : (
+                                <video
+                                    src={event.highlightVideoUrl}
+                                    controls
+                                    className="w-full rounded-2xl shadow-sm"
+                                />
+                            )}
                         </div>
                     )}
 

@@ -19,6 +19,7 @@ const CATEGORY_DESTINATION = {
     2: 'library',   // SermonAudio
     3: 'library',   // SermonVideo
     4: 'event',     // EventFlier
+    5: 'event',     // EventHighlightVideo
 };
 
 const EMPTY_DESTINATION_FORM = {
@@ -109,7 +110,7 @@ export default function PublishingPage() {
     const handlePublishToDestination = async (e) => {
         e.preventDefault();
         if (!destForm.contentId) { notify('warning', 'Select content to publish.'); return; }
-        if (destKind === 'event' && !destForm.eventId) { notify('warning', 'Select an event to attach this flier to.'); return; }
+        if (destKind === 'event' && !destForm.eventId) { notify('warning', 'Select an event to attach this to.'); return; }
         if (destKind === 'library' && !destForm.preacherName.trim()) { notify('warning', 'Enter a preacher name.'); return; }
         setDestSubmitting(true);
         try {

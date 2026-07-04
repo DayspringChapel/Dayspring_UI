@@ -10,6 +10,7 @@ const CATEGORIES = [
     { value: '2', label: 'Sermon Audio', contentType: '3' },
     { value: '3', label: 'Sermon Video (YouTube)', contentType: '2' },
     { value: '4', label: 'Event Flier', contentType: '1' },
+    { value: '5', label: 'Event Highlight Video', contentType: '2' },
 ];
 
 const CONTENT_TYPE_LABELS = { '1': 'Image', '2': 'Video', '3': 'Audio', '4': 'PDF' };
@@ -28,9 +29,12 @@ export default function CreateMediaPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [dragOver, setDragOver] = useState(false);
+    const [videoInputMode, setVideoInputMode] = useState('youtube'); // 'youtube' | 'upload' — Event Highlight Video only
 
     const selectedCategory = CATEGORIES.find((c) => c.value === form.category) || CATEGORIES[0];
     const isVideoSermon = form.category === '3';
+    const isEventHighlightVideo = form.category === '5';
+    const usingYoutube = isVideoSermon || (isEventHighlightVideo && videoInputMode === 'youtube');
 
     const handleChange = (e) => {
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -45,7 +49,7 @@ export default function CreateMediaPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isVideoSermon) {
+        if (usingYoutube) {
             if (!form.youtubeUrl.trim()) { setError('Please enter a YouTube URL'); return; }
         } else if (!file) {
             setError('Please select a media file');
@@ -60,7 +64,7 @@ export default function CreateMediaPage() {
             formData.append('contentType', selectedCategory.contentType);
             formData.append('category', form.category);
             formData.append('tags', form.tags);
-            if (isVideoSermon) {
+            if (usingYoutube) {
                 formData.append('youtubeUrl', form.youtubeUrl.trim());
             } else {
                 formData.append('file', file);
@@ -93,7 +97,33 @@ export default function CreateMediaPage() {
                     <p className={styles.dropZoneHint}>Type: {CONTENT_TYPE_LABELS[selectedCategory.contentType]}</p>
                 </div>
 
-                {isVideoSermon ? (
+                {isEventHighlightVideo && (
+                    <div className={styles.formGroup}>
+                        <label>Video Source *</label>
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 400 }}>
+                                <input
+                                    type="radio"
+                                    name="videoInputMode"
+                                    checked={videoInputMode === 'youtube'}
+                                    onChange={() => setVideoInputMode('youtube')}
+                                />
+                                YouTube Link
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 400 }}>
+                                <input
+                                    type="radio"
+                                    name="videoInputMode"
+                                    checked={videoInputMode === 'upload'}
+                                    onChange={() => setVideoInputMode('upload')}
+                                />
+                                Upload Video File
+                            </label>
+                        </div>
+                    </div>
+                )}
+
+                {usingYoutube ? (
                     <div className={styles.formGroup}>
                         <label>YouTube URL *</label>
                         <input
@@ -116,7 +146,7 @@ export default function CreateMediaPage() {
                             id="file-input"
                             type="file"
                             className={styles.hiddenInput}
-                            accept="image/*,audio/*"
+                            accept={isEventHighlightVideo ? 'video/*' : 'image/*,audio/*'}
                             onChange={(e) => setFile(e.target.files[0])}
                         />
                         {file ? (
@@ -128,7 +158,7 @@ export default function CreateMediaPage() {
                             <>
                                 <span className={styles.dropZoneIcon}>☁</span>
                                 <p className={styles.dropZoneLabel}>Drag & drop or click to select</p>
-                                <p className={styles.dropZoneHint}>Images or Audio</p>
+                                <p className={styles.dropZoneHint}>{isEventHighlightVideo ? 'Video file' : 'Images or Audio'}</p>
                             </>
                         )}
                     </div>

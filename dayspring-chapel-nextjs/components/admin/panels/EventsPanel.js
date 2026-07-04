@@ -262,6 +262,11 @@ export default function EventsPanel() {
                                             Archived
                                         </span>
                                     )}
+                                    {(event.highlightVideoUrl || event.highlightYoutubeUrl) && (
+                                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                                            ▶ Video
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Description */}

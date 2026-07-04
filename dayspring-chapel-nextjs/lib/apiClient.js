@@ -155,6 +155,8 @@ class ApiClient {
             calendarYearId: event.calendarYearId || event.CalendarYearId || null,
             isPublished: event.isPublished ?? event.IsPublished ?? false,
             isArchived: event.isArchived ?? event.IsArchived ?? false,
+            highlightVideoUrl: event.highlightVideoUrl || event.HighlightVideoUrl || null,
+            highlightYoutubeUrl: event.highlightYoutubeUrl || event.HighlightYoutubeUrl || null,
         };
     }
 

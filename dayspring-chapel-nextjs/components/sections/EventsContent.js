@@ -23,6 +23,7 @@ function ShuffleCard({ event, height = 300 }) {
     const image       = event.eventImage || '/upcoming-events-1.png';
     const description = event.description;
     const date        = formatDate(dateStr);
+    const hasHighlightVideo = !!(event.highlightVideoUrl || event.highlightYoutubeUrl);
 
     return (
         <Link href={`/content/event/${event.id}`} style={{ display: 'block', height: '100%' }}>
@@ -39,6 +40,15 @@ function ShuffleCard({ event, height = 300 }) {
                 {/* Gradient */}
                 <div className="absolute inset-0"
                     style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)' }} />
+
+                {/* Highlight video indicator */}
+                {hasHighlightVideo && (
+                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full px-2.5 py-1"
+                        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
+                        <span style={{ color: '#fff', fontSize: '0.7rem' }}>▶</span>
+                        <span style={{ color: '#fff', fontSize: '0.68rem', fontWeight: 700 }}>Video</span>
+                    </div>
+                )}
 
                 {/* Countdown badge */}
                 {dateStr && (

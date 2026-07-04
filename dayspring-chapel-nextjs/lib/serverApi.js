@@ -23,6 +23,8 @@ export async function fetchEventByIdServer(id) {
             eventDate: e.eventDate || e.EventDate || null,
             eventImage: toHttps(e.eventImage || e.EventImage || e.eventImageUrl || e.EventImageUrl || null),
             location: e.location || e.Location || null,
+            highlightVideoUrl: e.highlightVideoUrl || e.HighlightVideoUrl || null,
+            highlightYoutubeUrl: e.highlightYoutubeUrl || e.HighlightYoutubeUrl || null,
         };
     } catch {
         return null;
