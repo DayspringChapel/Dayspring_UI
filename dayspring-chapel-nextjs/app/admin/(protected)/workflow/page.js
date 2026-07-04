@@ -244,7 +244,7 @@ export default function WorkflowPage() {
                                 disabled={actionLoading === item.id}
                                 onClick={() => handleApprove(item.id, stage)}
                             >
-                                {stage === 6 ? 'Approve' : 'Approve → Super Admin'}
+                                {role === 'superAdmin' || stage === 6 ? 'Approve' : 'Approve → Super Admin'}
                             </button>
                         </>
                     )}
