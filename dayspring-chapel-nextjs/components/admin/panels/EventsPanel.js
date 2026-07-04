@@ -253,10 +253,15 @@ export default function EventsPanel() {
                                 </div>
 
                                 {/* Status */}
-                                <div className="col-span-2">
+                                <div className="col-span-2 flex flex-wrap gap-1">
                                     <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${event.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                                         {event.isPublished ? 'Published' : 'Draft'}
                                     </span>
+                                    {event.isArchived && (
+                                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-600">
+                                            Archived
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Description */}

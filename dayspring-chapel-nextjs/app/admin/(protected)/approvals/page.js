@@ -36,19 +36,17 @@ export default function ApprovalsPage() {
     const closeModal = () => setModal(null);
 
     const handleModalSubmit = async () => {
-        if ((modal.type === 'reject' || modal.type === 'amend') && !comment.trim()) return;
+        if (modal.type === 'reject' && !comment.trim()) return;
         setActionLoading(modal.contentId);
         try {
             if (modal.type === 'approve') {
                 await apiClient.approveContent(modal.contentId, comment.trim() || null);
-            } else if (modal.type === 'amend') {
-                await apiClient.requestAmendment(modal.contentId, comment.trim());
             } else {
                 await apiClient.rejectContent(modal.contentId, comment.trim());
             }
             setItems((prev) => prev.filter((i) => i.contentId !== modal.contentId));
             closeModal();
-            notify('success', 'Action completed successfully.');
+            notify('success', modal.type === 'approve' ? 'Content approved.' : 'Sent back to the uploader for correction.');
         } catch (err) {
             notify('error', err.message || 'Something went wrong. Please try again.');
         } finally {
@@ -66,7 +64,7 @@ export default function ApprovalsPage() {
             <AdminToast toast={toast} onClose={clearToast} />
             <div className={styles.header}>
                 <h1>Approval Queue</h1>
-                <p>Review and approve or reject pending content submissions</p>
+                <p>Review pending content — approve to move it forward, or reject to send it back for correction</p>
             </div>
 
             <div className={styles.tabs}>
@@ -109,13 +107,6 @@ export default function ApprovalsPage() {
                                     Reject
                                 </button>
                                 <button
-                                    className={styles.btnGhost}
-                                    disabled={actionLoading === item.contentId}
-                                    onClick={() => openModal('amend', item.contentId)}
-                                >
-                                    Request Amendment
-                                </button>
-                                <button
                                     className={styles.btnSuccess}
                                     disabled={actionLoading === item.contentId}
                                     onClick={() => openModal('approve', item.contentId)}
@@ -131,12 +122,10 @@ export default function ApprovalsPage() {
             {modal && (
                 <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && closeModal()}>
                     <div className={styles.modal}>
-                        <h2>
-                            {modal.type === 'approve' ? 'Approve Content' : modal.type === 'amend' ? 'Request Amendment' : 'Reject Content'}
-                        </h2>
+                        <h2>{modal.type === 'approve' ? 'Approve Content' : 'Send Back for Correction'}</h2>
                         <div className={styles.formGroup}>
                             <label>
-                                {modal.type === 'approve' ? 'Comment (optional)' : modal.type === 'amend' ? 'What needs to change? (required)' : 'Rejection reason (required)'}
+                                {modal.type === 'approve' ? 'Comment (optional)' : 'What needs to change? (required)'}
                             </label>
                             <textarea
                                 rows={4}
@@ -145,9 +134,7 @@ export default function ApprovalsPage() {
                                 placeholder={
                                     modal.type === 'approve'
                                         ? 'Add an approval comment…'
-                                        : modal.type === 'amend'
-                                        ? 'Describe the changes the submitter needs to make…'
-                                        : 'Describe why this content is being rejected…'
+                                        : 'Describe the changes the uploader needs to make…'
                                 }
                             />
                         </div>
@@ -157,16 +144,14 @@ export default function ApprovalsPage() {
                             </button>
                             <button
                                 className={styles.btnModalSubmit}
-                                disabled={actionLoading !== null || ((modal.type === 'reject' || modal.type === 'amend') && !comment.trim())}
+                                disabled={actionLoading !== null || (modal.type === 'reject' && !comment.trim())}
                                 onClick={handleModalSubmit}
                             >
                                 {actionLoading !== null
                                     ? 'Processing…'
                                     : modal.type === 'approve'
                                     ? 'Confirm Approval'
-                                    : modal.type === 'amend'
-                                    ? 'Send Back for Amendment'
-                                    : 'Confirm Rejection'}
+                                    : 'Send Back'}
                             </button>
                         </div>
                     </div>

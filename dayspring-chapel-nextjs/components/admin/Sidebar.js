@@ -172,6 +172,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Workflow',
                     path: '/admin/workflow',
+                    roles: 'all',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path fillRule="evenodd" clipRule="evenodd" d="M2 5C2 3.89543 2.89543 3 4 3H7C8.10457 3 9 3.89543 9 5V7C9 8.10457 8.10457 9 7 9H4C2.89543 9 2 8.10457 2 7V5ZM11 5C11 3.89543 11.8954 3 13 3H16C17.1046 3 18 3.89543 18 5V7C18 8.10457 17.1046 9 16 9H13C11.8954 9 11 8.10457 11 7V5ZM2 13C2 11.8954 2.89543 11 4 11H7C8.10457 11 9 11.8954 9 13V15C9 16.1046 8.10457 17 7 17H4C2.89543 17 2 16.1046 2 15V13ZM9 14H11M11 14V12C11 11.4477 11.4477 11 12 11H14M14 11V9M14 9H16M14 9H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -181,6 +182,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Approvals',
                     path: '/admin/approvals',
+                    roles: ['superAdmin', 'churchAdmin'],
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z" fill="currentColor" />
@@ -190,6 +192,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Publishing',
                     path: '/admin/publishing',
+                    roles: ['superAdmin', 'churchMedia'],
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path d="M3 13H17M10 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -251,8 +254,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 <nav className={styles.nav}>
                     {visible.map((item) => {
                         if (item.children) {
+                            const visibleChildren = item.children.filter((c) =>
+                                !c.roles || c.roles === 'all' || c.roles.includes(role)
+                            );
                             const isGroupActive = pathname === item.path ||
-                                item.children.some((c) => pathname === c.path);
+                                visibleChildren.some((c) => pathname === c.path);
                             return (
                                 <div key={item.path}>
                                     <button
@@ -272,7 +278,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                         </span>
                                     </button>
                                     <div className={`${styles.subMenu} ${mediaOpen ? styles.subMenuOpen : ''}`}>
-                                        {item.children.map((child) => (
+                                        {visibleChildren.map((child) => (
                                             <button
                                                 key={child.path}
                                                 onClick={() => {

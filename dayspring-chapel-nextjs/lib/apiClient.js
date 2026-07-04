@@ -154,6 +154,7 @@ class ApiClient {
             eventImage,
             calendarYearId: event.calendarYearId || event.CalendarYearId || null,
             isPublished: event.isPublished ?? event.IsPublished ?? false,
+            isArchived: event.isArchived ?? event.IsArchived ?? false,
         };
     }
 
@@ -1038,13 +1039,6 @@ class ApiClient {
             createdBy: item.createdBy || item.CreatedBy || '',
             createdDate: item.createdDate || item.CreatedDate || '',
         };
-    }
-
-    async requestAmendment(contentId, comment) {
-        return this.request('/api/v1/Approvals/request-amendment', {
-            method: 'POST',
-            body: JSON.stringify({ contentId, approved: false, comment }),
-        });
     }
 
     async publishToDestination(payload) {
