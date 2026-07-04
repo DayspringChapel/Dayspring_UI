@@ -129,6 +129,64 @@ export default function WorkflowPage() {
         }
     };
 
+    // Admin-stage (5) approval forwards to Super Admin; Super-Admin-stage (6) approval
+    // opens the content up for churchMedia to publish.
+    const handleApprove = async (contentId, atStage) => {
+        const comment = await confirm({
+            title: atStage === 6 ? 'Approve for Publishing' : 'Approve & Forward to Super Admin',
+            message: atStage === 6
+                ? 'This opens the content up for churchMedia to publish.'
+                : 'This forwards the content to Super Admin for final approval.',
+            confirmLabel: 'Approve',
+            showInput: true,
+            inputLabel: 'Comment (optional)',
+            inputPlaceholder: 'Add an approval comment…',
+        });
+        setActionLoading(contentId);
+        try {
+            await apiClient.approveContent(contentId, comment || null);
+            await load();
+            notify('success', atStage === 6 ? 'Approved — ready for churchMedia to publish.' : 'Approved and forwarded to Super Admin.');
+        } catch (err) {
+            notify('error', err.message || 'Failed to approve content. Please try again.');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleReject = async (contentId) => {
+        const comment = await confirm({
+            title: 'Send Back for Correction',
+            message: 'This sends the content back to the uploader with your comment.',
+            confirmLabel: 'Send Back',
+            danger: true,
+            showInput: true,
+            inputLabel: 'What needs to change? (required)',
+            inputPlaceholder: 'Describe the changes the uploader needs to make…',
+        });
+        if (!comment || !comment.trim()) {
+            notify('warning', 'A comment is required to send content back.');
+            return;
+        }
+        setActionLoading(contentId);
+        try {
+            await apiClient.rejectContent(contentId, comment.trim());
+            await load();
+            notify('success', 'Sent back to the uploader for correction.');
+        } catch (err) {
+            notify('error', err.message || 'Failed to send content back. Please try again.');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    // Which approval stage (if any) the current role can act on for this item.
+    const approvableStage = (item) => {
+        if (item.workflowStatus === 5 && (role === 'churchAdmin' || role === 'superAdmin')) return 5;
+        if (item.workflowStatus === 6 && role === 'superAdmin') return 6;
+        return null;
+    };
+
     if (loading) {
         return (
             <div className={styles.page}>
@@ -140,39 +198,60 @@ export default function WorkflowPage() {
     const published = contents.filter((c) => c.workflowStatus === 10);
     const inPipeline = contents.filter((c) => c.workflowStatus !== 0 && c.workflowStatus !== 10);
 
-    const Row = ({ item, showReviewActions }) => (
-        <div className={styles.row}>
-            <div className={styles.rowInfo}>
-                <h3>{item.title}</h3>
-                <p>{item.categoryName} · {item.contentTypeName} · by {item.ownerName}</p>
-                <div style={{ marginTop: '0.4rem' }}><Badge status={item.workflowStatus} /></div>
-                {item.workflowStatus === 3 && <CorrectionNote contentId={item.id} historyMap={historyMap} />}
+    const Row = ({ item, showReviewActions }) => {
+        const stage = approvableStage(item);
+        return (
+            <div className={styles.row}>
+                <div className={styles.rowInfo}>
+                    <h3>{item.title}</h3>
+                    <p>{item.categoryName} · {item.contentTypeName} · by {item.ownerName}</p>
+                    <div style={{ marginTop: '0.4rem' }}><Badge status={item.workflowStatus} /></div>
+                    {item.workflowStatus === 3 && <CorrectionNote contentId={item.id} historyMap={historyMap} />}
+                </div>
+                <div className={styles.rowActions}>
+                    <button className={styles.btnGhost} onClick={() => router.push(`/admin/media/detail?id=${item.id}`)}>
+                        View
+                    </button>
+                    {showReviewActions && (item.workflowStatus === 1 || item.workflowStatus === 4) && (
+                        <>
+                            <button
+                                className={styles.btnWarning}
+                                disabled={actionLoading === item.id}
+                                onClick={() => handleSendBack(item.id)}
+                            >
+                                Send Back
+                            </button>
+                            <button
+                                className={styles.btnPrimary}
+                                disabled={actionLoading === item.id}
+                                onClick={() => handleForward(item.id)}
+                            >
+                                Forward
+                            </button>
+                        </>
+                    )}
+                    {stage && (
+                        <>
+                            <button
+                                className={styles.btnWarning}
+                                disabled={actionLoading === item.id}
+                                onClick={() => handleReject(item.id)}
+                            >
+                                Reject
+                            </button>
+                            <button
+                                className={styles.btnPrimary}
+                                disabled={actionLoading === item.id}
+                                onClick={() => handleApprove(item.id, stage)}
+                            >
+                                {stage === 6 ? 'Approve' : 'Approve → Super Admin'}
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
-            <div className={styles.rowActions}>
-                <button className={styles.btnGhost} onClick={() => router.push(`/admin/media/detail?id=${item.id}`)}>
-                    View
-                </button>
-                {showReviewActions && (item.workflowStatus === 1 || item.workflowStatus === 4) && (
-                    <>
-                        <button
-                            className={styles.btnWarning}
-                            disabled={actionLoading === item.id}
-                            onClick={() => handleSendBack(item.id)}
-                        >
-                            Send Back
-                        </button>
-                        <button
-                            className={styles.btnPrimary}
-                            disabled={actionLoading === item.id}
-                            onClick={() => handleForward(item.id)}
-                        >
-                            Forward
-                        </button>
-                    </>
-                )}
-            </div>
-        </div>
-    );
+        );
+    };
 
     // ── Content Personnel: only their own content and its current stage ──────
     if (!canReview && role !== 'churchAdmin') {
