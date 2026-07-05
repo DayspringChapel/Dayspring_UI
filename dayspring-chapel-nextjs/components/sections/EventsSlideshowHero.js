@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
 import { HeroCountdown } from '@/components/CountdownTimer';
 import PageHero from './PageHero';
+import VideoEmbed from '@/components/VideoEmbed';
 
 export default function EventsSlideshowHero() {
     const { events, loading } = useEvents();
@@ -42,6 +43,7 @@ export default function EventsSlideshowHero() {
     const image       = featured.eventImage || '/about-cover.png';
     const description = featured.description;
     const isUpcoming  = dateStr && new Date(dateStr) > new Date();
+    const hasHighlightVideo = !!(featured.highlightVideoUrl || featured.highlightYoutubeUrl);
 
     const formattedDate = dateStr
         ? new Date(dateStr).toLocaleDateString('en-US', {
@@ -51,16 +53,28 @@ export default function EventsSlideshowHero() {
 
     return (
         <div className="relative w-full overflow-hidden bg-black" style={{ height: '88vh', minHeight: 520 }}>
-            {/* Background image */}
-            <Image
-                src={image}
-                alt={title}
-                fill
-                className="object-cover object-center"
-                style={{ opacity: 0.45 }}
-                priority
-                unoptimized
-            />
+            {/* Background image / highlight video */}
+            {hasHighlightVideo ? (
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.55 }}>
+                    <VideoEmbed
+                        youtubeUrl={featured.highlightYoutubeUrl}
+                        videoUrl={featured.highlightVideoUrl}
+                        title={`${title} highlight video`}
+                        fill
+                        autoplay
+                    />
+                </div>
+            ) : (
+                <Image
+                    src={image}
+                    alt={title}
+                    fill
+                    className="object-cover object-center"
+                    style={{ opacity: 0.45 }}
+                    priority
+                    unoptimized
+                />
+            )}
 
             {/* Layered gradient — dark at bottom for text legibility */}
             <div className="absolute inset-0"
