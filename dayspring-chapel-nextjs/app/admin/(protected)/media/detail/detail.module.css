@@ -118,6 +118,16 @@
 
 .mediaLink:hover { color: var(--brand-dark); }
 
+.mediaVideo {
+    border-radius: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.mediaAudio {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
 .divider {
     border: none;
     border-top: 1px solid var(--line);

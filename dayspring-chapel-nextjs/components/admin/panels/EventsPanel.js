@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
+import VideoEmbed from '@/components/VideoEmbed';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
@@ -358,6 +359,17 @@ export default function EventsPanel() {
                             <h3 className="text-2xl font-black text-gray-900 uppercase leading-tight mb-3">
                                 {viewingEvent.heading || 'Untitled'}
                             </h3>
+
+                            {(viewingEvent.highlightVideoUrl || viewingEvent.highlightYoutubeUrl) && (
+                                <div className="mb-4">
+                                    <VideoEmbed
+                                        youtubeUrl={viewingEvent.highlightYoutubeUrl}
+                                        videoUrl={viewingEvent.highlightVideoUrl}
+                                        title={viewingEvent.heading || 'Event highlight'}
+                                        className="rounded-xl"
+                                    />
+                                </div>
+                            )}
 
                             {/* Date */}
                             {viewingEvent.eventDate && (

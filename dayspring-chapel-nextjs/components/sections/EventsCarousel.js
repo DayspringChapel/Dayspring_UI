@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CardCountdown } from '@/components/CountdownTimer';
+import VideoEmbed from '@/components/VideoEmbed';
 
 function formatDate(dateStr) {
     if (!dateStr) return null;
@@ -48,6 +49,7 @@ export default function EventsCarousel({ events }) {
                     const dateStr = event.eventDate || event.datetime;
                     const date    = formatDate(dateStr);
                     const img     = event.eventImage || FALLBACKS[i % 3];
+                    const hasHighlightVideo = !!(event.highlightVideoUrl || event.highlightYoutubeUrl);
 
                     return (
                         <div
@@ -70,18 +72,27 @@ export default function EventsCarousel({ events }) {
                             }}
                         >
                             <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl">
-                                <Image
-                                    src={img}
-                                    alt={title || 'Event'}
-                                    fill
-                                    className="object-cover object-center"
-                                    style={{ transition: 'transform 0.6s ease', transform: isActive ? 'scale(1.03)' : 'scale(1)' }}
-                                    unoptimized
-                                    priority={isActive}
-                                />
+                                {isActive && hasHighlightVideo ? (
+                                    <VideoEmbed
+                                        youtubeUrl={event.highlightYoutubeUrl}
+                                        videoUrl={event.highlightVideoUrl}
+                                        title={title || 'Event'}
+                                        fill
+                                    />
+                                ) : (
+                                    <Image
+                                        src={img}
+                                        alt={title || 'Event'}
+                                        fill
+                                        className="object-cover object-center"
+                                        style={{ transition: 'transform 0.6s ease', transform: isActive ? 'scale(1.03)' : 'scale(1)' }}
+                                        unoptimized
+                                        priority={isActive}
+                                    />
+                                )}
 
                                 {/* Gradient */}
-                                <div className="absolute inset-0"
+                                <div className="absolute inset-0 pointer-events-none"
                                     style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.10) 100%)' }} />
 
                                 {/* Tile countdown — prominent top strip on active card */}

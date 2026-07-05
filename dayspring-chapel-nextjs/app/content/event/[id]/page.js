@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { fetchEventByIdServer } from '@/lib/serverApi';
 import { HeroCountdown } from '@/components/CountdownTimer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
+import VideoEmbed from '@/components/VideoEmbed';
 import { extractYouTubeId } from '@/lib/youtube';
 
 export async function generateMetadata({ params }) {
@@ -113,23 +114,12 @@ export default async function EventDetailPage({ params }) {
                             <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-5">
                                 Event Highlight
                             </h2>
-                            {youtubeId ? (
-                                <div className="rounded-2xl overflow-hidden shadow-sm" style={{ aspectRatio: '16 / 9' }}>
-                                    <iframe
-                                        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?modestbranding=1&rel=0`}
-                                        title={`${title} highlight video`}
-                                        className="w-full h-full"
-                                        allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                </div>
-                            ) : (
-                                <video
-                                    src={event.highlightVideoUrl}
-                                    controls
-                                    className="w-full rounded-2xl shadow-sm"
-                                />
-                            )}
+                            <VideoEmbed
+                                youtubeUrl={event.highlightYoutubeUrl}
+                                videoUrl={event.highlightVideoUrl}
+                                title={`${title} highlight video`}
+                                className="rounded-2xl shadow-sm"
+                            />
                         </div>
                     )}
 

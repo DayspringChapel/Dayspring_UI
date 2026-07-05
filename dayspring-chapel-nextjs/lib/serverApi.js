@@ -87,6 +87,8 @@ export async function fetchEventsServer() {
             .map((e) => ({
                 ...e,
                 eventImage: e.eventImage ? e.eventImage.replace(/^http:\/\//i, 'https://') : e.eventImage,
+                highlightVideoUrl: e.highlightVideoUrl || e.HighlightVideoUrl || null,
+                highlightYoutubeUrl: e.highlightYoutubeUrl || e.HighlightYoutubeUrl || null,
             }))
             .sort((a, b) => {
                 const da = new Date(a.eventDate || a.datetime || 0);

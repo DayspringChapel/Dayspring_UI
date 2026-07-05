@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+import VideoEmbed from '@/components/VideoEmbed';
 import styles from './detail.module.css';
 
 const STATUS_BADGES = {
@@ -108,14 +109,25 @@ function MediaDetail() {
                             <li>Tags: {content.tags || 'none'}</li>
                             <li>Uploaded by {content.ownerName} on {content.createdDate}</li>
                         </ul>
-                        <a
-                            href={content.cloudinaryUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.mediaLink}
-                        >
-                            Open media file →
-                        </a>
+                        {content.contentTypeName === 'Video' ? (
+                            <VideoEmbed
+                                youtubeUrl={content.youtubeUrl}
+                                videoUrl={content.cloudinaryUrl}
+                                title={content.title}
+                                className={styles.mediaVideo}
+                            />
+                        ) : content.contentTypeName === 'Audio' ? (
+                            <audio src={content.cloudinaryUrl} controls className={styles.mediaAudio} />
+                        ) : (
+                            <a
+                                href={content.cloudinaryUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.mediaLink}
+                            >
+                                Open media file →
+                            </a>
+                        )}
                         {content.workflowStatus === 0 && (
                             <>
                                 <hr className={styles.divider} />

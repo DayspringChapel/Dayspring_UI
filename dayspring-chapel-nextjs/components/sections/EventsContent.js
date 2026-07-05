@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
 import CountdownBadge from '@/components/CountdownTimer';
+import VideoEmbed from '@/components/VideoEmbed';
 
 function formatDate(dateStr) {
     if (!dateStr) return null;
@@ -29,26 +30,26 @@ function ShuffleCard({ event, height = 300 }) {
         <Link href={`/content/event/${event.id}`} style={{ display: 'block', height: '100%' }}>
             <div className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300"
                 style={{ height }}>
-                <Image
-                    src={image}
-                    alt={title}
-                    fill
-                    className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                    unoptimized
-                />
+                {hasHighlightVideo ? (
+                    <VideoEmbed
+                        youtubeUrl={event.highlightYoutubeUrl}
+                        videoUrl={event.highlightVideoUrl}
+                        title={title}
+                        fill
+                    />
+                ) : (
+                    <Image
+                        src={image}
+                        alt={title}
+                        fill
+                        className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                        unoptimized
+                    />
+                )}
 
                 {/* Gradient */}
-                <div className="absolute inset-0"
+                <div className="absolute inset-0 pointer-events-none"
                     style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.35) 55%, transparent 100%)' }} />
-
-                {/* Highlight video indicator */}
-                {hasHighlightVideo && (
-                    <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full px-2.5 py-1"
-                        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
-                        <span style={{ color: '#fff', fontSize: '0.7rem' }}>▶</span>
-                        <span style={{ color: '#fff', fontSize: '0.68rem', fontWeight: 700 }}>Video</span>
-                    </div>
-                )}
 
                 {/* Countdown badge */}
                 {dateStr && (
