@@ -36,6 +36,7 @@ function ShuffleCard({ event, height = 300 }) {
                         videoUrl={event.highlightVideoUrl}
                         title={title}
                         fill
+                        autoplay
                     />
                 ) : (
                     <Image

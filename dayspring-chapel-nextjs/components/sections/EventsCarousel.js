@@ -78,6 +78,7 @@ export default function EventsCarousel({ events }) {
                                         videoUrl={event.highlightVideoUrl}
                                         title={title || 'Event'}
                                         fill
+                                        autoplay
                                     />
                                 ) : (
                                     <Image

@@ -69,6 +69,7 @@ export default function PublishingPage() {
     const [destSubmitting, setDestSubmitting] = useState(false);
     const [destEventMode, setDestEventMode] = useState('existing'); // 'existing' | 'new'
     const [newEventForm, setNewEventForm] = useState(EMPTY_NEW_EVENT_FORM);
+    const [newEventImage, setNewEventImage] = useState(null);
 
     // Live streams state
     const [streams, setStreams]           = useState(null);
@@ -134,6 +135,7 @@ export default function PublishingPage() {
                 formData.append('heading', newEventForm.heading.trim());
                 formData.append('Description', newEventForm.description.trim() || newEventForm.heading.trim());
                 formData.append('Datetime', new Date(newEventForm.datetime).toISOString());
+                if (newEventImage) formData.append('EventImage', newEventImage);
                 const created = await apiClient.createEvent(formData);
                 eventId = created?.id || created?.Id;
                 if (!eventId) throw new Error('Failed to create the event');
@@ -159,6 +161,7 @@ export default function PublishingPage() {
             setDestForm(EMPTY_DESTINATION_FORM);
             setDestEventMode('existing');
             setNewEventForm(EMPTY_NEW_EVENT_FORM);
+            setNewEventImage(null);
             notify('success', 'Content published.');
         } catch (err) {
             notify('error', err.message || 'Failed to publish content. Please try again.');
@@ -604,6 +607,7 @@ export default function PublishingPage() {
                                         setDestForm((p) => ({ ...EMPTY_DESTINATION_FORM, contentId: e.target.value }));
                                         setDestEventMode(events.length === 0 ? 'new' : 'existing');
                                         setNewEventForm(EMPTY_NEW_EVENT_FORM);
+                                        setNewEventImage(null);
                                     }}
                                     required
                                 >
@@ -686,6 +690,21 @@ export default function PublishingPage() {
                                                 onChange={(e) => setNewEventForm((p) => ({ ...p, datetime: e.target.value }))}
                                                 required
                                             />
+                                            <div>
+                                                <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '0.3rem' }}>
+                                                    Thumbnail image (optional)
+                                                </label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => setNewEventImage(e.target.files?.[0] || null)}
+                                                />
+                                                {newEventImage && (
+                                                    <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '0.3rem 0 0' }}>
+                                                        {newEventImage.name}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
