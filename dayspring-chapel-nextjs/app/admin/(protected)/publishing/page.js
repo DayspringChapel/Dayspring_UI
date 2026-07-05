@@ -95,7 +95,7 @@ export default function PublishingPage() {
             if (ready.status     === 'fulfilled') setReadyContents(ready.value      || []);
             if (streamRes.status === 'fulfilled') setStreams(streamRes.value);
             if (albumsRes.status === 'fulfilled') setAlbums(albumsRes.value || []);
-            if (eventsRes.status === 'fulfilled') setEvents((eventsRes.value || []).filter((e) => !e.isPublished));
+            if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value || []);
             setLoading(false);
         };
         load();
@@ -103,6 +103,11 @@ export default function PublishingPage() {
 
     const selectedDestContent = readyContents.find((c) => c.id === destForm.contentId) || null;
     const destKind = selectedDestContent ? CATEGORY_DESTINATION[selectedDestContent.category] : null;
+    // A highlight video can attach to an event that's already published (already has a flier/date
+    // live) — only a flier needs an unpublished draft, to avoid clobbering an existing one.
+    const eligibleEvents = selectedDestContent?.category === 5
+        ? events
+        : events.filter((e) => !e.isPublished);
 
     const toggleDestPlatform = (val) => {
         setDestForm((prev) => ({
@@ -155,7 +160,7 @@ export default function PublishingPage() {
             if (pub) setPublishedPosts(pub);
             if (destEventMode === 'new') {
                 const evs = await apiClient.getAllEventsInternal().catch(() => null);
-                if (evs) setEvents(evs.filter((ev) => !ev.isPublished));
+                if (evs) setEvents(evs);
             }
             setShowDestForm(false);
             setDestForm(EMPTY_DESTINATION_FORM);
@@ -605,7 +610,11 @@ export default function PublishingPage() {
                                     value={destForm.contentId}
                                     onChange={(e) => {
                                         setDestForm((p) => ({ ...EMPTY_DESTINATION_FORM, contentId: e.target.value }));
-                                        setDestEventMode(events.length === 0 ? 'new' : 'existing');
+                                        const chosen = readyContents.find((c) => c.id === e.target.value);
+                                        const eligible = chosen?.category === 5
+                                            ? events
+                                            : events.filter((ev) => !ev.isPublished);
+                                        setDestEventMode(eligible.length === 0 ? 'new' : 'existing');
                                         setNewEventForm(EMPTY_NEW_EVENT_FORM);
                                         setNewEventImage(null);
                                     }}
@@ -654,20 +663,20 @@ export default function PublishingPage() {
                                     </div>
 
                                     {destEventMode === 'existing' ? (
-                                        events.length > 0 ? (
+                                        eligibleEvents.length > 0 ? (
                                             <select
                                                 value={destForm.eventId}
                                                 onChange={(e) => setDestForm((p) => ({ ...p, eventId: e.target.value }))}
                                                 required
                                             >
-                                                <option value="">Select a draft event…</option>
-                                                {events.map((ev) => (
+                                                <option value="">Select an event…</option>
+                                                {eligibleEvents.map((ev) => (
                                                     <option key={ev.id} value={ev.id}>{ev.heading}</option>
                                                 ))}
                                             </select>
                                         ) : (
                                             <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: 0 }}>
-                                                No draft events available — use "Create New Event" instead.
+                                                No events available — use "Create New Event" instead.
                                             </p>
                                         )
                                     ) : (
