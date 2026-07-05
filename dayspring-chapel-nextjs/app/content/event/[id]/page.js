@@ -43,15 +43,27 @@ export default async function EventDetailPage({ params }) {
         <main>
             {/* ── Hero ──────────────────────────────────────────────── */}
             <div className="relative w-full overflow-hidden bg-black" style={{ height: '72vh', minHeight: 420 }}>
-                <Image
-                    src={image}
-                    alt={title}
-                    fill
-                    className="object-cover object-center"
-                    style={{ opacity: 0.45 }}
-                    priority
-                    unoptimized
-                />
+                {hasHighlightVideo ? (
+                    <div style={{ position: 'absolute', inset: 0, opacity: 0.55 }}>
+                        <VideoEmbed
+                            youtubeUrl={event.highlightYoutubeUrl}
+                            videoUrl={event.highlightVideoUrl}
+                            title={`${title} highlight video`}
+                            fill
+                            autoplay
+                        />
+                    </div>
+                ) : (
+                    <Image
+                        src={image}
+                        alt={title}
+                        fill
+                        className="object-cover object-center"
+                        style={{ opacity: 0.45 }}
+                        priority
+                        unoptimized
+                    />
+                )}
                 <div className="absolute inset-0"
                     style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.20) 100%)' }} />
 
@@ -106,20 +118,6 @@ export default async function EventDetailPage({ params }) {
                                 Starts In
                             </p>
                             <HeroCountdown targetDate={dateStr} />
-                        </div>
-                    )}
-
-                    {hasHighlightVideo && (
-                        <div className="mb-10">
-                            <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-5">
-                                Event Highlight
-                            </h2>
-                            <VideoEmbed
-                                youtubeUrl={event.highlightYoutubeUrl}
-                                videoUrl={event.highlightVideoUrl}
-                                title={`${title} highlight video`}
-                                className="rounded-2xl shadow-sm"
-                            />
                         </div>
                     )}
 
