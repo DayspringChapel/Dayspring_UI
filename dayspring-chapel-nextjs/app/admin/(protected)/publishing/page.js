@@ -28,6 +28,8 @@ const EMPTY_DESTINATION_FORM = {
     socialPlatforms: [], socialCaption: '',
 };
 
+const EMPTY_NEW_EVENT_FORM = { heading: '', description: '', datetime: '' };
+
 const STREAM_PLATFORM_META = {
     youtube:   { label: 'YouTube',   color: '#FF0000', emoji: '▶' },
     facebook:  { label: 'Facebook',  color: '#1877F2', emoji: '🔵' },
@@ -65,6 +67,8 @@ export default function PublishingPage() {
     const [showDestForm, setShowDestForm] = useState(false);
     const [destForm, setDestForm] = useState(EMPTY_DESTINATION_FORM);
     const [destSubmitting, setDestSubmitting] = useState(false);
+    const [destEventMode, setDestEventMode] = useState('existing'); // 'existing' | 'new'
+    const [newEventForm, setNewEventForm] = useState(EMPTY_NEW_EVENT_FORM);
 
     // Live streams state
     const [streams, setStreams]           = useState(null);
@@ -111,14 +115,34 @@ export default function PublishingPage() {
     const handlePublishToDestination = async (e) => {
         e.preventDefault();
         if (!destForm.contentId) { notify('warning', 'Select content to publish.'); return; }
-        if (destKind === 'event' && !destForm.eventId) { notify('warning', 'Select an event to attach this to.'); return; }
+        if (destKind === 'event' && destEventMode === 'existing' && !destForm.eventId) {
+            notify('warning', 'Select an event to attach this to.'); return;
+        }
+        if (destKind === 'event' && destEventMode === 'new') {
+            if (!newEventForm.heading.trim()) { notify('warning', 'Enter a heading for the new event.'); return; }
+            if (!newEventForm.datetime) { notify('warning', 'Pick a date for the new event.'); return; }
+        }
         if (destKind === 'library' && !destForm.preacherName.trim()) { notify('warning', 'Enter a preacher name.'); return; }
         setDestSubmitting(true);
         try {
+            let eventId = destKind === 'event' ? destForm.eventId : null;
+
+            // No draft event to attach to yet — create one on the fly rather than
+            // leaving an already-approved video with nowhere to go.
+            if (destKind === 'event' && destEventMode === 'new') {
+                const formData = new FormData();
+                formData.append('heading', newEventForm.heading.trim());
+                formData.append('Description', newEventForm.description.trim() || newEventForm.heading.trim());
+                formData.append('Datetime', new Date(newEventForm.datetime).toISOString());
+                const created = await apiClient.createEvent(formData);
+                eventId = created?.id || created?.Id;
+                if (!eventId) throw new Error('Failed to create the event');
+            }
+
             await apiClient.publishToDestination({
                 contentId: destForm.contentId,
                 albumId: destKind === 'gallery' ? (destForm.albumId || null) : null,
-                eventId: destKind === 'event' ? destForm.eventId : null,
+                eventId,
                 preacherName: destKind === 'library' ? destForm.preacherName.trim() : null,
                 sermonDate: destKind === 'library' && destForm.sermonDate ? destForm.sermonDate : null,
                 socialPlatforms: destForm.socialPlatforms.length ? destForm.socialPlatforms : null,
@@ -127,8 +151,14 @@ export default function PublishingPage() {
             setReadyContents((prev) => prev.filter((c) => c.id !== destForm.contentId));
             const pub = await apiClient.getAllPublishedPosts().catch(() => null);
             if (pub) setPublishedPosts(pub);
+            if (destEventMode === 'new') {
+                const evs = await apiClient.getAllEventsInternal().catch(() => null);
+                if (evs) setEvents(evs.filter((ev) => !ev.isPublished));
+            }
             setShowDestForm(false);
             setDestForm(EMPTY_DESTINATION_FORM);
+            setDestEventMode('existing');
+            setNewEventForm(EMPTY_NEW_EVENT_FORM);
             notify('success', 'Content published.');
         } catch (err) {
             notify('error', err.message || 'Failed to publish content. Please try again.');
@@ -570,7 +600,11 @@ export default function PublishingPage() {
                                 <label>Content *</label>
                                 <select
                                     value={destForm.contentId}
-                                    onChange={(e) => setDestForm((p) => ({ ...EMPTY_DESTINATION_FORM, contentId: e.target.value }))}
+                                    onChange={(e) => {
+                                        setDestForm((p) => ({ ...EMPTY_DESTINATION_FORM, contentId: e.target.value }));
+                                        setDestEventMode(events.length === 0 ? 'new' : 'existing');
+                                        setNewEventForm(EMPTY_NEW_EVENT_FORM);
+                                    }}
                                     required
                                 >
                                     <option value="">Select ready-to-publish content…</option>
@@ -598,16 +632,62 @@ export default function PublishingPage() {
                             {destKind === 'event' && (
                                 <div className={styles.formGroup}>
                                     <label>Attach to Event *</label>
-                                    <select
-                                        value={destForm.eventId}
-                                        onChange={(e) => setDestForm((p) => ({ ...p, eventId: e.target.value }))}
-                                        required
-                                    >
-                                        <option value="">Select a draft event…</option>
-                                        {events.map((ev) => (
-                                            <option key={ev.id} value={ev.id}>{ev.heading}</option>
-                                        ))}
-                                    </select>
+                                    <div className={styles.platformChips} style={{ marginBottom: '0.5rem' }}>
+                                        <button
+                                            type="button"
+                                            className={`${styles.platformChip} ${destEventMode === 'existing' ? styles.platformChipActive : ''}`}
+                                            onClick={() => setDestEventMode('existing')}
+                                        >
+                                            Select Existing
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`${styles.platformChip} ${destEventMode === 'new' ? styles.platformChipActive : ''}`}
+                                            onClick={() => setDestEventMode('new')}
+                                        >
+                                            + Create New Event
+                                        </button>
+                                    </div>
+
+                                    {destEventMode === 'existing' ? (
+                                        events.length > 0 ? (
+                                            <select
+                                                value={destForm.eventId}
+                                                onChange={(e) => setDestForm((p) => ({ ...p, eventId: e.target.value }))}
+                                                required
+                                            >
+                                                <option value="">Select a draft event…</option>
+                                                {events.map((ev) => (
+                                                    <option key={ev.id} value={ev.id}>{ev.heading}</option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: 0 }}>
+                                                No draft events available — use "Create New Event" instead.
+                                            </p>
+                                        )
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                            <input
+                                                value={newEventForm.heading}
+                                                onChange={(e) => setNewEventForm((p) => ({ ...p, heading: e.target.value }))}
+                                                placeholder="Event heading *"
+                                                required
+                                            />
+                                            <textarea
+                                                rows={2}
+                                                value={newEventForm.description}
+                                                onChange={(e) => setNewEventForm((p) => ({ ...p, description: e.target.value }))}
+                                                placeholder="Description (optional)"
+                                            />
+                                            <input
+                                                type="datetime-local"
+                                                value={newEventForm.datetime}
+                                                onChange={(e) => setNewEventForm((p) => ({ ...p, datetime: e.target.value }))}
+                                                required
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
