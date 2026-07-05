@@ -52,7 +52,7 @@ export default function SuperAdminDashboard({ userName }) {
                 apiClient.getUnits(),
                 apiClient.getSmallGroups(),
                 apiClient.getMediaContents(),
-                apiClient.getAdminApprovalQueue(),
+                apiClient.getSuperAdminApprovalQueue(),
                 apiClient.getAllScheduledPosts(),
                 apiClient.getAlbums(),
             ]);

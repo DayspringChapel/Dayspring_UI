@@ -105,7 +105,7 @@ export default function ChurchMediaDashboard({ userName }) {
 
     const topStats = [
         { label: 'Total Uploads',     value: stats.totalMedia,        color: '#db2777', note: 'All media content',   icon: '🎬' },
-        { label: 'Pending Approvals', value: stats.pendingApprovals,  color: '#ef4444', note: 'Needs review',        icon: '⚡', urgent: stats.pendingApprovals > 0 },
+        { label: 'Awaiting Admin',    value: stats.pendingApprovals,  color: '#ef4444', note: 'Forwarded, not yours to act on', icon: '⚡' },
         { label: 'Published',         value: stats.published,         color: '#10b981', note: 'Live on platforms',   icon: '✅' },
         { label: 'Scheduled',         value: stats.scheduledPosts,    color: '#3b82f6', note: 'Queued to publish',   icon: '📅' },
         { label: 'Draft',             value: stats.draft,             color: '#94a3b8', note: 'Work in progress',    icon: '✏️' },

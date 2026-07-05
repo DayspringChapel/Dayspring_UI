@@ -6,6 +6,7 @@ import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import VideoEmbed from '@/components/VideoEmbed';
+import { humanizeLabel } from '@/lib/format';
 import styles from './detail.module.css';
 
 const STATUS_BADGES = {
@@ -105,7 +106,7 @@ function MediaDetail() {
                         </div>
                         <p className={styles.description}>{content.description}</p>
                         <ul className={styles.metaList}>
-                            <li>Type: {content.contentTypeName} · Category: {content.category}</li>
+                            <li>Type: {content.contentTypeName} · Category: {humanizeLabel(content.categoryName)}</li>
                             <li>Tags: {content.tags || 'none'}</li>
                             <li>Uploaded by {content.ownerName} on {content.createdDate}</li>
                         </ul>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+import { humanizeLabel } from '@/lib/format';
 import styles from './publishing.module.css';
 
 const PLATFORMS = [
@@ -277,7 +278,7 @@ export default function PublishingPage() {
                             <div key={c.id} className={styles.row}>
                                 <div className={styles.rowInfo}>
                                     <h3>{c.title}</h3>
-                                    <p>{c.categoryName} · {c.contentTypeName} · by {c.ownerName}</p>
+                                    <p>{humanizeLabel(c.categoryName)} · {c.contentTypeName} · by {c.ownerName}</p>
                                 </div>
                                 <div className={styles.rowActions}>
                                     <button
@@ -574,7 +575,7 @@ export default function PublishingPage() {
                                 >
                                     <option value="">Select ready-to-publish content…</option>
                                     {readyContents.map((c) => (
-                                        <option key={c.id} value={c.id}>{c.title} — {c.categoryName}</option>
+                                        <option key={c.id} value={c.id}>{c.title} — {humanizeLabel(c.categoryName)}</option>
                                     ))}
                                 </select>
                             </div>

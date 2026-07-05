@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+import { humanizeLabel } from '@/lib/format';
 import styles from './workflow.module.css';
 
 const STATUS_BADGES = {
@@ -204,7 +205,7 @@ export default function WorkflowPage() {
             <div className={styles.row}>
                 <div className={styles.rowInfo}>
                     <h3>{item.title}</h3>
-                    <p>{item.categoryName} · {item.contentTypeName} · by {item.ownerName}</p>
+                    <p>{humanizeLabel(item.categoryName)} · {item.contentTypeName} · by {item.ownerName}</p>
                     <div style={{ marginTop: '0.4rem' }}><Badge status={item.workflowStatus} /></div>
                     {item.workflowStatus === 3 && <CorrectionNote contentId={item.id} historyMap={historyMap} />}
                 </div>
@@ -274,10 +275,12 @@ export default function WorkflowPage() {
         );
     }
 
-    // ── Church Admin: what Super Admin sent back, everything submitted, and published ──
+    // ── Church Admin: what Super Admin sent back, everything forwarded to admin, and published ──
     if (role === 'churchAdmin') {
         const fromSuperAdmin = inPipeline.filter((c) => c.workflowStatus === 3 && historyMap[c.id]?.fromStatus === 6);
-        const submitted = inPipeline.filter((c) => c.workflowStatus !== 10);
+        // Only content that has actually reached the Admin stage or beyond — anything still
+        // sitting in churchMedia's internal review queue hasn't been forwarded to admin yet.
+        const submitted = inPipeline.filter((c) => c.workflowStatus >= 5 && c.workflowStatus !== 10);
 
         return (
             <div className={styles.page}>
@@ -285,7 +288,7 @@ export default function WorkflowPage() {
                 <AdminConfirm dialog={dialog} onClose={closeDialog} />
                 <div className={styles.header}>
                     <h1>Media Workflow</h1>
-                    <p>Everything moving through the content pipeline, and what Super Admin sent back</p>
+                    <p>Content forwarded to you for approval, and what Super Admin sent back</p>
                 </div>
 
                 {fromSuperAdmin.length > 0 && (
@@ -297,9 +300,9 @@ export default function WorkflowPage() {
                     </>
                 )}
 
-                <h2 className={styles.sectionTitle}>All Submitted Content</h2>
+                <h2 className={styles.sectionTitle}>Forwarded For Approval</h2>
                 {submitted.length === 0 ? (
-                    <div className={styles.empty}>Nothing has been submitted yet.</div>
+                    <div className={styles.empty}>Nothing has been forwarded to you yet.</div>
                 ) : (
                     <div className={styles.list} style={{ marginBottom: '2rem' }}>
                         {submitted.map((item) => <Row key={item.id} item={item} showReviewActions={false} />)}
@@ -318,8 +321,12 @@ export default function WorkflowPage() {
         );
     }
 
-    // ── Church Media / Super Admin: everything, grouped by category, plus published ──
-    const categories = [...new Set(inPipeline.map((c) => c.categoryName))].sort();
+    // ── Church Media: full pipeline visibility. Super Admin: only content already
+    // forwarded to Super Admin (or beyond) — earlier-stage items aren't theirs to see yet. ──
+    const visibleForCategorizedView = role === 'superAdmin'
+        ? inPipeline.filter((c) => c.workflowStatus >= 6)
+        : inPipeline;
+    const categories = [...new Set(visibleForCategorizedView.map((c) => c.categoryName))].sort();
 
     return (
         <div className={styles.page}>
@@ -327,18 +334,22 @@ export default function WorkflowPage() {
             <AdminConfirm dialog={dialog} onClose={closeDialog} />
             <div className={styles.header}>
                 <h1>Media Workflow</h1>
-                <p>All content, grouped by category and current stage</p>
+                <p>{role === 'superAdmin'
+                    ? 'Content forwarded to you for final approval, and published content'
+                    : 'All content, grouped by category and current stage'}</p>
             </div>
 
             {categories.length === 0 && (
-                <div className={styles.empty}>No content is in the pipeline right now.</div>
+                <div className={styles.empty}>
+                    {role === 'superAdmin' ? 'Nothing has been forwarded to you yet.' : 'No content is in the pipeline right now.'}
+                </div>
             )}
 
             {categories.map((cat) => {
-                const items = inPipeline.filter((c) => c.categoryName === cat);
+                const items = visibleForCategorizedView.filter((c) => c.categoryName === cat);
                 return (
                     <div key={cat} style={{ marginBottom: '2rem' }}>
-                        <h2 className={styles.sectionTitle}>{cat}</h2>
+                        <h2 className={styles.sectionTitle}>{humanizeLabel(cat)}</h2>
                         <div className={styles.list}>
                             {items.map((item) => <Row key={item.id} item={item} showReviewActions />)}
                         </div>

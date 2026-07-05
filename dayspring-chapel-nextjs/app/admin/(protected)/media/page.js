@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+import { humanizeLabel } from '@/lib/format';
 import styles from './media.module.css';
 
 const STATUS_BADGES = {
@@ -124,7 +125,7 @@ export default function MediaPage() {
                                         <h3 className={styles.cardTitle}>{item.title}</h3>
                                         <span className={`${styles.badge} ${badge.cls}`}>{badge.label}</span>
                                     </div>
-                                    <p className={styles.cardMeta}>{item.contentTypeName} · {item.categoryName}</p>
+                                    <p className={styles.cardMeta}>{item.contentTypeName} · {humanizeLabel(item.categoryName)}</p>
                                     <p className={styles.cardOwner}>By {item.ownerName}</p>
                                     <div className={styles.cardActions}>
                                         <button
