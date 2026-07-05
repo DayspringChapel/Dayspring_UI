@@ -1,14 +1,8 @@
 import { getStreams, setStreams, setYouTubeActive, touchYouTubeCheck } from '@/lib/livestreamStore';
 import { hasServerPermission } from '@/lib/serverApi';
+import { extractYouTubeId } from '@/lib/youtube';
 
 const YT_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
-
-function extractYouTubeId(url) {
-    const m = url?.match(
-        /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/
-    );
-    return m?.[1] || null;
-}
 
 async function checkYouTubeLive(url) {
     const videoId = extractYouTubeId(url);

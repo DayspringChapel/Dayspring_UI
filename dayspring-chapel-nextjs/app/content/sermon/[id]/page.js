@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { fetchSermonByIdServer } from '@/lib/serverApi';
 import SermonPlayer from '@/components/SermonPlayer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
-
-function extractYouTubeId(url) {
-    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
-    return m?.[1] || null;
-}
+import { extractYouTubeId } from '@/lib/youtube';
 
 export async function generateMetadata({ params }) {
     const sermon = await fetchSermonByIdServer(params.id);

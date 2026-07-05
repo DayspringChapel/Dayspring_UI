@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { fetchEventByIdServer } from '@/lib/serverApi';
 import { HeroCountdown } from '@/components/CountdownTimer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
-
-function extractYouTubeId(url) {
-    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
-    return m?.[1] || null;
-}
+import { extractYouTubeId } from '@/lib/youtube';
 
 export async function generateMetadata({ params }) {
     const { id } = await params;

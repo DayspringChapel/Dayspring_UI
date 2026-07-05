@@ -5,11 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import SermonPlayer from '@/components/SermonPlayer';
-
-function extractYouTubeId(url) {
-    const m = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/);
-    return m?.[1] || null;
-}
+import { extractYouTubeId } from '@/lib/youtube';
 
 export default function SermonSection() {
     const [sermons, setSermons] = useState([]);
