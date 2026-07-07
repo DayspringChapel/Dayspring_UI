@@ -7,7 +7,7 @@ import apiClient from '@/lib/apiClient';
 import SermonPlayer from '@/components/SermonPlayer';
 import { extractYouTubeId } from '@/lib/youtube';
 
-export default function SermonSection() {
+export default function SermonSection({ limit = null }) {
     const [sermons, setSermons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -22,8 +22,8 @@ export default function SermonSection() {
             setLoading(true);
             setError(null);
             const data = await apiClient.getSermons();
-            // Show only first 8 sermons
-            setSermons((data || []).slice(0, 8));
+            const sermonList = Array.isArray(data) ? data : [];
+            setSermons(limit ? sermonList.slice(0, limit) : sermonList);
         } catch (err) {
             console.error('Failed to fetch sermons:', err);
             setError('Failed to load sermons. Please try again later.');
