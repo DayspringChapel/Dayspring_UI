@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './create.module.css';
 
@@ -17,10 +18,14 @@ const CONTENT_TYPE_LABELS = { '1': 'Image', '2': 'Video', '3': 'Audio', '4': 'PD
 
 export default function CreateMediaPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const initialCategory = CATEGORIES.some((category) => category.value === searchParams.get('category'))
+        ? searchParams.get('category')
+        : '1';
     const [form, setForm] = useState({
         title: '',
         description: '',
-        category: '1',
+        category: initialCategory,
         tags: '',
         youtubeUrl: '',
     });

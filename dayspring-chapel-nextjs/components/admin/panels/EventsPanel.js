@@ -7,6 +7,19 @@ import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 import VideoEmbed from '@/components/VideoEmbed';
 
+const WORKFLOW_BADGES = {
+    0:  { label: 'Draft', cls: 'bg-gray-100 text-gray-600' },
+    1:  { label: 'Submitted', cls: 'bg-blue-100 text-blue-700' },
+    2:  { label: 'Media Review', cls: 'bg-yellow-100 text-yellow-700' },
+    3:  { label: 'Needs Correction', cls: 'bg-orange-100 text-orange-700' },
+    4:  { label: 'Resubmitted', cls: 'bg-purple-100 text-purple-700' },
+    5:  { label: 'Admin Approval', cls: 'bg-indigo-100 text-indigo-700' },
+    6:  { label: 'Super Admin', cls: 'bg-pink-100 text-pink-700' },
+    7:  { label: 'Ready to Publish', cls: 'bg-teal-100 text-teal-700' },
+    10: { label: 'Published', cls: 'bg-green-100 text-green-700' },
+    12: { label: 'Rejected', cls: 'bg-red-100 text-red-700' },
+};
+
 function resolveRole() {
     const userData = apiClient.getUserData();
     if (!userData) return 'member';
@@ -21,6 +34,7 @@ function resolveRole() {
 export default function EventsPanel() {
     const router = useRouter();
     const [events, setEvents] = useState([]);
+    const [eventWorkflowItems, setEventWorkflowItems] = useState([]);
     const [contextLoading, setContextLoading] = useState(true);
     // Local loading state only for actions
     const [actionLoading, setActionLoading] = useState(false);
@@ -42,14 +56,31 @@ export default function EventsPanel() {
 
     const role = resolveRole();
     const canPublish = role === 'churchMedia' || role === 'superAdmin';
+    const canApproveEventWorkflow = role === 'churchAdmin' || role === 'superAdmin';
 
     const refreshEvents = async () => {
         try {
-            const data = await apiClient.getAllEventsInternal();
-            setEvents(Array.isArray(data) ? data : []);
+            const [eventsResult, mediaResult] = await Promise.allSettled([
+                apiClient.getAllEventsInternal(),
+                canApproveEventWorkflow ? apiClient.getMediaContents() : Promise.resolve([]),
+            ]);
+
+            setEvents(eventsResult.status === 'fulfilled' && Array.isArray(eventsResult.value) ? eventsResult.value : []);
+
+            if (mediaResult.status === 'fulfilled') {
+                const items = Array.isArray(mediaResult.value) ? mediaResult.value : [];
+                setEventWorkflowItems(items.filter((item) => (
+                    (item.category === 4 || item.category === 5) &&
+                    item.workflowStatus !== 0 &&
+                    item.workflowStatus !== 10
+                )));
+            } else {
+                setEventWorkflowItems([]);
+            }
         } catch (error) {
             console.error('Failed to load events:', error);
             setEvents([]);
+            setEventWorkflowItems([]);
         } finally {
             setContextLoading(false);
         }
@@ -155,6 +186,56 @@ export default function EventsPanel() {
         }
     };
 
+    const handleApproveWorkflowItem = async (item) => {
+        const isSuperAdminStage = item.workflowStatus === 6;
+        const comment = await confirm({
+            title: isSuperAdminStage ? 'Approve for Publishing' : 'Approve & Send to Super Admin',
+            message: isSuperAdminStage
+                ? 'This will mark the event media as ready to publish.'
+                : 'This will send the event media to Super Admin for final approval.',
+            confirmLabel: 'Approve',
+            showInput: true,
+            inputLabel: 'Comment (optional)',
+            inputPlaceholder: 'Add an approval comment...',
+        });
+        setActionLoading(item.id);
+        try {
+            await apiClient.approveContent(item.id, comment || null);
+            await refreshEvents();
+            notify('success', isSuperAdminStage ? 'Event media approved for publishing.' : 'Event media sent to Super Admin.');
+        } catch (error) {
+            notify('error', error.message || 'Failed to approve event media. Please try again.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleRejectWorkflowItem = async (item) => {
+        const comment = await confirm({
+            title: 'Send Back for Correction',
+            message: 'This sends the event media back to the uploader with your comment.',
+            confirmLabel: 'Send Back',
+            danger: true,
+            showInput: true,
+            inputLabel: 'What needs to change? (required)',
+            inputPlaceholder: 'Describe the changes needed...',
+        });
+        if (!comment || !comment.trim()) {
+            notify('warning', 'A comment is required to send event media back.');
+            return;
+        }
+        setActionLoading(item.id);
+        try {
+            await apiClient.rejectContent(item.id, comment.trim());
+            await refreshEvents();
+            notify('success', 'Event media sent back for correction.');
+        } catch (error) {
+            notify('error', error.message || 'Failed to send event media back. Please try again.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleEdit = (event) => {
         setEditingEvent(event);
         setFormData({
@@ -191,13 +272,81 @@ export default function EventsPanel() {
             {/* Header - Stacks on mobile */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Events</h2>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                    + Add Event
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <button
+                        onClick={() => router.push('/admin/media/create?category=4')}
+                        className="w-full sm:w-auto px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg font-medium hover:bg-orange-50 transition-all duration-200 shadow-sm"
+                    >
+                        Upload Event Flier for Approval
+                    </button>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                        + Add Event
+                    </button>
+                </div>
             </div>
+
+            {canApproveEventWorkflow && (
+                <div className="mb-6 bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
+                    <div className="px-4 sm:px-6 py-4 bg-orange-50 border-b border-orange-100">
+                        <h3 className="text-base font-bold text-gray-900">Event Approval Workflow</h3>
+                        <p className="text-sm text-gray-600 mt-1">Event fliers and highlight videos waiting in the normal approval pipeline.</p>
+                    </div>
+                    {eventWorkflowItems.length === 0 ? (
+                        <div className="px-4 sm:px-6 py-5 text-sm text-gray-500">
+                            No event media is waiting for approval.
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-gray-100">
+                            {eventWorkflowItems.map((item) => {
+                                const badge = WORKFLOW_BADGES[item.workflowStatus] || { label: item.workflowStatusName || 'Unknown', cls: 'bg-gray-100 text-gray-600' };
+                                const canAct = (role === 'churchAdmin' && item.workflowStatus === 5) || (role === 'superAdmin' && item.workflowStatus === 6);
+                                return (
+                                    <div key={item.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center">
+                                        <div className="sm:col-span-5">
+                                            <p className="font-semibold text-gray-900">{item.title || 'Untitled event media'}</p>
+                                            <p className="text-sm text-gray-600">{item.categoryName || 'Event media'} · by {item.ownerName || 'Unknown'}</p>
+                                        </div>
+                                        <div className="sm:col-span-3">
+                                            <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${badge.cls}`}>
+                                                {badge.label}
+                                            </span>
+                                        </div>
+                                        <div className="sm:col-span-4 flex flex-wrap gap-2 justify-start sm:justify-end">
+                                            <button
+                                                onClick={() => router.push(`/admin/media/detail?id=${item.id}`)}
+                                                className="px-3 py-2 text-sm font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                                            >
+                                                View
+                                            </button>
+                                            {canAct && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleRejectWorkflowItem(item)}
+                                                        disabled={actionLoading === item.id}
+                                                        className="px-3 py-2 text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-60"
+                                                    >
+                                                        Send Back
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleApproveWorkflowItem(item)}
+                                                        disabled={actionLoading === item.id}
+                                                        className="px-3 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-60"
+                                                    >
+                                                        {role === 'churchAdmin' ? 'Approve -> Super Admin' : 'Approve'}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Events Table */}
             {events.length === 0 ? (
