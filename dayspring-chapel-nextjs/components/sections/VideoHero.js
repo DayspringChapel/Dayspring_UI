@@ -191,6 +191,7 @@ const DEFAULT_STREAMS = {
     youtube:   { active: false, url: '' },
     facebook:  { active: false, url: '' },
     instagram: { active: false, url: '' },
+    hideWatchOnline: false,
 };
 
 export default function VideoHero() {
@@ -199,22 +200,26 @@ export default function VideoHero() {
     const [modalOpen, setModalOpen] = useState(false);
 
     const fetchStreams = useCallback(async () => {
+        if (modalOpen) return;
         try {
             const res = await fetch('/api/livestream');
             if (!res.ok) return;
             const data = await res.json();
             setStreams(data);
-            setIsLive(Object.values(data).some((p) => p.active && p.url));
+            setIsLive(!data.hideWatchOnline && Object.entries(data).some(([key, p]) => (
+                ['youtube', 'facebook', 'instagram'].includes(key) && p.active && p.url
+            )));
         } catch {
             // network error — keep previous state
         }
-    }, []);
+    }, [modalOpen]);
 
     useEffect(() => {
+        if (modalOpen) return undefined;
         fetchStreams();
         const id = setInterval(fetchStreams, 60_000);
         return () => clearInterval(id);
-    }, [fetchStreams]);
+    }, [fetchStreams, modalOpen]);
 
     return (
         <>
@@ -251,19 +256,19 @@ export default function VideoHero() {
                         {isLive ? (
                             <button
                                 onClick={() => setModalOpen(true)}
-                                className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-full transition-colors uppercase text-sm tracking-wider shadow-lg shadow-red-600/40"
+                                className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-full transition-colors uppercase text-sm tracking-wider shadow-lg shadow-red-600/40 animate-pulse"
                             >
                                 <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                                 LIVE NOW — WATCH
                             </button>
-                        ) : (
+                        ) : !streams.hideWatchOnline ? (
                             <Link
                                 href="/library"
                                 className="bg-[#F58634] hover:bg-[#d9752c] text-white font-bold px-8 py-4 rounded-full transition-colors uppercase text-sm tracking-wider"
                             >
                                 WATCH ONLINE
                             </Link>
-                        )}
+                        ) : null}
                         <button className="bg-transparent border-2 border-white hover:bg-white hover:text-black text-white font-bold px-8 py-4 rounded-full transition-all uppercase text-sm tracking-wider">
                             LISTEN ONLINE
                         </button>

@@ -17,7 +17,7 @@ async function checkYouTubeLive(url) {
         const data = await res.json();
         const status = data.items?.[0]?.snippet?.liveBroadcastContent;
         // 'live' | 'upcoming' | 'none' — 'none' means stream has ended
-        return status === 'live' || status === 'upcoming';
+        return status === 'live';
     } catch {
         return null;
     }

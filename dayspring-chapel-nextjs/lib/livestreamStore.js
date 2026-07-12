@@ -3,6 +3,7 @@ const DEFAULT = {
     facebook:  { active: false, url: '', description: '' },
     instagram: { active: false, url: '', description: '' },
     imageUrl: '',
+    hideWatchOnline: false,
     _meta: { lastYouTubeCheck: 0 },
 };
 
@@ -30,6 +31,7 @@ export function setStreams(data) {
         facebook:  merge('facebook'),
         instagram: merge('instagram'),
         imageUrl:  data.imageUrl ?? s.imageUrl,
+        hideWatchOnline: data.hideWatchOnline ?? s.hideWatchOnline ?? false,
         _meta: s._meta,
     };
     return global.__dayspringStreams;

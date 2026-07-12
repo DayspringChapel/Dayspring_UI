@@ -83,6 +83,7 @@ export default function SettingsPage() {
         instagram: { active: false, url: '', description: '' },
     });
     const [imageUrl, setImageUrl]   = useState('');
+    const [hideWatchOnline, setHideWatchOnline] = useState(false);
     const [saving, setSaving]       = useState(false);
     const [status, setStatus]       = useState(null);
 
@@ -109,6 +110,7 @@ export default function SettingsPage() {
                     instagram: { active: false, url: '', description: '', ...d.instagram },
                 });
                 setImageUrl(d.imageUrl || '');
+                setHideWatchOnline(!!d.hideWatchOnline);
             })
             .catch(() => {});
         fetch('/api/chatbot-config')
@@ -133,7 +135,7 @@ export default function SettingsPage() {
             const res = await fetch('/api/livestream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiClient.getToken()}` },
-                body: JSON.stringify({ ...config, imageUrl }),
+                body: JSON.stringify({ ...config, imageUrl, hideWatchOnline }),
             });
             if (!res.ok) throw new Error();
             setStatus('saved');
