@@ -29,9 +29,7 @@ export default function ChurchAdminDashboard({ userName }) {
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
 
-    useEffect(() => { load(); }, []);
-
-    const load = async () => {
+    async function load() {
         try {
             const [
                 appts, events, members, units,
@@ -97,6 +95,8 @@ export default function ChurchAdminDashboard({ userName }) {
         }
     };
 
+    useEffect(() => { load(); }, []);
+
     const navigate = useCallback((path) => {
         setNavigating(path);
         router.push(path);
@@ -138,7 +138,7 @@ export default function ChurchAdminDashboard({ userName }) {
     ];
 
     const quickActions = [
-        { label: 'Add Member',   path: '/admin/members/create', color: '#0d9488', icon: '👤' },
+        { label: 'Manage Members', path: '/admin/members', color: '#0d9488', icon: '👤' },
         { label: 'Appointments', path: '/admin/appointments',   color: '#be123c', icon: '📋' },
         { label: 'Requisitions', path: '/admin/requisitions',   color: '#f59e0b', icon: '📝' },
         { label: 'Small Groups', path: '/admin/small-groups',   color: '#10b981', icon: '🤝' },

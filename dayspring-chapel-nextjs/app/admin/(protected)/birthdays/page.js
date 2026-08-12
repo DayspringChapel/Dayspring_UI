@@ -13,27 +13,22 @@ export default function BirthdaysPage() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        loadMembers();
-    }, []);
-
-    const loadMembers = async () => {
+    async function loadMembers() {
         try {
             const data = await apiClient.getBioData();
             setMembers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to load members:', error);
 
-            // Handle 404 gracefully
-            if (error.message?.includes('404')) {
-                console.warn('BioData endpoint not found. Birthday calendar will show empty state.');
-            }
-
             setMembers([]);
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.resolve().then(loadMembers);
+    }, []);
 
     const getFilteredBirthdays = () => {
         return members.filter(member => {

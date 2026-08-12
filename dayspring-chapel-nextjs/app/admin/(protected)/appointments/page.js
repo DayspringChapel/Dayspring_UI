@@ -32,7 +32,7 @@ export default function AppointmentsPage() {
         loadChurchOfficials();
     }, []);
 
-    const loadAppointments = async () => {
+    async function loadAppointments() {
         try {
             const response = await apiClient.getAppointments();
             // API returns { data: [...] } format
@@ -46,7 +46,7 @@ export default function AppointmentsPage() {
         }
     };
 
-    const loadChurchOfficials = async () => {
+    async function loadChurchOfficials() {
         try {
             const officials = await apiClient.getChurchOfficials();
             setChurchOfficials(Array.isArray(officials) ? officials : []);
@@ -89,11 +89,6 @@ export default function AppointmentsPage() {
     const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedAppointments = filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
-
-    // Reset to page 1 when filters change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, statusFilter, dateFilter]);
 
     const handleViewDetails = (appointment) => {
         setSelectedAppointment(appointment);
@@ -216,14 +211,14 @@ export default function AppointmentsPage() {
                         type="text"
                         placeholder="Search by name or email..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                     />
                 </div>
                 <div className="w-full md:w-48">
                     <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all bg-white"
                     >
                         <option value="all">All Status</option>
@@ -237,7 +232,7 @@ export default function AppointmentsPage() {
                     <input
                         type="date"
                         value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
+                        onChange={(e) => { setDateFilter(e.target.value); setCurrentPage(1); }}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                     />
                 </div>

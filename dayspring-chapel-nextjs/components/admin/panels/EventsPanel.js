@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 import VideoEmbed from '@/components/VideoEmbed';
+import Image from 'next/image';
 
 const WORKFLOW_BADGES = {
     0:  { label: 'Draft', cls: 'bg-gray-100 text-gray-600' },
@@ -58,7 +59,7 @@ export default function EventsPanel() {
     const canPublish = role === 'churchMedia' || role === 'superAdmin';
     const canApproveEventWorkflow = role === 'churchAdmin' || role === 'superAdmin';
 
-    const refreshEvents = async () => {
+    const refreshEvents = useCallback(async () => {
         try {
             const [eventsResult, mediaResult] = await Promise.allSettled([
                 apiClient.getAllEventsInternal(),
@@ -84,9 +85,9 @@ export default function EventsPanel() {
         } finally {
             setContextLoading(false);
         }
-    };
+    }, [canApproveEventWorkflow]);
 
-    useEffect(() => { refreshEvents(); }, []);
+    useEffect(() => { Promise.resolve().then(refreshEvents); }, [refreshEvents]);
 
     useEffect(() => {
         apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
@@ -376,9 +377,11 @@ export default function EventsPanel() {
                                 {/* Image */}
                                 <div className="col-span-1">
                                     {event.eventImage ? (
-                                        <img
+                                        <Image
                                             src={event.eventImage}
                                             alt={event.heading || 'Event'}
+                                            width={48}
+                                            height={48}
                                             className="w-12 h-12 rounded-lg object-cover border border-gray-200"
                                         />
                                     ) : (
@@ -485,9 +488,11 @@ export default function EventsPanel() {
                         {/* Image */}
                         {viewingEvent.eventImage ? (
                             <div className="relative w-full" style={{ height: 260 }}>
-                                <img
+                                <Image
                                     src={viewingEvent.eventImage}
                                     alt={viewingEvent.heading || 'Event'}
+                                    width={960}
+                                    height={520}
                                     className="w-full h-full object-cover rounded-t-2xl"
                                 />
                                 <div className="absolute inset-0 rounded-t-2xl"
@@ -686,9 +691,11 @@ export default function EventsPanel() {
                                 {/* Image Preview */}
                                 {imagePreview && (
                                     <div className="mb-4 relative rounded-lg overflow-hidden border-2 border-gray-200">
-                                        <img
+                                        <Image
                                             src={imagePreview}
                                             alt="Preview"
+                                            width={960}
+                                            height={512}
                                             className="w-full h-48 sm:h-64 object-cover"
                                         />
                                         <button

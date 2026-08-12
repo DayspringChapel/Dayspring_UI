@@ -250,7 +250,10 @@ export default function PublishingPage() {
         try {
             const res = await fetch('/api/announce', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiClient.getToken()}`,
+                },
                 body: JSON.stringify({
                     targets:      Object.keys(streamTargets).filter((k) => streamTargets[k]),
                     descriptions: { [platformKey]: p.description },
@@ -258,9 +261,10 @@ export default function PublishingPage() {
                 }),
             });
             const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Announcement failed');
             setStreamPostResults((prev) => ({ ...prev, [platformKey]: data }));
-        } catch {
-            setStreamPostResults((prev) => ({ ...prev, [platformKey]: { error: 'Network error' } }));
+        } catch (error) {
+            setStreamPostResults((prev) => ({ ...prev, [platformKey]: { error: error.message || 'Network error' } }));
         } finally {
             setStreamPosting(null);
         }
@@ -676,7 +680,7 @@ export default function PublishingPage() {
                                             </select>
                                         ) : (
                                             <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: 0 }}>
-                                                No events available — use "Create New Event" instead.
+                                                No events available — use &quot;Create New Event&quot; instead.
                                             </p>
                                         )
                                     ) : (

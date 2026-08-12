@@ -6,6 +6,7 @@ import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import { humanizeLabel } from '@/lib/format';
+import Image from 'next/image';
 import styles from './media.module.css';
 
 const STATUS_BADGES = {
@@ -114,7 +115,7 @@ export default function MediaPage() {
                         return (
                             <div key={item.id} className={styles.card}>
                                 {item.thumbnailUrl ? (
-                                    <img src={item.thumbnailUrl} alt={item.title} className={styles.cardThumb} />
+                                    <Image src={item.thumbnailUrl} alt={item.title} width={640} height={360} className={styles.cardThumb} />
                                 ) : (
                                     <div className={styles.cardThumbPlaceholder}>
                                         {TYPE_ICONS[item.contentTypeName] || '📄'}

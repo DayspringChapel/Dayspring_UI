@@ -17,10 +17,9 @@ function calcTimeLeft(targetDate) {
 
 // ── Large hero countdown (white tiles with orange accent) ─────────────────────
 export function HeroCountdown({ targetDate }) {
-    const [t, setT] = useState(null);
+    const [t, setT] = useState(() => calcTimeLeft(targetDate));
 
     useEffect(() => {
-        setT(calcTimeLeft(targetDate));
         const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
         return () => clearInterval(id);
     }, [targetDate]);
@@ -80,10 +79,9 @@ export function HeroCountdown({ targetDate }) {
 
 // ── Medium tile countdown (overlaid on event cards) ──────────────────────────
 export function CardCountdown({ targetDate }) {
-    const [t, setT] = useState(null);
+    const [t, setT] = useState(() => calcTimeLeft(targetDate));
 
     useEffect(() => {
-        setT(calcTimeLeft(targetDate));
         const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
         return () => clearInterval(id);
     }, [targetDate]);
@@ -144,10 +142,9 @@ export function CardCountdown({ targetDate }) {
 
 // ── Small badge countdown (overlaid on cards) ─────────────────────────────────
 export default function CountdownBadge({ targetDate, dark = false }) {
-    const [t, setT] = useState(null);
+    const [t, setT] = useState(() => calcTimeLeft(targetDate));
 
     useEffect(() => {
-        setT(calcTimeLeft(targetDate));
         const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
         return () => clearInterval(id);
     }, [targetDate]);

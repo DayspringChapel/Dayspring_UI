@@ -11,9 +11,7 @@ export default function WelcomeSection() {
                 As the Victory Life Bible Church grew, there came the need to establish
                 modern-day centers where young Elites and Students can worship under a
                 contemporary and supernatural atmosphere. This led to the establishment
-                of DaySpring Chapel in August 2012. DaySpring Chapel was born out of a
-                sincere desire to produce a new generation of Victory Life Bible Church
-                (VLBC) that
+                of DaySpring Chapel in August 2012.
             </p>
 
             <Link

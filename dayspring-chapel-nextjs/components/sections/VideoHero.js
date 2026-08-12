@@ -216,7 +216,7 @@ export default function VideoHero() {
 
     useEffect(() => {
         if (modalOpen) return undefined;
-        fetchStreams();
+        Promise.resolve().then(fetchStreams);
         const id = setInterval(fetchStreams, 60_000);
         return () => clearInterval(id);
     }, [fetchStreams, modalOpen]);
@@ -261,17 +261,13 @@ export default function VideoHero() {
                                 <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                                 LIVE NOW — WATCH
                             </button>
-                        ) : !streams.hideWatchOnline ? (
-                            <Link
-                                href="/library"
-                                className="bg-[#F58634] hover:bg-[#d9752c] text-white font-bold px-8 py-4 rounded-full transition-colors uppercase text-sm tracking-wider"
-                            >
-                                WATCH ONLINE
-                            </Link>
                         ) : null}
-                        <button className="bg-transparent border-2 border-white hover:bg-white hover:text-black text-white font-bold px-8 py-4 rounded-full transition-all uppercase text-sm tracking-wider">
-                            LISTEN ONLINE
-                        </button>
+                        <Link
+                            href="/library"
+                            className={`${isLive ? 'bg-transparent border-2 border-white hover:bg-white hover:text-black' : 'bg-[#F58634] hover:bg-[#d9752c]'} text-white font-bold px-8 py-4 rounded-full transition-all uppercase text-sm tracking-wider`}
+                        >
+                            Explore Sermons
+                        </Link>
                     </div>
                 </div>
             </div>

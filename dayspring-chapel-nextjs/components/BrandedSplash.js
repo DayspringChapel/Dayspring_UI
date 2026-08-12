@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import styles from './BrandedSplash.module.css';
 
@@ -10,24 +9,10 @@ const SUBTITLE = {
 };
 
 export default function BrandedSplash({ visible, mode = 'login' }) {
-    const [mounted, setMounted] = useState(visible);
-    const [exiting, setExiting] = useState(false);
-
-    useEffect(() => {
-        if (visible) {
-            setMounted(true);
-            setExiting(false);
-        } else {
-            setExiting(true);
-            const t = setTimeout(() => setMounted(false), 420);
-            return () => clearTimeout(t);
-        }
-    }, [visible]);
-
-    if (!mounted) return null;
+    if (!visible) return null;
 
     return (
-        <div className={`${styles.overlay} ${exiting ? styles.exit : ''}`}>
+        <div className={styles.overlay}>
             <div className={styles.glowRing} />
 
             <div className={styles.content}>
@@ -46,7 +31,7 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
                     </svg>
                     <Image
                         src="/logo.png"
-                        alt="Dayspring Chapel"
+                        alt="DaySpring Chapel"
                         width={56}
                         height={30}
                         className={styles.logoImage}
@@ -76,7 +61,7 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
                     Powered by{' '}
                     <span className={styles.brand}>Airis</span>
                     {' & '}
-                    <span className={styles.brand}>Dayspring Tech</span>
+                    <span className={styles.brand}>DaySpring Tech</span>
                 </p>
             </div>
         </div>

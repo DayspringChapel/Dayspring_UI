@@ -15,6 +15,7 @@ export default function PhoneNumberInput({ value, onChange, error }) {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsOpen(false);
+                setSearch('');
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
@@ -25,10 +26,6 @@ export default function PhoneNumberInput({ value, onChange, error }) {
     useEffect(() => {
         if (isOpen && searchInputRef.current) {
             searchInputRef.current.focus();
-        }
-        // Reset search when closed
-        if (!isOpen) {
-            setSearch('');
         }
     }, [isOpen]);
 
@@ -46,6 +43,7 @@ export default function PhoneNumberInput({ value, onChange, error }) {
             countryCode: dialCode
         });
         setIsOpen(false);
+        setSearch('');
     };
 
     const handleNumberChange = (e) => {
@@ -70,7 +68,10 @@ export default function PhoneNumberInput({ value, onChange, error }) {
                 <div className="relative">
                     <button
                         type="button"
-                        onClick={() => setIsOpen(!isOpen)}
+                        onClick={() => {
+                            if (isOpen) setSearch('');
+                            setIsOpen(!isOpen);
+                        }}
                         className="w-[140px] px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black font-medium bg-white flex items-center justify-between transition-all hover:border-orange-500"
                     >
                         <span className="flex items-center gap-2 truncate">

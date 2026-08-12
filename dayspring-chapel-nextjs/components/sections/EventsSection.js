@@ -2,12 +2,6 @@ import Link from 'next/link';
 import { fetchEventsServer } from '@/lib/serverApi';
 import EventsCarousel from './EventsCarousel';
 
-const PLACEHOLDER_EVENTS = [
-    { id: 1, heading: 'SERVICE OF HYMNS', eventDate: null, eventImage: '/upcoming-events-3.png', description: null },
-    { id: 2, heading: "GLS'2025",         eventDate: null, eventImage: '/upcoming-events-1.png', description: null },
-    { id: 3, heading: 'YOUTH FEAST',      eventDate: null, eventImage: '/upcoming-events-2.png', description: null },
-];
-
 export default async function EventsSection() {
     const allEvents = await fetchEventsServer();
 
@@ -17,8 +11,7 @@ export default async function EventsSection() {
         return d >= now;
     });
 
-    const source        = upcoming.length > 0 ? upcoming : allEvents;
-    const displayEvents = source.length > 0 ? source.slice(0, 6) : PLACEHOLDER_EVENTS;
+    const displayEvents = upcoming.slice(0, 6);
 
     return (
         <div className="container mx-auto px-4">
@@ -33,12 +26,18 @@ export default async function EventsSection() {
                 </div>
                 <p className="text-gray-500 text-base md:text-lg leading-relaxed"
                     style={{ maxWidth: '40rem', paddingLeft: '1.25rem', borderLeft: '1px solid #e5e7eb' }}>
-                    Click any card to bring it forward. Click the front card to open the event page.
+                    Discover upcoming services, conferences, and gatherings at DaySpring Chapel.
                 </p>
             </div>
 
             {/* ── Carousel / card-stack ──────────────────────────── */}
-            <EventsCarousel events={displayEvents} />
+            {displayEvents.length > 0 ? (
+                <EventsCarousel events={displayEvents} />
+            ) : (
+                <p className="py-12 text-center text-gray-600" role="status">
+                    No upcoming events are available at this time.
+                </p>
+            )}
 
             {/* ── CTA ────────────────────────────────────────────── */}
             <div className="text-center mt-10">

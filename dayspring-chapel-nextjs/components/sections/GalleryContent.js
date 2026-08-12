@@ -14,7 +14,7 @@ export default function GalleryContent() {
         fetchAlbums();
     }, []);
 
-    const fetchAlbums = async () => {
+    async function fetchAlbums() {
         try {
             setLoading(true);
             setError(null);

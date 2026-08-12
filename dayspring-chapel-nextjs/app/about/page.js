@@ -6,8 +6,6 @@ import GoalsAimObjective from '@/components/sections/GoalsAimObjective';
 import OurCoreValues from '@/components/sections/OurCoreValues';
 import OurCulture from '@/components/sections/Ourculture';
 import LeadershipStructure from '@/components/sections/LeadershipStructure';
-import GeneralOverSeer from '@/components/sections/GeneralOverSeer';
-import OurPastors from '@/components/sections/OurPastors';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
@@ -51,14 +49,6 @@ export default function AboutPage() {
 
             <ScrollReveal>
                 <LeadershipStructure className="" />
-            </ScrollReveal>
-
-            <ScrollReveal>
-                <GeneralOverSeer className="" />
-            </ScrollReveal>
-
-            <ScrollReveal>
-                <OurPastors className="" />
             </ScrollReveal>
 
             <NewsletterSection />

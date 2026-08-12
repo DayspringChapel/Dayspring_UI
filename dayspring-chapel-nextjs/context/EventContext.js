@@ -9,7 +9,7 @@ export function EventProvider({ children, initialEvents = [] }) {
     const [events, setEvents] = useState(initialEvents);
     const [loading, setLoading] = useState(initialEvents.length === 0);
     const [error, setError] = useState(null);
-    const [lastFetched, setLastFetched] = useState(initialEvents.length > 0 ? Date.now() : 0);
+    const [lastFetched, setLastFetched] = useState(0);
 
     const fetchEvents = useCallback(async (force = false) => {
         const now = Date.now();
@@ -48,10 +48,9 @@ export function EventProvider({ children, initialEvents = [] }) {
     // Skip initial fetch if server already provided events
     useEffect(() => {
         if (events.length === 0) {
-            fetchEvents();
+            Promise.resolve().then(fetchEvents);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [events.length, fetchEvents]);
 
     const refreshEvents = () => fetchEvents(true);
 

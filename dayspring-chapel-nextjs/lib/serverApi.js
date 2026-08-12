@@ -42,11 +42,11 @@ export async function fetchSermonByIdServer(id) {
             ...s,
             id: s.id || s.Id || s.sermonId || s.SermonId,
             title: s.title || s.Title || '',
-            preacherName: s.preacherName || s.PreacherName || '',
+            preacherName: s.preacherName || s.PreacherName || s.preacher || s.Preacher || '',
             sermonDate: s.sermonDate || s.SermonDate || '',
             seriesTitle: s.seriesTitle || s.SeriesTitle || '',
             audioLink: toHttps(s.audioFile || s.AudioFile || s.audioLink || s.AudioLink || s.link || null),
-            imageUrl: toHttps(s.imageUrl || s.ImageUrl || s.image || s.Image || null),
+            imageUrl: toHttps(s.imageUrl || s.ImageUrl || s.imageLink || s.ImageLink || s.image || s.Image || null),
             sermonType: s.sermonType ?? s.SermonType ?? 1,
             youtubeUrl: s.youtubeUrl || s.YoutubeUrl || null,
         };

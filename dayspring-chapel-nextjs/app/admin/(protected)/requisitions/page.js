@@ -18,7 +18,7 @@ export default function RequisitionsPage() {
         loadRequisitions();
     }, []);
 
-    const loadRequisitions = async () => {
+    async function loadRequisitions() {
         try {
             const data = await apiClient.getRequisitions();
             setRequisitions(Array.isArray(data) ? data : []);

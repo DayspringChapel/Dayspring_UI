@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
+import Image from 'next/image';
 
 export default function SeriesPanel() {
     const [series, setSeries] = useState([]);
@@ -23,7 +24,7 @@ export default function SeriesPanel() {
         apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
     }, []);
 
-    const loadSeries = async () => {
+    async function loadSeries() {
         try {
             const data = await apiClient.getSeries();
             setSeries(Array.isArray(data) ? data : []);
@@ -113,7 +114,7 @@ export default function SeriesPanel() {
                 <div className={styles.grid}>
                     {series.map((item) => (
                         <div key={item.id} className={styles.card}>
-                            {item.image && <img src={item.image} alt={item.title} className={styles.cardImage} />}
+                            {item.image && <Image src={item.image} alt={item.title} width={640} height={360} className={styles.cardImage} />}
                             <div className={styles.cardContent}>
                                 <h3 className={styles.cardTitle}>{item.title}</h3>
                                 <div className={styles.cardActions}>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export default function WhyWeGive() {
     return (
-        <section className="py-16 bg-white">
+        <section id="why-we-give" className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex flex-col md:flex-row items-center gap-12">
                     {/* Image Side */}
@@ -24,7 +24,7 @@ export default function WhyWeGive() {
                             Why We Give
                         </h2>
                         <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-                            Welcome to DaySpringChapel. a place where purpose is discovered, potentials are built. and dreams are fulfilled.
+                            Welcome to DaySpring Chapel, a place where purpose is discovered, potentials are built, and dreams are fulfilled.
                         </p>
                     </div>
                 </div>

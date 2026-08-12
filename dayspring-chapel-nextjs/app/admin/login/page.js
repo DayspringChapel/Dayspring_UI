@@ -73,8 +73,8 @@ export default function AdminLogin() {
                 <div className={styles.container}>
                     <div className={styles.loginCard}>
                         <div className={styles.brandRow}>
-                            <Image src="/logo.png" alt="Dayspring Chapel" width={48} height={26} className={styles.brandLogo} />
-                            <span className={styles.brandName}>Dayspring Chapel</span>
+                            <Image src="/logo.png" alt="DaySpring Chapel" width={48} height={26} className={styles.brandLogo} />
+                            <span className={styles.brandName}>DaySpring Chapel</span>
                         </div>
 
                         <div className={styles.header}>
@@ -160,7 +160,6 @@ export default function AdminLogin() {
                                     />
                                     <span>Remember me</span>
                                 </label>
-                                <a href="#" className={styles.forgotLink}>Forgot Password?</a>
                             </div>
 
                             <button type="submit" className={styles.submitBtn} disabled={loading}>

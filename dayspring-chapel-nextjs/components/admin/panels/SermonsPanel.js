@@ -6,6 +6,7 @@ import apiClient from '@/lib/apiClient';
 import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
+import Image from 'next/image';
 
 export default function SermonsPanel() {
     const router = useRouter();
@@ -27,7 +28,7 @@ export default function SermonsPanel() {
         apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
     }, []);
 
-    const loadSermons = async () => {
+    async function loadSermons() {
         try {
             const data = await apiClient.getSermons();
             setSermons(Array.isArray(data) ? data : []);
@@ -124,7 +125,7 @@ export default function SermonsPanel() {
                 <div className={styles.grid}>
                     {sermons.map((sermon) => (
                         <div key={sermon.id} className={styles.card}>
-                            {sermon.image && <img src={sermon.image} alt={sermon.title} className={styles.cardImage} />}
+                            {sermon.image && <Image src={sermon.image} alt={sermon.title} width={640} height={360} className={styles.cardImage} />}
                             <div className={styles.cardContent}>
                                 <h3 className={styles.cardTitle}>{sermon.title}</h3>
                                 <p className={styles.cardDescription}>

@@ -23,7 +23,7 @@ export default function AlbumsPanel() {
 
     useEffect(() => { loadAlbums(); }, []);
 
-    const loadAlbums = async () => {
+    async function loadAlbums() {
         try {
             const data = await apiClient.getAlbums();
             setAlbums(Array.isArray(data) ? data : []);

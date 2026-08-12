@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import apiClient from '@/lib/apiClient';
+import Image from 'next/image';
 
 function sameDay(dateStr, year, month, day) {
     if (!dateStr) return false;
@@ -106,7 +107,7 @@ export default function CalendarView() {
                             {dayItems.events.map((e) => (
                                 <div key={e.id} className="flex gap-2 items-start">
                                     {e.eventImage && (
-                                        <img src={e.eventImage} alt={e.heading} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                                        <Image src={e.eventImage} alt={e.heading} width={40} height={40} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                                     )}
                                     <div className="min-w-0">
                                         <p className="text-sm font-semibold text-gray-900 truncate">{e.heading}</p>

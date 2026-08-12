@@ -7,6 +7,7 @@ import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import VideoEmbed from '@/components/VideoEmbed';
 import { humanizeLabel } from '@/lib/format';
+import Image from 'next/image';
 import styles from './detail.module.css';
 
 const STATUS_BADGES = {
@@ -35,7 +36,7 @@ function MediaDetail() {
     const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
-        if (!id) { setLoading(false); return; }
+        if (!id) return;
         Promise.allSettled([
             apiClient.getMediaContentById(id),
             apiClient.getWorkflowHistory(id),
@@ -98,7 +99,7 @@ function MediaDetail() {
                     {/* Content card */}
                     <div className={styles.card}>
                         {content.thumbnailUrl && (
-                            <img src={content.thumbnailUrl} alt={content.title} className={styles.cardThumb} />
+                            <Image src={content.thumbnailUrl} alt={content.title} width={960} height={540} className={styles.cardThumb} />
                         )}
                         <div className={styles.titleRow}>
                             <h1>{content.title}</h1>
@@ -187,7 +188,7 @@ function MediaDetail() {
                                         </p>
                                         <p className={styles.timelineActor}>{h.actionByName}</p>
                                         {h.comment && (
-                                            <p className={styles.timelineComment}>"{h.comment}"</p>
+                                            <p className={styles.timelineComment}>&quot;{h.comment}&quot;</p>
                                         )}
                                         <span className={styles.timelineTime}>
                                             {new Date(h.transitionedAt).toLocaleString()}

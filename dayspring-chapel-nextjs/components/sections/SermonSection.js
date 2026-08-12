@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import apiClient from '@/lib/apiClient';
 import SermonPlayer from '@/components/SermonPlayer';
 import { extractYouTubeId } from '@/lib/youtube';
@@ -13,11 +13,7 @@ export default function SermonSection({ limit = null }) {
     const [error, setError] = useState(null);
     const [expandedId, setExpandedId] = useState(null);
 
-    useEffect(() => {
-        fetchSermons();
-    }, []);
-
-    const fetchSermons = async () => {
+    const fetchSermons = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -30,7 +26,11 @@ export default function SermonSection({ limit = null }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [limit]);
+
+    useEffect(() => {
+        Promise.resolve().then(fetchSermons);
+    }, [fetchSermons]);
 
     if (loading) {
         return (
@@ -38,10 +38,10 @@ export default function SermonSection({ limit = null }) {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 uppercase">
-                            Sermon Section
+                            Sermons
                         </h2>
                         <p className="text-gray-700 max-w-4xl mx-auto text-base md:text-lg">
-                            Listen to life-transforming messages from God's word.
+                            Listen to life-transforming messages from God&apos;s word.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
@@ -86,10 +86,10 @@ export default function SermonSection({ limit = null }) {
             <div className="max-w-7xl mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 uppercase">
-                        Sermon Section
+                        Sermons
                     </h2>
                     <p className="text-gray-700 max-w-4xl mx-auto text-base md:text-lg">
-                        Welcome to DaySpringChapel. a place where purpose is discovered, potentials are built. and dreams are fulfilled.
+                        Welcome to DaySpring Chapel, a place where purpose is discovered, potentials are built, and dreams are fulfilled.
                     </p>
                 </div>
 
@@ -105,19 +105,19 @@ export default function SermonSection({ limit = null }) {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                        {sermons.map((sermon, index) => {
+                        {sermons.map((sermon) => {
                             const sermonId = sermon.id || sermon.sermonId;
                             const isExpanded = expandedId === sermonId;
                             const isVideo = sermon.sermonType === 2;
                             const youtubeId = isVideo ? extractYouTubeId(sermon.youtubeUrl) : null;
                             return (
-                                <div key={index} className="flex flex-col gap-3">
+                                <div key={sermonId} className="flex flex-col gap-3">
                                     <div className="bg-primary rounded-2xl p-4 flex items-center shadow-lg">
                                         {/* Circular Image Container */}
                                         <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full bg-white overflow-hidden flex-shrink-0 border-4 border-white -ml-8 md:-ml-12 shadow-md z-10">
                                             <Image
                                                 src={sermon.imageUrl || "/headset.png"}
-                                                alt="Sermon Headset"
+                                                alt={sermon.title}
                                                 fill
                                                 className="object-cover p-2"
                                             />
@@ -127,6 +127,7 @@ export default function SermonSection({ limit = null }) {
                                         <div className="flex-grow ml-4 md:ml-8">
                                             <button
                                                 type="button"
+                                                aria-expanded={isExpanded}
                                                 onClick={() => setExpandedId(isExpanded ? null : sermonId)}
                                                 className="w-full bg-white text-black font-bold py-3 px-6 rounded-lg flex items-center justify-between shadow-sm hover:bg-gray-50 transition-colors"
                                             >

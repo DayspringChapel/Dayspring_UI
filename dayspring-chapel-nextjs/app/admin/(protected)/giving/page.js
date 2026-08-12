@@ -73,7 +73,6 @@ export default function GivingPage() {
 
     const load = useCallback(async () => {
         try {
-            setLoading(true);
             setError(null);
             const data = await apiClient.getGivings();
             setGivings(Array.isArray(data) ? data : []);
@@ -84,7 +83,7 @@ export default function GivingPage() {
         }
     }, []);
 
-    useEffect(() => { load(); }, [load]);
+    useEffect(() => { Promise.resolve().then(load); }, [load]);
 
     const closeModal = () => {
         setModalType(null);
@@ -324,7 +323,7 @@ export default function GivingPage() {
                                     <label className={styles.label}>Account Name *</label>
                                     <input className={styles.input} value={form.accountName}
                                         onChange={(e) => handleField('accountName', e.target.value)}
-                                        placeholder="e.g. Dayspring Chapel" />
+                                        placeholder="e.g. DaySpring Chapel" />
                                 </div>
                             </div>
 

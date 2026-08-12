@@ -11,7 +11,7 @@ import styles from './admin.module.css';
 export default function ProtectedAdminLayout({ children }) {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 1024);
 
     useEffect(() => {
         const handleResize = () => {
@@ -22,7 +22,6 @@ export default function ProtectedAdminLayout({ children }) {
             }
         };
 
-        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -31,12 +30,12 @@ export default function ProtectedAdminLayout({ children }) {
         const token = apiClient.getToken();
 
         if (!token) {
-            setLoading(false);
             router.replace('/admin/login');
+            Promise.resolve().then(() => setLoading(false));
             return;
         }
 
-        setLoading(false);
+        Promise.resolve().then(() => setLoading(false));
     }, [router]);
 
     const token = typeof window !== 'undefined' ? apiClient.getToken() : null;
@@ -68,7 +67,7 @@ export default function ProtectedAdminLayout({ children }) {
                             />
                         </svg>
                     </button>
-                    <h1 className={styles.pageTitle}>Dayspring CMS</h1>
+                    <h1 className={styles.pageTitle}>DaySpring Chapel CMS</h1>
                     <div style={{ marginLeft: 'auto' }}>
                         <ProfileBadge />
                     </div>
