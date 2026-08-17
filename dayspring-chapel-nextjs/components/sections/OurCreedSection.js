@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export default function OurcreedSection({ className = '' }) {
     const point = [
-        'I shall go out with joy and be led forth in peace; lines are falling unto me in plesant palces, peace is extended to me like a river and the wealth of nation like a flowing stream. Goodness and Mercy shall follow me all the days of my life and I shall dwell in the house of the Lord forever.',
+        'I shall go out with joy and be led forth in peace; lines are falling unto me in pleasant places, peace is extended to me like a river, and the wealth of nations like a flowing stream. Goodness and mercy shall follow me all the days of my life, and I shall dwell in the house of the Lord forever.',
 
     ];
 

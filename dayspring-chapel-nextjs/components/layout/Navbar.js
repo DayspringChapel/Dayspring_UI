@@ -2,90 +2,51 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+
+const navigation = [
+    { href: '/', label: 'Home' },
+    { href: '/about', label: 'About' },
+    { href: '/library', label: 'Library' },
+    { href: '/donate', label: 'Giving' },
+    { href: '/events', label: 'Events' },
+    { href: '/gallery', label: 'Gallery' },
+    { href: '/appointment', label: 'Appointment' },
+];
 
 export default function Navbar() {
+    const pathname = usePathname();
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-
+        const handleScroll = () => setIsScrolled(window.scrollY > 50);
+        handleScroll();
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
         <nav
-            className={`
-        flex items-center justify-around
-        bg-dark text-white
-        transition-all duration-300
-        ${isScrolled ? 'fixed top-0 left-0 right-0 z-50 shadow-lg' : ''}
-        text-xs
-      `}
+            className={`flex items-center justify-around bg-dark text-xs text-white transition-all duration-300 ${isScrolled ? 'fixed top-0 left-0 right-0 z-50 shadow-lg' : ''}`}
+            aria-label="Primary navigation"
         >
-            {/* Logo */}
-            <div>
-                <Link href="/" className="block">
-                    <Image
-                        src="/logo.png"
-                        alt="Dayspring Chapel Logo"
-                        width={92}
-                        height={50}
-                        className="w-[92px] h-[50px]"
-                        priority
-                    />
-                </Link>
-            </div>
+            <Link href="/" className="block" aria-label="DaySpring Chapel home">
+                <Image src="/logo.png" alt="DaySpring Chapel" width={92} height={50} className="h-[50px] w-[92px]" priority />
+            </Link>
 
-            {/* Desktop Navigation Links */}
-            <ul className="hidden md:flex items-center gap-8">
-                <li>
-                    <Link href="/" className="hover:text-primary transition-colors">
-                        Home
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/about" className="hover:text-primary transition-colors">
-                        About
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        href="/library"
-                        className="hover:text-primary transition-colors"
-                    >
-                        Library
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/donate" className="hover:text-primary transition-colors">
-                        Giving
-                    </Link>
-                </li>
-                <li>
-                    <Link href="/events" className="hover:text-primary transition-colors">
-                        Events
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        href="/gallery"
-                        className="hover:text-primary transition-colors"
-                    >
-                        Gallery
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        href="/appointment"
-                        className="hover:text-primary transition-colors"
-                    >
-                        Appointment
-                    </Link>
-                </li>
+            <ul className="hidden items-center gap-8 md:flex">
+                {navigation.map((item) => (
+                    <li key={item.href}>
+                        <Link
+                            href={item.href}
+                            className={`transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : ''}`}
+                            aria-current={pathname === item.href ? 'page' : undefined}
+                        >
+                            {item.label}
+                        </Link>
+                    </li>
+                ))}
             </ul>
         </nav>
     );

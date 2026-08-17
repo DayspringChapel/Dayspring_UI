@@ -247,7 +247,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
             <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
                 <div className={styles.header}>
-                    <h2>Dayspring</h2>
+                    <h2>DaySpring Chapel</h2>
                     <p>Admin Panel</p>
                 </div>
 

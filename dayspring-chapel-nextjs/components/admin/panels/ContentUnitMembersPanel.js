@@ -27,7 +27,7 @@ export default function ContentUnitMembersPanel() {
 
     useEffect(() => { loadData(); }, []);
 
-    const loadData = async () => {
+    async function loadData() {
         setLoading(true);
         try {
             const units = await apiClient.getUnits().catch(() => []);

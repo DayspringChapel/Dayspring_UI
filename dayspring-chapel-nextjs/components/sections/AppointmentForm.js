@@ -88,20 +88,6 @@ export default function AppointmentForm() {
 
                 await apiClient.scheduleAppointment(appointmentData);
                 setSubmitted(true);
-
-                // Reset form after 5 seconds
-                setTimeout(() => {
-                    setFormData({
-                        firstname: '',
-                        surname: '',
-                        email: '',
-                        countryCode: '+234',
-                        phone: '',
-                        venue: '0',
-                        purpose: '',
-                    });
-                    setSubmitted(false);
-                }, 5000);
             } catch (error) {
                 console.error('Failed to schedule appointment:', error);
                 // Extract the error message from the backend if available
@@ -139,7 +125,7 @@ export default function AppointmentForm() {
 
                 <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
                     {submitted ? (
-                        <div className="text-center py-12">
+                        <div className="text-center py-12" role="status" aria-live="polite">
                             <div className="mb-6">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 text-green-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -147,12 +133,22 @@ export default function AppointmentForm() {
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h3>
                             <p className="text-gray-600">Your appointment request has been submitted. We will contact you soon.</p>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFormData({ firstname: '', surname: '', email: '', countryCode: '+234', phone: '', venue: '0', purpose: '' });
+                                    setSubmitted(false);
+                                }}
+                                className="mt-6 rounded-lg bg-primary px-6 py-3 font-semibold text-white hover:bg-primary-dark"
+                            >
+                                Request Another Appointment
+                            </button>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* API Error */}
                             {apiError && (
-                                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm" role="alert">
                                     {apiError}
                                 </div>
                             )}

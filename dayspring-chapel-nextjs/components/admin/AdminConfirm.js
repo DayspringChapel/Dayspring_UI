@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function AdminConfirm({ dialog, onClose }) {
-    const [inputValue, setInputValue] = useState('');
-
-    useEffect(() => {
-        setInputValue('');
-    }, [dialog]);
-
     if (!dialog) return null;
+    return <AdminConfirmDialog key={`${dialog.title || ''}:${dialog.message || ''}`} dialog={dialog} onClose={onClose} />;
+}
+
+function AdminConfirmDialog({ dialog, onClose }) {
+    const [inputValue, setInputValue] = useState('');
 
     const {
         title = 'Confirm Action',

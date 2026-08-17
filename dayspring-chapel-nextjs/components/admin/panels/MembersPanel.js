@@ -74,7 +74,7 @@ export default function MembersPanel() {
 
     useEffect(() => { loadData(); }, []);
 
-    const loadData = async () => {
+    async function loadData() {
         try {
             const [bioRes, membersRes, usersRes, rolesRes, unitsRes, sgRes, occRes] = await Promise.all([
                 apiClient.getBioData().catch(() => []),
@@ -637,7 +637,7 @@ export default function MembersPanel() {
                                                     {availableUsersForLink.map((u) => <option key={u.id} value={u.id}>{u.userName} — {u.email}</option>)}
                                                 </select>
                                                 {availableUsersForLink.length === 0 && (
-                                                    <p style={{ fontSize: '0.78rem', color: '#b45309', marginTop: '0.4rem' }}>All existing users already have member profiles. Use "Create New User" instead.</p>
+                                                    <p style={{ fontSize: '0.78rem', color: '#b45309', marginTop: '0.4rem' }}>All existing users already have member profiles. Use &quot;Create New User&quot; instead.</p>
                                                 )}
                                             </div>
                                         )}

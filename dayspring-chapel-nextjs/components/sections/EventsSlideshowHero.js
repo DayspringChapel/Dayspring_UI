@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
@@ -10,10 +10,8 @@ import VideoEmbed from '@/components/VideoEmbed';
 
 export default function EventsSlideshowHero() {
     const { events, loading } = useEvents();
-    const [featured, setFeatured] = useState(null);
-
-    useEffect(() => {
-        if (!events || events.length === 0) return;
+    const featured = useMemo(() => {
+        if (!events || events.length === 0) return null;
         const now = new Date();
         const upcoming = events
             .filter((e) => {
@@ -24,7 +22,7 @@ export default function EventsSlideshowHero() {
                 new Date(a.eventDate || a.datetime || 0) -
                 new Date(b.eventDate || b.datetime || 0)
             );
-        setFeatured(upcoming[0] || events[0]);
+        return upcoming[0] || events[0];
     }, [events]);
 
     if (loading || !featured) {

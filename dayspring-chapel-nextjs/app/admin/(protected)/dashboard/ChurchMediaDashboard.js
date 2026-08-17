@@ -26,9 +26,7 @@ export default function ChurchMediaDashboard({ userName }) {
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
 
-    useEffect(() => { load(); }, []);
-
-    const load = async () => {
+    async function load() {
         try {
             const [
                 mediaRes, approvalsRes, scheduledRes,
@@ -94,6 +92,8 @@ export default function ChurchMediaDashboard({ userName }) {
             setLoading(false);
         }
     };
+
+    useEffect(() => { load(); }, []);
 
     const navigate = useCallback((path) => {
         setNavigating(path);

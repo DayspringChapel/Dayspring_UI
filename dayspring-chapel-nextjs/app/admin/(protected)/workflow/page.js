@@ -65,7 +65,7 @@ export default function WorkflowPage() {
 
     useEffect(() => { load(); }, []);
 
-    const load = async () => {
+    async function load() {
         setLoading(true);
         try {
             const data = await apiClient.getMediaContents();
@@ -262,10 +262,10 @@ export default function WorkflowPage() {
                 <AdminConfirm dialog={dialog} onClose={closeDialog} />
                 <div className={styles.header}>
                     <h1>My Content</h1>
-                    <p>Track the stage of everything you've uploaded</p>
+                    <p>Track the stage of everything you&apos;ve uploaded</p>
                 </div>
                 {contents.length === 0 ? (
-                    <div className={styles.empty}>You haven't uploaded anything yet.</div>
+                    <div className={styles.empty}>You haven&apos;t uploaded anything yet.</div>
                 ) : (
                     <div className={styles.list}>
                         {contents.map((item) => <Row key={item.id} item={item} showReviewActions={false} />)}

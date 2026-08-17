@@ -13,6 +13,7 @@
 //   IG_ACCESS_TOKEN              — Instagram Graph API access token
 
 import crypto from 'crypto';
+import { hasServerPermission } from '@/lib/serverApi';
 
 // ── Facebook ──────────────────────────────────────────────────────────────────
 
@@ -198,6 +199,10 @@ async function postToInstagram(description, imageUrl) {
 
 export async function POST(request) {
     try {
+        if (!(await hasServerPermission(request, 'CanPublishContent'))) {
+            return Response.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const body = await request.json();
 
         // Support two calling modes:

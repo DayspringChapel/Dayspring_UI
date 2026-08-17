@@ -7,14 +7,12 @@ export default function DonutChart({ segments = [], size = 180, thickness = 30, 
     const circumference = 2 * Math.PI * r;
     const total = segments.reduce((s, seg) => s + (seg.value || 0), 0) || 1;
 
-    let cumulative = 0;
-    const arcs = segments.map((seg) => {
+    const arcs = segments.reduce((result, seg) => {
+        const cumulative = result.reduce((sum, arc) => sum + arc.dash, 0);
         const fraction = seg.value / total;
         const dash = fraction * circumference;
-        const arc = { ...seg, dash, gap: circumference - dash, offset: cumulative };
-        cumulative += dash;
-        return arc;
-    });
+        return [...result, { ...seg, dash, gap: circumference - dash, offset: cumulative }];
+    }, []);
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem', flexWrap: 'wrap' }}>

@@ -33,7 +33,7 @@ export default function CalendarYearsPanel() {
 
     useEffect(() => { loadCalendarYears(); }, []);
 
-    const loadCalendarYears = async () => {
+    async function loadCalendarYears() {
         try {
             const data = await apiClient.getCalendarYears();
             setCalendarYears(Array.isArray(data) ? data : []);

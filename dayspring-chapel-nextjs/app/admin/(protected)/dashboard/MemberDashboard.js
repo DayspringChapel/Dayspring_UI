@@ -43,9 +43,7 @@ export default function MemberDashboard({ userName, userData }) {
     const [loading, setLoading] = useState(true);
     const [navigating, setNavigating] = useState(null);
 
-    useEffect(() => { load(); }, []);
-
-    const load = async () => {
+    const load = useCallback(async () => {
         try {
             const userId = userData?.id || userData?.Id;
             if (!userId) return;
@@ -59,7 +57,9 @@ export default function MemberDashboard({ userName, userData }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userData]);
+
+    useEffect(() => { Promise.resolve().then(load); }, [load]);
 
     const navigate = useCallback((path) => {
         setNavigating(path);

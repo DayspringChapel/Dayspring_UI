@@ -7,11 +7,19 @@ import apiClient from '@/lib/apiClient';
 
 export default function LibrarySection() {
     const [bookCount, setBookCount] = useState(null);
-    const [sermonCount, setSermonCount] = useState(null);
+    const [audioCount, setAudioCount] = useState(null);
+    const [videoCount, setVideoCount] = useState(null);
 
     useEffect(() => {
         apiClient.getBooks().then((data) => setBookCount((data || []).length)).catch(() => setBookCount(0));
-        apiClient.getSermons().then((data) => setSermonCount((data || []).length)).catch(() => setSermonCount(0));
+        apiClient.getSermons().then((data) => {
+            const sermons = Array.isArray(data) ? data : [];
+            setAudioCount(sermons.filter((sermon) => sermon.sermonType === 1).length);
+            setVideoCount(sermons.filter((sermon) => sermon.sermonType === 2).length);
+        }).catch(() => {
+            setAudioCount(0);
+            setVideoCount(0);
+        });
     }, []);
 
     const libraryItems = [
@@ -26,17 +34,17 @@ export default function LibrarySection() {
         {
             id: 2,
             title: 'Audio Sermons',
-            count: sermonCount,
+            count: audioCount,
             label: 'messages',
-            image: '/library.png',
+            image: '/headset.png',
             href: '/library',
         },
         {
             id: 3,
             title: 'Video Sermons',
-            count: sermonCount,
+            count: videoCount,
             label: 'teachings',
-            image: '/library.png',
+            image: '/carousel-img-1.png',
             href: '/library',
         },
     ];

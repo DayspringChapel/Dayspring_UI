@@ -35,7 +35,7 @@ export default function RolesPage() {
 
     useEffect(() => { loadData(); }, []);
 
-    const loadData = async () => {
+    async function loadData() {
         try {
             const [membersRes, usersRes, rolesRes, unitsRes] = await Promise.all([
                 apiClient.getMembers().catch(() => []),

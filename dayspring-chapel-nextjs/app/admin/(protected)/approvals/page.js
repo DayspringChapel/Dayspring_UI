@@ -10,7 +10,7 @@ export default function ApprovalsPage() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('admin');
     const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(null);
     const [modal, setModal] = useState(null); // { type: 'approve'|'reject', contentId }
     const [comment, setComment] = useState('');
@@ -18,7 +18,6 @@ export default function ApprovalsPage() {
     const { toast, notify, clearToast } = useToast();
 
     useEffect(() => {
-        setLoading(true);
         const fetch = activeTab === 'admin'
             ? apiClient.getAdminApprovalQueue()
             : apiClient.getSuperAdminApprovalQueue();
@@ -71,7 +70,7 @@ export default function ApprovalsPage() {
                 {TABS.map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => { setLoading(true); setActiveTab(tab.id); }}
                         className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ''}`}
                     >
                         {tab.label}

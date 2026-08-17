@@ -14,13 +14,12 @@ export default function LibraryContent() {
         fetchBooks();
     }, []);
 
-    const fetchBooks = async () => {
+    async function fetchBooks() {
         try {
             setLoading(true);
             setError(null);
             const data = await apiClient.getBooks();
-            // Show only first 6 books on the main library page
-            setBooks((data || []).slice(0, 6));
+            setBooks(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to fetch books:', err);
             setError('Failed to load books. Please try again later.');
@@ -116,24 +115,18 @@ export default function LibraryContent() {
                                     </div>
                                     <h3 className="text-xl font-bold text-gray-900 mb-1">{book.title}</h3>
                                     <p className="text-gray-900 font-medium mb-4">{book.author}</p>
-                                    <Link
-                                        href={`/library/${book.id}`}
+                                    {book.bookUrlLink && <Link
+                                        href={book.bookUrlLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="text-primary font-semibold hover:text-primary-dark transition-colors inline-flex items-center gap-1"
                                     >
-                                        View <span className="text-sm">›</span>
-                                    </Link>
+                                        Open Book <span className="text-sm" aria-hidden="true">→</span>
+                                    </Link>}
                                 </div>
                             ))}
                         </div>
 
-                        <div className="flex justify-end">
-                            <Link
-                                href="/library/all"
-                                className="text-primary font-semibold hover:text-primary-dark transition-colors inline-flex items-center gap-1"
-                            >
-                                View All <span className="text-sm">›</span>
-                            </Link>
-                        </div>
                     </>
                 )}
             </div>

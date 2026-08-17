@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
+import Image from 'next/image';
 
 export default function BooksPanel() {
     const [books, setBooks] = useState([]);
@@ -21,7 +22,7 @@ export default function BooksPanel() {
 
     useEffect(() => { loadBooks(); }, []);
 
-    const loadBooks = async () => {
+    async function loadBooks() {
         try {
             const data = await apiClient.getBooks();
             setBooks(Array.isArray(data) ? data : []);
@@ -103,7 +104,7 @@ export default function BooksPanel() {
                 <div className={styles.grid}>
                     {books.map((book) => (
                         <div key={book.id} className={styles.card}>
-                            {book.bookImage && <img src={book.bookImage} alt={book.title} className={styles.cardImage} />}
+                            {book.bookImage && <Image src={book.bookImage} alt={book.title} width={640} height={360} className={styles.cardImage} />}
                             <div className={styles.cardContent}>
                                 <h3 className={styles.cardTitle}>{book.title}</h3>
                                 <p className={styles.cardDescription}>{book.author}</p>

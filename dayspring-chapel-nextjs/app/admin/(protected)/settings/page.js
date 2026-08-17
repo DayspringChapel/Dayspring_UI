@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
+import Image from 'next/image';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
@@ -328,8 +329,9 @@ export default function SettingsPage() {
 
                         {/* Image preview */}
                         {imageUrl && (
-                            <img
+                            <Image
                                 src={imageUrl} alt="Announcement preview"
+                                width={960} height={360}
                                 style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: '0.6rem',
                                     border: '1px solid rgba(15,23,42,0.10)', marginBottom: '0.75rem' }}
                                 onError={(e) => { e.target.style.display = 'none'; }}

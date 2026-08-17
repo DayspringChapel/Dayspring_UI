@@ -35,9 +35,7 @@ export default function SuperAdminDashboard({ userName }) {
     const [loading, setLoading]     = useState(true);
     const [navigating, setNavigating] = useState(null); // path being loaded
 
-    useEffect(() => { load(); }, []);
-
-    const load = async () => {
+    async function load() {
         try {
             const [
                 appointments, events, books, sermons,
@@ -90,6 +88,8 @@ export default function SuperAdminDashboard({ userName }) {
         }
     };
 
+    useEffect(() => { load(); }, []);
+
     const navigate = useCallback((path) => {
         setNavigating(path);
         router.push(path);
@@ -136,7 +136,7 @@ export default function SuperAdminDashboard({ userName }) {
     ];
 
     const quickActions = [
-        { label: 'Add Member',      path: '/admin/members/create', color: '#7c3aed', icon: '👤' },
+        { label: 'Manage Members',  path: '/admin/members', color: '#7c3aed', icon: '👤' },
         { label: 'Approve Content', path: '/admin/approvals',      color: '#ef4444', icon: '✅' },
         { label: 'Publishing',      path: '/admin/publishing',     color: '#3b82f6', icon: '📤' },
         { label: 'Media Library',   path: '/admin/media',          color: '#a78bfa', icon: '🎬' },
@@ -213,16 +213,6 @@ export default function SuperAdminDashboard({ userName }) {
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
                         <QuickGuideWidget />
-                        <div className={styles.sideCard}>
-                            <h4 className={styles.sideCardTitle}>System Snapshot</h4>
-                            <ul className={styles.snapshotList}>
-                                <SnapItem label="Departments"  value={stats.units}        color="#a78bfa" />
-                                <SnapItem label="Books"        value={stats.books}        color="#3b82f6" />
-                                <SnapItem label="Appointments" value={stats.appointments} color="#be123c" />
-                                <SnapItem label="Albums"       value={stats.albums}       color="#f59e0b" />
-                                <SnapItem label="Rejected"     value={pipeline.rejected}  color="#ef4444" />
-                            </ul>
-                        </div>
                     </aside>
                 </div>
             </div>
@@ -290,16 +280,6 @@ function ActionButtonRow({ label, color, icon, onClick, isNavigating, anyNavigat
                 </>
             )}
         </button>
-    );
-}
-
-function SnapItem({ label, value, color }) {
-    return (
-        <li className={styles.snapItem}>
-            <span className={styles.snapDot} style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-            <span className={styles.snapLabel}>{label}</span>
-            <span className={styles.snapValue}>{value}</span>
-        </li>
     );
 }
 

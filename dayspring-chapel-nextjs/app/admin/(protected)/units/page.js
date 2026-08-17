@@ -75,7 +75,7 @@ export default function UnitsPage() {
         ));
     }, [memberOptions, unitHeadSearch]);
 
-    const loadData = async () => {
+    async function loadData() {
         setLoading(true);
         try {
             const [unitsData, membersData, bioDataResult] = await Promise.all([

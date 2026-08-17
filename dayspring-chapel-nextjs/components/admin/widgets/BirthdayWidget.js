@@ -11,11 +11,7 @@ export default function BirthdayWidget() {
     const { toast, notify, clearToast } = useToast();
     const [currentMonth] = useState(() => new Date().toLocaleString('default', { month: 'long' }));
 
-    useEffect(() => {
-        loadBirthdays();
-    }, []);
-
-    const loadBirthdays = async () => {
+    async function loadBirthdays() {
         try {
             const members = await apiClient.getBioData();
             if (Array.isArray(members)) {
@@ -40,6 +36,10 @@ export default function BirthdayWidget() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        Promise.resolve().then(loadBirthdays);
+    }, []);
 
     const getDaySuffix = (day) => {
         if (day > 3 && day < 21) return 'th';

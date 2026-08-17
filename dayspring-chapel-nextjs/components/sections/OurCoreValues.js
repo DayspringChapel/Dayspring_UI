@@ -5,7 +5,7 @@ import Image from 'next/image';
 export default function OurCoreValues({ className = '' }) {
     const point = [
         'Love.',
-        'Intergrity and Trust.',
+        'Integrity and Trust.',
         'Honor and Respect.',
         'Discipline.',
 

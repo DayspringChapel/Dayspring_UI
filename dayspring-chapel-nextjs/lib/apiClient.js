@@ -590,6 +590,13 @@ class ApiClient {
         return this.normalizeArray(data, this.normalizeBook);
     }
 
+    async subscribeToNewsletter(email) {
+        return this.request('/api/v1/Newsletters/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        });
+    }
+
     async createBook(formData) {
         return this.upload('/api/v1/Books/create', formData, 'POST');
     }

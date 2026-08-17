@@ -17,7 +17,7 @@ export default function GroupLeaderSection() {
 
     useEffect(() => { loadAll(); }, []);
 
-    const loadAll = async () => {
+    async function loadAll() {
         try {
             const [unitsRes, sgRes, membersRes, bioRes] = await Promise.allSettled([
                 apiClient.getUnits(),

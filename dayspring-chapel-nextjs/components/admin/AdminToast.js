@@ -33,13 +33,14 @@ const STYLES = {
 };
 
 export default function AdminToast({ toast, onClose }) {
-    const [visible, setVisible] = useState(false);
+    if (!toast) return null;
+    return <AdminToastContent key={toast.id} toast={toast} onClose={onClose} />;
+}
+
+function AdminToastContent({ toast, onClose }) {
     const [progress, setProgress] = useState(100);
 
     useEffect(() => {
-        if (!toast) { setVisible(false); return; }
-        setVisible(true);
-        setProgress(100);
         const duration = 3500;
         const start = Date.now();
         const interval = setInterval(() => {
@@ -51,8 +52,6 @@ export default function AdminToast({ toast, onClose }) {
         return () => clearInterval(interval);
     }, [toast]);
 
-    if (!toast) return null;
-
     const type = toast.type || 'info';
     const s = STYLES[type] || STYLES.info;
 
@@ -63,8 +62,8 @@ export default function AdminToast({ toast, onClose }) {
                 top: '1.25rem',
                 right: '1.5rem',
                 zIndex: 9999,
-                transform: visible ? 'translateX(0) scale(1)' : 'translateX(120%) scale(0.95)',
-                opacity: visible ? 1 : 0,
+                transform: 'translateX(0) scale(1)',
+                opacity: 1,
                 transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease',
                 minWidth: 300,
                 maxWidth: 420,

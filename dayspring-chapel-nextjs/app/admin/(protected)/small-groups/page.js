@@ -60,7 +60,7 @@ export default function SmallGroupsPage() {
         return map;
     }, [memberOptions]);
 
-    const loadData = async () => {
+    async function loadData() {
         setLoading(true);
         try {
             const [groupsData, membersData, bioDataResult] = await Promise.all([

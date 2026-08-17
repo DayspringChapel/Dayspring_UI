@@ -31,7 +31,7 @@ export default function ChurchProgramsPanel() {
         apiClient.getCalendarYears().then(setCalendarYears).catch(() => setCalendarYears([]));
     }, []);
 
-    const loadPrograms = async () => {
+    async function loadPrograms() {
         try {
             const data = await apiClient.getChurchPrograms();
             setPrograms(Array.isArray(data) ? data : []);

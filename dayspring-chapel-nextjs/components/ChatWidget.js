@@ -7,7 +7,7 @@ const BRAND_DARK = '#d9752c';
 
 const WELCOME = {
     role: 'assistant',
-    content: "Hi! I'm the Dayspring Assistant 👋 How can I help you today? You can ask me about our services, events, how to book an appointment, or anything else about the church.",
+    content: "Hi! I'm the DaySpring Assistant 👋 How can I help you today? You can ask me about our services, events, how to book an appointment, or anything else about the church.",
 };
 
 function SendIcon() {
@@ -197,7 +197,7 @@ export default function ChatWidget() {
                         </div>
                         <div style={{ flex: 1 }}>
                             <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: '0.9rem', lineHeight: 1.2 }}>
-                                Dayspring Assistant
+                                DaySpring Assistant
                             </p>
                             <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: '0.72rem' }}>
                                 {streaming ? 'Typing…' : 'Online · Ask me anything'}
