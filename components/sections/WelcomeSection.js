@@ -7,7 +7,7 @@ export default function WelcomeSection() {
             <h2 className="text-3xl md:text-4xl font-bold italic text-[#F58634] mb-8">
                 WELCOME TO DAYSPRING CHAPEL
             </h2>
-            <p className="max-w-5xl mx-auto mb-6 text-gray-700 text-lg leading-relaxed">
+            <p className="max-w-5xl mx-auto mb-6 text-white md:text-gray-700 text-lg leading-relaxed">
                 As the Victory Life Bible Church grew, there came the need to establish
                 modern-day centers where young Elites and Students can worship under a
                 contemporary and supernatural atmosphere. This led to the establishment
