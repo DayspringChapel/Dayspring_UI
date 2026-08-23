@@ -1,56 +1,40 @@
-import { getStreams, setStreams, setYouTubeActive, touchYouTubeCheck } from '@/lib/livestreamStore';
-import { hasServerPermission } from '@/lib/serverApi';
-import { extractYouTubeId } from '@/lib/youtube';
+const API_BASE = (
+    process.env.NEXT_PUBLIC_BACKEND_API_URL ||
+    'https://dayspring-backend-4ar8.onrender.com'
+).replace(/\/$/, '');
 
-const YT_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
-
-async function checkYouTubeLive(url) {
-    const videoId = extractYouTubeId(url);
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    if (!videoId || !apiKey) return null; // can't check without key
-
-    try {
-        const res = await fetch(
-            `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${apiKey}`
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
-        const status = data.items?.[0]?.snippet?.liveBroadcastContent;
-        // 'live' | 'upcoming' | 'none' — 'none' means stream has ended
-        return status === 'live';
-    } catch {
-        return null;
-    }
-}
+const EMPTY_SETTINGS = {
+    youtube: { active: false, url: '', description: '' },
+    facebook: { active: false, url: '', description: '' },
+    instagram: { active: false, url: '', description: '' },
+    imageUrl: '',
+    hideWatchOnline: false,
+};
 
 export async function GET() {
-    const streams = getStreams();
-
-    // Auto-detect YouTube stream end (throttled to every 5 min)
-    const sinceLastCheck = Date.now() - (streams._meta?.lastYouTubeCheck || 0);
-    if (
-        streams.youtube?.active &&
-        streams.youtube?.url &&
-        sinceLastCheck > YT_CHECK_INTERVAL
-    ) {
-        touchYouTubeCheck();
-        const stillLive = await checkYouTubeLive(streams.youtube.url);
-        if (stillLive === false) {
-            // Stream has ended — auto-disable
-            setYouTubeActive(false);
-        }
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/site-settings/livestream`, { cache: 'no-store' });
+        if (!response.ok) return Response.json(EMPTY_SETTINGS);
+        return Response.json(await response.json());
+    } catch {
+        return Response.json(EMPTY_SETTINGS);
     }
-
-    return Response.json(getStreams());
 }
 
 export async function POST(request) {
-    if (!(await hasServerPermission(request, 'CanManageLivestream'))) {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const authorization = request.headers.get('authorization');
+    if (!authorization) return Response.json({ error: 'Forbidden' }, { status: 403 });
+
     try {
         const body = await request.json();
-        return Response.json(setStreams(body));
+        const response = await fetch(`${API_BASE}/api/v1/site-settings/livestream`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', Authorization: authorization },
+            body: JSON.stringify(body),
+            cache: 'no-store',
+        });
+        const data = await response.json();
+        return Response.json(data, { status: response.status });
     } catch {
         return Response.json({ error: 'Invalid body' }, { status: 400 });
     }

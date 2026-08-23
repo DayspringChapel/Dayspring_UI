@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import apiClient from '@/lib/apiClient';
 
 // ── URL helpers ────────────────────────────────────────────────────────────────
 
@@ -198,6 +200,9 @@ export default function VideoHero() {
     const [streams, setStreams]     = useState(DEFAULT_STREAMS);
     const [isLive, setIsLive]       = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
+    const [hero, setHero] = useState({ mode: 0, items: [], rotationSeconds: 8, shuffle: false });
+    const [heroIndex, setHeroIndex] = useState(0);
+    const [heroFailed, setHeroFailed] = useState(false);
 
     const fetchStreams = useCallback(async () => {
         if (modalOpen) return;
@@ -221,24 +226,58 @@ export default function VideoHero() {
         return () => clearInterval(id);
     }, [fetchStreams, modalOpen]);
 
+    useEffect(() => {
+        apiClient.getHeroSettings()
+            .then((data) => {
+                const items = data.shuffle && Array.isArray(data.items)
+                    ? [...data.items].sort(() => Math.random() - 0.5)
+                    : (data.items || []);
+                setHero({ ...data, items });
+                setHeroFailed(false);
+                setHeroIndex(0);
+            })
+            .catch(() => setHeroFailed(true));
+    }, []);
+
+    useEffect(() => {
+        if (hero.mode !== 2 || hero.items.length < 2 || heroFailed) return undefined;
+        const timer = setInterval(() => setHeroIndex((index) => (index + 1) % hero.items.length), (hero.rotationSeconds || 8) * 1000);
+        return () => clearInterval(timer);
+    }, [hero, heroFailed]);
+
+    const useDefaultHero = heroFailed || hero.mode === 0 || !hero.items?.length;
+
     return (
         <>
             <div className="relative w-full h-screen overflow-hidden">
-                {/* Desktop Video */}
-                <video
-                    autoPlay muted loop playsInline
-                    className="absolute inset-0 w-full h-full object-cover hidden md:block"
-                >
-                    <source src="/home-hero-vid.mp4" type="video/mp4" />
-                </video>
-
-                {/* Mobile Video */}
-                <video
-                    autoPlay muted loop playsInline
-                    className="absolute inset-0 w-full h-full object-cover md:hidden"
-                >
-                    <source src="/home-hero-vid-portrait.mp4" type="video/mp4" />
-                </video>
+                {useDefaultHero ? (
+                    <>
+                        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hidden md:block">
+                            <source src="/home-hero-vid.mp4" type="video/mp4" />
+                        </video>
+                        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover md:hidden">
+                            <source src="/home-hero-vid-portrait.mp4" type="video/mp4" />
+                        </video>
+                    </>
+                ) : hero.mode === 1 ? (
+                    <video
+                        key={hero.items[0].url}
+                        src={hero.items[0].url}
+                        autoPlay muted loop playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={() => setHeroFailed(true)}
+                    />
+                ) : (
+                    <Image
+                        key={hero.items[heroIndex]?.url}
+                        src={hero.items[heroIndex]?.url}
+                        alt=""
+                        fill
+                        priority={heroIndex === 0}
+                        className="object-cover"
+                        onError={() => setHeroFailed(true)}
+                    />
+                )}
 
                 {/* Dark Overlay */}
                 <div className="absolute inset-0 bg-black/40" />

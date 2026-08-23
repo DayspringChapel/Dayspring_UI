@@ -39,7 +39,7 @@ export default function AdminLogin() {
                 const actualToken = response.token?.result || response.token;
 
                 if (actualToken) {
-                    apiClient.setToken(actualToken);
+                    apiClient.setAuthTokens(actualToken, response.refreshToken, rememberMe);
                 }
 
                 if (response.user || response.data) {
