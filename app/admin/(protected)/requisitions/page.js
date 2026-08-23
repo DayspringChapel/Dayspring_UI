@@ -1,0 +1,128 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import apiClient from '@/lib/apiClient';
+import styles from './requisitions.module.css';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+
+export default function RequisitionsPage() {
+    const [requisitions, setRequisitions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const { toast, notify, clearToast } = useToast();
+    const { dialog, confirm, closeDialog } = useConfirm();
+
+    useEffect(() => {
+        loadRequisitions();
+    }, []);
+
+    async function loadRequisitions() {
+        try {
+            const data = await apiClient.getRequisitions();
+            setRequisitions(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to load requisitions:', error);
+            setRequisitions([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleApprove = async (id) => {
+        const yes = await confirm({
+            title: 'Approve Requisition',
+            message: 'Are you sure you want to approve this requisition?',
+            confirmLabel: 'Approve',
+        });
+        if (!yes) return;
+
+        try {
+            await apiClient.approveRequisition(id);
+            await loadRequisitions();
+            notify('success', 'Requisition approved.');
+        } catch (error) {
+            console.error('Failed to approve requisition:', error);
+            notify('error', 'Failed to approve requisition. Please try again.');
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        const statusMap = {
+            0: { label: 'Pending', className: 'pending' },
+            1: { label: 'Approved', className: 'confirmed' },
+            2: { label: 'Rejected', className: 'cancelled' },
+        };
+        const statusInfo = statusMap[status] || statusMap[0];
+        return <span className={`${styles.badge} ${styles[statusInfo.className]}`}>{statusInfo.label}</span>;
+    };
+
+    if (loading && requisitions.length === 0) {
+        return <LoadingSpinner message="Loading requisitions" />;
+    }
+
+    return (
+        <div className={styles.container}>
+            <AdminToast toast={toast} onClose={clearToast} />
+            <AdminConfirm dialog={dialog} onClose={closeDialog} />
+            <div className={styles.header}>
+                <h1>Requisitions</h1>
+                <p>Review and approve requisition requests</p>
+            </div>
+
+            {requisitions.length === 0 ? (
+                <div className={styles.empty}>
+                    <p>No requisitions found.</p>
+                </div>
+            ) : (
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Requestor</th>
+                                <th>Department</th>
+                                <th>Description</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {requisitions.map((req) => {
+                                const total = req.items?.reduce(
+                                    (sum, item) => sum + (item.quantity * item.unitPrice || 0),
+                                    0
+                                ) || 0;
+
+                                return (
+                                    <tr key={req.id}>
+                                        <td>{req.requestorName}</td>
+                                        <td>{req.department || req.unit || 'N/A'}</td>
+                                        <td>{req.description}</td>
+                                        <td>{req.items?.length || 0} items</td>
+                                        <td>${total.toFixed(2)}</td>
+                                        <td>{getStatusBadge(req.status || 0)}</td>
+                                        <td>
+                                            <div className={styles.actions}>
+                                                {req.status !== 1 && (
+                                                    <button
+                                                        className={styles.confirmBtn}
+                                                        onClick={() => handleApprove(req.id)}
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+}
