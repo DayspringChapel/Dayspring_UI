@@ -55,7 +55,7 @@ export default function MediaPage() {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (item) => {
         const yes = await confirm({
             title: 'Delete Media Content',
             message: 'Are you sure you want to delete this media content? This action cannot be undone.',
@@ -64,8 +64,9 @@ export default function MediaPage() {
         });
         if (!yes) return;
         try {
-            await apiClient.deleteMediaContent(id);
-            setContents((prev) => prev.filter((c) => c.id !== id));
+            if (item.category === 6) await apiClient.deleteMemoryShort(item.id);
+            else await apiClient.deleteMediaContent(item.id);
+            setContents((prev) => prev.filter((c) => c.id !== item.id));
             notify('success', 'Media content deleted.');
         } catch (err) {
             notify('error', err.message || 'Failed to delete media content. Please try again.');
@@ -137,7 +138,7 @@ export default function MediaPage() {
                                         </button>
                                         <button
                                             className={styles.btnDelete}
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => handleDelete(item)}
                                         >
                                             Delete
                                         </button>

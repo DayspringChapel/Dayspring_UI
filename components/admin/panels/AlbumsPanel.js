@@ -6,6 +6,9 @@ import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
+const isValidImage = (file) =>
+    ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 10 * 1024 * 1024;
+
 export default function AlbumsPanel() {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,6 +19,7 @@ export default function AlbumsPanel() {
         description: '',
         albumYear: new Date().toISOString().split('T')[0],
         albumImage: null,
+        images: [],
     });
 
     const { toast, notify, clearToast } = useToast();
@@ -37,6 +41,11 @@ export default function AlbumsPanel() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const selectedFiles = [formData.albumImage, ...formData.images].filter(Boolean);
+        if (selectedFiles.some((image) => !isValidImage(image))) {
+            notify('error', 'Images must be JPG, PNG or WebP and no larger than 10 MB each.');
+            return;
+        }
         setSaving(true);
         try {
             const formDataToSend = new FormData();
@@ -45,7 +54,14 @@ export default function AlbumsPanel() {
             formDataToSend.append('AlbumYear', formData.albumYear);
             if (formData.albumImage) formDataToSend.append('AlbumImage', formData.albumImage);
 
-            await apiClient.createAlbum(formDataToSend);
+            const createdAlbum = await apiClient.createAlbum(formDataToSend);
+            if (formData.images.length > 0) {
+                const imagesForm = new FormData();
+                imagesForm.append('AlbumId', createdAlbum.id || createdAlbum.Id);
+                imagesForm.append('PictureYear', formData.albumYear);
+                formData.images.forEach((image) => imagesForm.append('Images', image));
+                await apiClient.uploadImages(imagesForm);
+            }
             await loadAlbums();
             handleCloseModal();
             notify('success', 'Album created successfully!');
@@ -83,14 +99,35 @@ export default function AlbumsPanel() {
             description: '',
             albumYear: new Date().toISOString().split('T')[0],
             albumImage: null,
+            images: [],
         });
+    };
+
+    const handleAddImages = async (album, files) => {
+        const images = Array.from(files || []);
+        if (images.length === 0) return;
+        if (images.some((image) => !isValidImage(image))) {
+            notify('error', 'Images must be JPG, PNG or WebP and no larger than 10 MB each.');
+            return;
+        }
+        try {
+            const form = new FormData();
+            form.append('AlbumId', album.id);
+            form.append('PictureYear', album.albumYear?.slice(0, 10) || new Date().toISOString().split('T')[0]);
+            images.forEach((image) => form.append('Images', image));
+            await apiClient.uploadImages(form);
+            await loadAlbums();
+            notify('success', `${images.length} image(s) added.`);
+        } catch (error) {
+            notify('error', error.message || 'Failed to add images.');
+        }
     };
 
     if (loading && albums.length === 0) {
         return (
             <div className={styles.loading}>
                 <div className={styles.spinner}></div>
-                <p>Loading albums...</p>
+                <p>Loading images...</p>
             </div>
         );
     }
@@ -101,15 +138,15 @@ export default function AlbumsPanel() {
             <AdminConfirm dialog={dialog} onClose={closeDialog} />
 
             <div className={styles.panelHeader}>
-                <h2>Albums</h2>
+                <h2>Images</h2>
                 <button className={styles.addBtn} onClick={() => setShowModal(true)}>
-                    + Add Album
+                    + Add Image Collection
                 </button>
             </div>
 
             {albums.length === 0 ? (
                 <div className={styles.empty}>
-                    <p>No albums found. Create your first album!</p>
+                    <p>No image collections found. Create your first one.</p>
                 </div>
             ) : (
                 <div className={styles.grid}>
@@ -121,7 +158,21 @@ export default function AlbumsPanel() {
                                 <p className={styles.cardDescription}>
                                     Year: {new Date(album.albumYear).getFullYear()}
                                 </p>
+                                <p className={styles.cardDescription}>{album.images?.length || 0} image(s)</p>
                                 <div className={styles.cardActions}>
+                                    <label className={styles.addBtn}>
+                                        Add Images
+                                        <input
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            multiple
+                                            hidden
+                                            onChange={(event) => {
+                                                handleAddImages(album, event.target.files);
+                                                event.target.value = '';
+                                            }}
+                                        />
+                                    </label>
                                     <button
                                         className={styles.deleteBtn}
                                         onClick={() => handleDelete(album.id)}
@@ -139,7 +190,7 @@ export default function AlbumsPanel() {
                 <div className={styles.modal} onClick={handleCloseModal}>
                     <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
-                            <h3>Add New Album</h3>
+                            <h3>Add Image Collection</h3>
                             <button className={styles.closeBtn} onClick={handleCloseModal}>×</button>
                         </div>
 
@@ -174,10 +225,18 @@ export default function AlbumsPanel() {
                                     onChange={(e) => setFormData({ ...formData, albumImage: e.target.files?.[0] || null })}
                                 />
                             </div>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="albumImages">Images</label>
+                                <input
+                                    type="file" id="albumImages" accept="image/jpeg,image/png,image/webp" multiple
+                                    onChange={(e) => setFormData({ ...formData, images: Array.from(e.target.files || []) })}
+                                />
+                                <small>JPG, PNG or WebP; maximum 10 MB each.</small>
+                            </div>
                             <div className={styles.formActions}>
                                 <button type="button" className={styles.cancelBtn} onClick={handleCloseModal}>Cancel</button>
                                 <button type="submit" className={styles.submitBtn} disabled={saving}>
-                                    {saving ? 'Saving...' : 'Create'}
+                                    {saving ? 'Saving...' : 'Create Images'}
                                 </button>
                             </div>
                         </form>
