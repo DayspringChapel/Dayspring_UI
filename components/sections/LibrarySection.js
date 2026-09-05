@@ -52,8 +52,11 @@ export default function LibrarySection() {
     return (
         <section className="text-center py-16 bg-gray-50">
             <div className="container mx-auto px-4">
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">OUR LIBRARY</h2>
-                <p className="mb-12 max-w-3xl mx-auto text-lg leading-relaxed">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-black">
+                    OUR LIBRARY
+                </h2>
+
+                <p className="mb-12 max-w-3xl mx-auto text-lg leading-relaxed text-black">
                     Get access to transformational resources like books, sermons, and other materials necessary for
                     your growth and development
                 </p>
