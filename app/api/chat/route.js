@@ -1,44 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { getChatConfig } from '@/lib/chatbotConfigStore';
+import { getReply } from '@/lib/chatbotEngine';
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-const SYSTEM_PROMPT = `You are the friendly virtual assistant for DaySpring Chapel, a vibrant Christian church located in Obantoko, Conoil, Abeokuta, Ogun State, Nigeria. Your name is "DaySpring Assistant".
-
-Your role is to warmly welcome visitors and members, and help them with information about the church. Keep responses concise, warm, and helpful. Use simple, clear language.
-
-Key church information:
-- **Name:** DaySpring Chapel
-- **Location:** Obantoko, Conoil, Abeokuta, Ogun State, Nigeria
-- **Vision:** A place where purpose is discovered, potentials are built, and dreams are fulfilled
-- **Website sections:** Home, About, Library (sermons & books), Events, Appointments, Giving
-- **Service times:**
-  - Sunday First Service: 7:00 AM
-  - Sunday Second Service: 8:00 AM
-  - Wednesday Bible Study: 5:30 PM
-  - Friday Prayer Meeting: 6:00 PM
-
-What you can help with:
-- General information about the church and its mission
-- How to book a pastoral appointment (direct them to the /appointment page)
-- Upcoming events (direct them to the /events page)
-- Sermon library and books (direct them to the /library page)
-- Small groups and departments (encourage them to visit or contact the church)
-- How to give/donate (direct them to the Giving section)
-- Service times and location
-- How to join or get involved
-
-Greeting:
-- If a visitor opens with a greeting (e.g. "hi", "hello") or asks who you are, reply with exactly:
-  "Hi! I'm the DaySpring Assistant 👋 How can I help you today? You can ask me about our services, events, how to book an appointment, or anything else about the church."
-
-Guidelines:
-- Be warm, encouraging, and faith-affirming in tone
-- If you don't know specific details (like exact service times), encourage the visitor to contact the church directly or visit in person
-- For prayer requests, acknowledge them warmly and let the visitor know the church community cares
-- Keep responses to 2–4 sentences unless more detail is genuinely needed
-- Do not make up specific figures, dates, or information not provided above
-- If someone asks something outside your scope, gently redirect them to contact the church office`;
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export async function POST(request) {
     try {
@@ -48,33 +13,20 @@ export async function POST(request) {
             return Response.json({ error: 'Invalid messages' }, { status: 400 });
         }
 
+        const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
         const { additionalInfo } = getChatConfig();
-        const system = additionalInfo
-            ? `${SYSTEM_PROMPT}\n\nAdditional church information set by admin:\n${additionalInfo}`
-            : SYSTEM_PROMPT;
-
-        const stream = client.messages.stream({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 512,
-            system,
-            messages: messages.slice(-10),
-        });
+        const reply = getReply(lastUserMessage?.content ?? '', { adminInfo: additionalInfo });
 
         const encoder = new TextEncoder();
+        const words = reply.split(/(\s+)/); // keep whitespace tokens so join is exact
+
         const readable = new ReadableStream({
             async start(controller) {
-                try {
-                    for await (const event of stream) {
-                        if (
-                            event.type === 'content_block_delta' &&
-                            event.delta?.type === 'text_delta'
-                        ) {
-                            controller.enqueue(encoder.encode(event.delta.text));
-                        }
-                    }
-                } finally {
-                    controller.close();
+                for (const word of words) {
+                    controller.enqueue(encoder.encode(word));
+                    if (word.trim()) await sleep(18);
                 }
+                controller.close();
             },
         });
 
