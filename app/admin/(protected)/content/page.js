@@ -26,7 +26,7 @@ const ALL_TABS = [
     { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', roles: 'all' },
     { id: 'programs', label: 'Programs', icon: '⛪', roles: 'all' },
     { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },
-    { id: 'albums',  label: 'Albums',  icon: '📸', roles: 'all' },
+    { id: 'albums',  label: 'Images',  icon: '📸', roles: 'all' },
 ];
 
 export default function ContentManagement() {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import Image from 'next/image';
+import HeroSettings from '@/components/admin/HeroSettings';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
@@ -77,6 +78,7 @@ export default function SettingsPage() {
     const role = resolveRole();
     const canManageLivestream = role === 'churchMedia' || role === 'superAdmin';
     const canManageChatbot = role === 'churchAdmin' || role === 'superAdmin';
+    const canManageHero = ['churchMedia', 'churchAdmin', 'superAdmin'].includes(role);
 
     const [config, setConfig] = useState({
         youtube:   { active: false, url: '', description: '' },
@@ -102,8 +104,7 @@ export default function SettingsPage() {
     const onBlur  = (key) => setFocused((p) => ({ ...p, [key]: false }));
 
     useEffect(() => {
-        fetch('/api/livestream')
-            .then((r) => r.json())
+        apiClient.getLivestreamSettings()
             .then((d) => {
                 setConfig({
                     youtube:   { active: false, url: '', description: '', ...d.youtube },
@@ -133,12 +134,7 @@ export default function SettingsPage() {
         setSaving(true);
         setStatus(null);
         try {
-            const res = await fetch('/api/livestream', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiClient.getToken()}` },
-                body: JSON.stringify({ ...config, imageUrl, hideWatchOnline }),
-            });
-            if (!res.ok) throw new Error();
+            await apiClient.updateLivestreamSettings({ ...config, imageUrl, hideWatchOnline });
             setStatus('saved');
         } catch {
             setStatus('error');
@@ -204,6 +200,8 @@ export default function SettingsPage() {
                     Manage live stream configuration and site-wide settings.
                 </p>
             </div>
+
+            {canManageHero && <HeroSettings />}
 
             {/* ── Live Stream Card ───────────────────────────────────────── */}
             {canManageLivestream && (
@@ -512,14 +510,14 @@ export default function SettingsPage() {
             </div>
             )}
 
-            {!canManageLivestream && !canManageChatbot && (
+            {!canManageLivestream && !canManageChatbot && !canManageHero && (
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', textAlign: 'center', padding: '2rem 0' }}>
                     You don&apos;t have access to any settings sections.
                 </p>
             )}
 
             <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.75rem', textAlign: 'center' }}>
-                Live stream settings are held in server memory and reset on server restart.
+                Live stream and hero settings are stored in the backend database.
             </p>
         </div>
     );
