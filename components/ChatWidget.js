@@ -10,6 +10,13 @@ const WELCOME = {
     content: "Hi! I'm the DaySpring Assistant 👋 How can I help you today? You can ask me about our services, events, how to book an appointment, or anything else about the church.",
 };
 
+const SUGGESTIONS = [
+    'What services do you offer?',
+    'When are your service times?',
+    'How do I book an appointment?',
+    'How can I contact the church?',
+];
+
 function SendIcon() {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,8 +92,8 @@ export default function ChatWidget() {
         if (open) setTimeout(() => inputRef.current?.focus(), 120);
     }, [open]);
 
-    const send = useCallback(async () => {
-        const text = input.trim();
+    const send = useCallback(async (override) => {
+        const text = (override ?? input).trim();
         if (!text || streaming) return;
 
         const userMsg = { role: 'user', content: text };
@@ -142,6 +149,8 @@ export default function ChatWidget() {
     const onKey = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     };
+
+    const showSuggestions = messages.length === 1 && !streaming;
 
     return (
         <>
@@ -275,6 +284,44 @@ export default function ChatWidget() {
                                 </div>
                             </div>
                         ))}
+
+                        {showSuggestions && (
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '0.4rem',
+                                paddingLeft: 28,
+                            }}>
+                                {SUGGESTIONS.map((q) => (
+                                    <button
+                                        key={q}
+                                        onClick={() => send(q)}
+                                        style={{
+                                            padding: '0.4rem 0.7rem',
+                                            borderRadius: '1rem',
+                                            border: `1.5px solid ${BRAND}`,
+                                            background: '#fff',
+                                            color: BRAND_DARK,
+                                            fontSize: '0.76rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'background 0.15s, color 0.15s',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = BRAND;
+                                            e.currentTarget.style.color = '#fff';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = '#fff';
+                                            e.currentTarget.style.color = BRAND_DARK;
+                                        }}
+                                    >
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         <div ref={bottomRef} />
                     </div>
 
