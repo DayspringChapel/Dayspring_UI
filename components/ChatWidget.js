@@ -56,6 +56,30 @@ function CloseIcon() {
     );
 }
 
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+
+function Linkified({ text }) {
+    // split() with a capturing group alternates [text, match, text, match, ...],
+    // so odd indices are always the captured URLs — no separate .test() needed
+    // (which would be unsafe here anyway since URL_RE carries the 'g' flag).
+    const parts = text.split(URL_RE);
+    return parts.map((part, i) =>
+        i % 2 === 1
+            ? (
+                <a
+                    key={i}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'inherit', fontWeight: 700, textDecoration: 'underline' }}
+                >
+                    {part}
+                </a>
+            )
+            : part
+    );
+}
+
 function TypingDots() {
     return (
         <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '4px 0' }}>
@@ -279,7 +303,9 @@ export default function ChatWidget() {
                                 }}>
                                     {m.content === '' && m.role === 'assistant'
                                         ? <TypingDots />
-                                        : m.content
+                                        : m.role === 'assistant'
+                                            ? <Linkified text={m.content} />
+                                            : m.content
                                     }
                                 </div>
                             </div>

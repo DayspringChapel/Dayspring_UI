@@ -4,6 +4,7 @@ import './globals.css';
 import Navigation from '@/components/layout/Navigation';
 import Footer from '@/components/layout/Footer';
 import ChatWidget from '@/components/ChatWidget';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import { usePathname } from 'next/navigation';
 
 export default function RootLayout({ children }) {
@@ -31,6 +32,7 @@ function ConditionalLayout({ children }) {
       <Navigation />
       <main>{children}</main>
       <Footer />
+      <WhatsAppButton />
       <ChatWidget />
     </>
   );

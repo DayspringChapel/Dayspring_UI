@@ -1,5 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSocialLinks, whatsAppLink } from '@/lib/useSocialLinks';
+import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/components/icons/SocialIcons';
 
 const links = [
     { href: '/about', label: 'About' },
@@ -10,8 +14,38 @@ const links = [
     { href: '/appointment', label: 'Appointment' },
 ];
 
+function SocialLinks({ social }) {
+    const wa = whatsAppLink(social.whatsAppNumber, "Hi DaySpring Chapel, I'd like to chat.");
+    const items = [
+        { href: social.facebookPageUrl, label: 'Facebook', icon: <FacebookIcon /> },
+        { href: social.instagramPageUrl, label: 'Instagram', icon: <InstagramIcon /> },
+        { href: social.youTubeChannelId ? `https://www.youtube.com/channel/${social.youTubeChannelId}` : '', label: 'YouTube', icon: <YouTubeIcon /> },
+        { href: wa, label: 'WhatsApp', icon: <WhatsAppIcon /> },
+    ].filter((item) => item.href);
+
+    if (items.length === 0) return null;
+
+    return (
+        <div className="flex gap-3 pt-1">
+            {items.map((item) => (
+                <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Follow us on ${item.label}`}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-primary"
+                >
+                    {item.icon}
+                </a>
+            ))}
+        </div>
+    );
+}
+
 export default function Footer() {
     const currentYear = new Date().getFullYear();
+    const social = useSocialLinks();
 
     return (
         <footer className="bg-dark px-6 pt-16 pb-6 text-white md:px-12">
@@ -25,6 +59,7 @@ export default function Footer() {
                     <a href="https://www.google.com/maps/search/Dayspring+Chapel+Obantoko+Conoil+Abeokuta+Ogun+State+Nigeria" target="_blank" rel="noopener noreferrer" className="inline-flex text-sm font-semibold text-primary hover:underline">
                         Get Directions <span aria-hidden="true">→</span>
                     </a>
+                    <SocialLinks social={social} />
                 </div>
 
                 <nav aria-label="Footer navigation">

@@ -9,6 +9,7 @@ const EMPTY_SETTINGS = {
     instagram: { active: false, url: '', description: '' },
     imageUrl: '',
     hideWatchOnline: false,
+    social: { whatsAppNumber: '', facebookPageUrl: '', instagramPageUrl: '', youTubeChannelId: '' },
 };
 
 export async function GET() {

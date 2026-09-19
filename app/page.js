@@ -4,6 +4,7 @@ import EventsSection from '@/components/sections/EventsSection';
 import LibrarySection from '@/components/sections/LibrarySection';
 import SermonSection from '@/components/sections/SermonSection';
 import GalleryPreviewSection from '@/components/sections/GalleryPreviewSection';
+import YouTubeFeed from '@/components/sections/YouTubeFeed';
 import NewsletterSection from '@/components/sections/NewsletterSection';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
@@ -40,6 +41,11 @@ export default function Home() {
       {/* Gallery Preview Section */}
       <ScrollReveal>
         <GalleryPreviewSection />
+      </ScrollReveal>
+
+      {/* YouTube Feed Section */}
+      <ScrollReveal>
+        <YouTubeFeed />
       </ScrollReveal>
 
       {/* Newsletter Section */}

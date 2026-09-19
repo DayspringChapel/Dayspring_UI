@@ -2,9 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useSocialLinks, whatsAppLink } from '@/lib/useSocialLinks';
+import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/components/icons/SocialIcons';
 
 export default function MobileNav({ isOpen, onClose }) {
+    const social = useSocialLinks();
+    const wa = whatsAppLink(social.whatsAppNumber, "Hi DaySpring Chapel, I'd like to chat.");
+    const socialItems = [
+        { href: social.facebookPageUrl, label: 'Facebook', icon: <FacebookIcon width={24} height={24} /> },
+        { href: social.instagramPageUrl, label: 'Instagram', icon: <InstagramIcon width={24} height={24} /> },
+        { href: social.youTubeChannelId ? `https://www.youtube.com/channel/${social.youTubeChannelId}` : '', label: 'YouTube', icon: <YouTubeIcon width={24} height={24} /> },
+        { href: wa, label: 'WhatsApp', icon: <WhatsAppIcon width={24} height={24} /> },
+    ].filter((item) => item.href);
+
     return (
         <>
             {/* Mobile Navigation Overlay */}
@@ -102,47 +112,26 @@ export default function MobileNav({ isOpen, onClose }) {
                 </ul>
 
                 {/* Social Media Section */}
-                <div className="w-full flex flex-col items-start">
-                    <p className="text-white text-xl font-semibold mb-4">Join Us</p>
-                    <ul className="flex items-center gap-4">
-                        <li>
-                            <Image
-                                src="/fb.png"
-                                alt="Facebook"
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                        </li>
-                        <li>
-                            <Image
-                                src="/twitter.png"
-                                alt="Twitter"
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                        </li>
-                        <li>
-                            <Image
-                                src="/ig.png"
-                                alt="Instagram"
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                        </li>
-                        <li>
-                            <Image
-                                src="/yt.png"
-                                alt="YouTube"
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                        </li>
-                    </ul>
-                </div>
+                {socialItems.length > 0 && (
+                    <div className="w-full flex flex-col items-start">
+                        <p className="text-white text-xl font-semibold mb-4">Join Us</p>
+                        <ul className="flex items-center gap-4">
+                            {socialItems.map((item) => (
+                                <li key={item.label}>
+                                    <a
+                                        href={item.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label={`Follow us on ${item.label}`}
+                                        className="text-white hover:text-dark/70 transition-colors"
+                                    >
+                                        {item.icon}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </nav>
         </>
     );

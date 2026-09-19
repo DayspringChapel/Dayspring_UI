@@ -1,5 +1,6 @@
 import { getChatConfig } from '@/lib/chatbotConfigStore';
 import { getReply } from '@/lib/chatbotEngine';
+import { fetchSocialLinksServer } from '@/lib/serverApi';
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,7 +16,8 @@ export async function POST(request) {
 
         const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
         const { additionalInfo } = getChatConfig();
-        const reply = getReply(lastUserMessage?.content ?? '', { adminInfo: additionalInfo });
+        const social = await fetchSocialLinksServer();
+        const reply = getReply(lastUserMessage?.content ?? '', { adminInfo: additionalInfo, whatsappNumber: social?.whatsAppNumber });
 
         const encoder = new TextEncoder();
         const words = reply.split(/(\s+)/); // keep whitespace tokens so join is exact

@@ -84,6 +84,7 @@ export default function SettingsPage() {
         youtube:   { active: false, url: '', description: '' },
         facebook:  { active: false, url: '', description: '' },
         instagram: { active: false, url: '', description: '' },
+        social:    { whatsAppNumber: '', facebookPageUrl: '', instagramPageUrl: '', youTubeChannelId: '' },
     });
     const [imageUrl, setImageUrl]   = useState('');
     const [hideWatchOnline, setHideWatchOnline] = useState(false);
@@ -94,6 +95,10 @@ export default function SettingsPage() {
     const [posting, setPosting]         = useState(false);
     const [postResults, setPostResults] = useState(null);
 
+    const [ytBusy, setYtBusy]   = useState(false);
+    const [ytError, setYtError] = useState(null);
+    const [ytStream, setYtStream] = useState(null); // { ingestionUrl, streamKey } once started
+
     const [botInfo, setBotInfo]       = useState('');
     const [savingBot, setSavingBot]   = useState(false);
     const [botStatus, setBotStatus]   = useState(null);
@@ -103,18 +108,22 @@ export default function SettingsPage() {
     const onFocus = (key) => setFocused((p) => ({ ...p, [key]: true }));
     const onBlur  = (key) => setFocused((p) => ({ ...p, [key]: false }));
 
-    useEffect(() => {
+    const reloadLivestream = () =>
         apiClient.getLivestreamSettings()
             .then((d) => {
                 setConfig({
                     youtube:   { active: false, url: '', description: '', ...d.youtube },
                     facebook:  { active: false, url: '', description: '', ...d.facebook },
                     instagram: { active: false, url: '', description: '', ...d.instagram },
+                    social:    { whatsAppNumber: '', facebookPageUrl: '', instagramPageUrl: '', youTubeChannelId: '', ...d.social },
                 });
                 setImageUrl(d.imageUrl || '');
                 setHideWatchOnline(!!d.hideWatchOnline);
             })
             .catch(() => {});
+
+    useEffect(() => {
+        reloadLivestream();
         fetch('/api/chatbot-config')
             .then((r) => r.json())
             .then((d) => setBotInfo(d.additionalInfo || ''))
@@ -124,8 +133,13 @@ export default function SettingsPage() {
     const update = (platform, field, value) =>
         setConfig((prev) => ({ ...prev, [platform]: { ...prev[platform], [field]: value } }));
 
+    const updateSocial = (field, value) =>
+        setConfig((prev) => ({ ...prev, social: { ...prev.social, [field]: value } }));
+
     // Core computed values
+    const anySocialSet = Object.values(config.social || {}).some((v) => v?.trim());
     const anyUrlSet = PLATFORMS.some((p) => config[p.id]?.url?.trim());
+    const canSave = anyUrlSet || anySocialSet;
     const anyLive   = PLATFORMS.some((p) => config[p.id]?.active && config[p.id]?.url?.trim());
     const anyTarget = Object.values(targets).some(Boolean);
     const anyDescriptionSet = PLATFORMS.some((p) => config[p.id]?.url?.trim() && config[p.id]?.description?.trim());
@@ -141,6 +155,39 @@ export default function SettingsPage() {
         } finally {
             setSaving(false);
             setTimeout(() => setStatus(null), 4000);
+        }
+    };
+
+    const startYouTube = async () => {
+        setYtBusy(true);
+        setYtError(null);
+        try {
+            const result = await apiClient.startYouTubeLive(
+                `DaySpring Chapel Live — ${new Date().toLocaleDateString()}`,
+                config.youtube?.description || ''
+            );
+            if (!result.success) { setYtError(result.errorMessage || 'Failed to start broadcast'); return; }
+            setYtStream({ ingestionUrl: result.ingestionUrl, streamKey: result.streamKey });
+            await reloadLivestream();
+        } catch {
+            setYtError('Failed to start broadcast');
+        } finally {
+            setYtBusy(false);
+        }
+    };
+
+    const stopYouTube = async () => {
+        setYtBusy(true);
+        setYtError(null);
+        try {
+            const result = await apiClient.stopYouTubeLive();
+            if (!result.success) { setYtError(result.errorMessage || 'Failed to stop broadcast'); return; }
+            setYtStream(null);
+            await reloadLivestream();
+        } catch {
+            setYtError('Failed to stop broadcast');
+        } finally {
+            setYtBusy(false);
         }
     };
 
@@ -294,9 +341,136 @@ export default function SettingsPage() {
                                         onBlur={() => onBlur(`${p.id}_desc`)}
                                     />
                                 )}
+
+                                {/* YouTube-only: create/end a real broadcast via the Live Streaming API */}
+                                {p.id === 'youtube' && (
+                                    <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px dashed rgba(15,23,42,0.12)' }}>
+                                        {!val.active ? (
+                                            <button
+                                                onClick={startYouTube}
+                                                disabled={ytBusy}
+                                                style={{
+                                                    padding: '0.5rem 1rem', borderRadius: '0.6rem', border: 'none',
+                                                    background: ytBusy ? '#e2e8f0' : p.color,
+                                                    color: ytBusy ? '#94a3b8' : '#fff',
+                                                    fontWeight: 700, fontSize: '0.8rem', fontFamily: 'inherit',
+                                                    cursor: ytBusy ? 'not-allowed' : 'pointer',
+                                                }}
+                                            >
+                                                {ytBusy ? 'Starting…' : '📡 Start via YouTube API'}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={stopYouTube}
+                                                disabled={ytBusy}
+                                                style={{
+                                                    padding: '0.5rem 1rem', borderRadius: '0.6rem', border: 'none',
+                                                    background: ytBusy ? '#e2e8f0' : '#dc2626',
+                                                    color: ytBusy ? '#94a3b8' : '#fff',
+                                                    fontWeight: 700, fontSize: '0.8rem', fontFamily: 'inherit',
+                                                    cursor: ytBusy ? 'not-allowed' : 'pointer',
+                                                }}
+                                            >
+                                                {ytBusy ? 'Stopping…' : '⏹ Stop Broadcast'}
+                                            </button>
+                                        )}
+
+                                        {ytError && (
+                                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.76rem', color: '#dc2626' }}>{ytError}</p>
+                                        )}
+
+                                        {ytStream && (
+                                            <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '0.6rem', background: '#0f172a' }}>
+                                                <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
+                                                    Paste into OBS / your encoder
+                                                </p>
+                                                <p style={{ margin: '0 0 0.3rem', fontSize: '0.78rem', color: '#e2e8f0', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                                    Server: {ytStream.ingestionUrl}
+                                                </p>
+                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#e2e8f0', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                                    Stream key: {ytStream.streamKey}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
+                </div>
+
+                {/* ── Social & Contact Links ── */}
+                <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: '1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <span style={{ fontSize: '1rem' }}>🔗</span>
+                        <div>
+                            <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
+                                Social &amp; Contact Links
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b' }}>
+                                Powers the footer follow icons, the floating WhatsApp button, and the chatbot&apos;s WhatsApp redirect.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.35rem' }}>
+                                💬 WhatsApp Number
+                            </label>
+                            <input
+                                type="text"
+                                value={config.social?.whatsAppNumber || ''}
+                                onChange={(e) => updateSocial('whatsAppNumber', e.target.value)}
+                                placeholder="e.g. +234 800 000 0000"
+                                style={fieldStyle(focused['social_whatsapp'])}
+                                onFocus={() => onFocus('social_whatsapp')}
+                                onBlur={() => onBlur('social_whatsapp')}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.35rem' }}>
+                                🔵 Facebook Page URL
+                            </label>
+                            <input
+                                type="url"
+                                value={config.social?.facebookPageUrl || ''}
+                                onChange={(e) => updateSocial('facebookPageUrl', e.target.value)}
+                                placeholder="https://facebook.com/dayspringchapel"
+                                style={fieldStyle(focused['social_fb'])}
+                                onFocus={() => onFocus('social_fb')}
+                                onBlur={() => onBlur('social_fb')}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.35rem' }}>
+                                📸 Instagram Page URL
+                            </label>
+                            <input
+                                type="url"
+                                value={config.social?.instagramPageUrl || ''}
+                                onChange={(e) => updateSocial('instagramPageUrl', e.target.value)}
+                                placeholder="https://instagram.com/dayspringchapel"
+                                style={fieldStyle(focused['social_ig'])}
+                                onFocus={() => onFocus('social_ig')}
+                                onBlur={() => onBlur('social_ig')}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.35rem' }}>
+                                ▶️ YouTube Channel ID <span style={{ fontWeight: 400, color: '#94a3b8' }}>(YouTube Studio → Settings → Channel → Advanced, starts with &quot;UC&quot;)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={config.social?.youTubeChannelId || ''}
+                                onChange={(e) => updateSocial('youTubeChannelId', e.target.value)}
+                                placeholder="UCxxxxxxxxxxxxxxxxxxxxxxxx"
+                                style={fieldStyle(focused['social_yt'])}
+                                onFocus={() => onFocus('social_yt')}
+                                onBlur={() => onBlur('social_yt')}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 {/* ── Announcement + publish section — only when any URL is set ── */}
@@ -427,24 +601,24 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: '1.25rem' }}>
                     <button
                         onClick={save}
-                        disabled={saving || !anyUrlSet}
-                        title={!anyUrlSet ? 'Add at least one stream URL before saving' : undefined}
+                        disabled={saving || !canSave}
+                        title={!canSave ? 'Add a stream URL or a social/contact link before saving' : undefined}
                         style={{
                             padding: '0.68rem 1.75rem', borderRadius: '0.75rem', border: 'none',
-                            background: (!saving && anyUrlSet) ? 'linear-gradient(135deg,#d9752c,#c26622)' : '#e2e8f0',
-                            color: (!saving && anyUrlSet) ? '#fff' : '#94a3b8',
+                            background: (!saving && canSave) ? 'linear-gradient(135deg,#d9752c,#c26622)' : '#e2e8f0',
+                            color: (!saving && canSave) ? '#fff' : '#94a3b8',
                             fontWeight: 800, fontSize: '0.9rem',
-                            cursor: (saving || !anyUrlSet) ? 'not-allowed' : 'pointer',
-                            boxShadow: (!saving && anyUrlSet) ? '0 4px 16px rgba(217,117,44,0.32)' : 'none',
+                            cursor: (saving || !canSave) ? 'not-allowed' : 'pointer',
+                            boxShadow: (!saving && canSave) ? '0 4px 16px rgba(217,117,44,0.32)' : 'none',
                             fontFamily: 'inherit', transition: 'all 0.18s',
                         }}
                     >
                         {saving ? 'Saving…' : 'Save Settings'}
                     </button>
 
-                    {!anyUrlSet && (
+                    {!canSave && (
                         <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                            Add at least one stream URL to save
+                            Add a stream URL or a social/contact link to save
                         </span>
                     )}
                     {status === 'saved' && <span style={{ color: '#059669', fontSize: '0.85rem', fontWeight: 700 }}>✓ Saved</span>}
@@ -476,7 +650,7 @@ export default function SettingsPage() {
                     value={botInfo}
                     onChange={(e) => setBotInfo(e.target.value)}
                     rows={8}
-                    placeholder={`Examples:\n- Sunday services: 7:00 AM and 9:30 AM\n- Lead Pastor: Pastor John Doe\n- WhatsApp: +234 800 000 0000`}
+                    placeholder={`Examples:\n- Sunday services: 7:00 AM and 9:30 AM\n- Lead Pastor: Pastor John Doe\n- Office email: info@dayspringchapel.org`}
                     style={{
                         width: '100%', boxSizing: 'border-box', padding: '0.75rem 1rem',
                         border: `1.5px solid ${focused['botInfo'] ? '#F58634' : 'rgba(15,23,42,0.14)'}`,
