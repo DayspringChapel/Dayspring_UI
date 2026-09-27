@@ -17,7 +17,6 @@ const roleLabel = (role) => CONTENT_ROLE_OPTIONS.find((r) => r.value === role)?.
 export default function ContentUnitMembersPanel() {
     const [contentUnit, setContentUnit] = useState(null);
     const [members, setMembers] = useState([]);
-    const [bioData, setBioData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [roleDraft, setRoleDraft] = useState({});
     const [busyId, setBusyId] = useState(null);
@@ -34,12 +33,8 @@ export default function ContentUnitMembersPanel() {
             const unit = (Array.isArray(units) ? units : []).find((u) => u.isContentUnit) || null;
             setContentUnit(unit);
 
-            const [membersRes, bioRes] = await Promise.all([
-                unit ? apiClient.getMembersByUnit(unit.id).catch(() => []) : Promise.resolve([]),
-                apiClient.getBioData().catch(() => []),
-            ]);
+            const membersRes = unit ? await apiClient.getMembersByUnit(unit.id).catch(() => []) : [];
             setMembers(Array.isArray(membersRes) ? membersRes : []);
-            setBioData(Array.isArray(bioRes) ? bioRes : []);
         } catch (error) {
             console.error('Failed to load content unit members:', error);
         } finally {
@@ -47,18 +42,12 @@ export default function ContentUnitMembersPanel() {
         }
     };
 
-    const enrichedMembers = useMemo(() => {
-        const bioByUserId = new Map(bioData.map((bio) => [bio.userId, bio]));
-        return members.map((member) => {
-            const bio = bioByUserId.get(member.userId);
-            const name = [bio?.firstName, bio?.lastName].filter(Boolean).join(' ').trim();
-            return {
-                ...member,
-                label: name || member.userId || member.memberId,
-                email: bio?.email || '',
-            };
-        });
-    }, [members, bioData]);
+    // The unit roster endpoint returns each member's display name and email.
+    const enrichedMembers = useMemo(() => members.map((member) => ({
+        ...member,
+        label: member.fullName || member.userId || member.memberId,
+        email: member.email || '',
+    })), [members]);
 
     const handleGrant = async (member) => {
         const role = Number(roleDraft[member.memberId]);

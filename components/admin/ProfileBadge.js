@@ -24,7 +24,9 @@ export default function ProfileBadge() {
 
     useEffect(() => {
         const userId = userData?.id || userData?.Id;
-        if (!userId) return;
+        const roleName = (userData?.role?.name || userData?.role?.Name || userData?.role || userData?.Role || '').toString().toLowerCase();
+        // System roles (superAdmin/churchAdmin/churchMedia) are badged by role, so skip the member lookup.
+        if (!userId || ROLE_LABELS[roleName]) return;
         apiClient.getMemberByUserId(userId)
             .then((member) => setContentRole(member?.contentRole || null))
             .catch(() => setContentRole(null));

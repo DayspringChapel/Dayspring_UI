@@ -13,7 +13,7 @@ export default function BirthdayWidget() {
 
     async function loadBirthdays() {
         try {
-            const members = await apiClient.getBioData();
+            const members = await apiClient.getBirthdays();
             if (Array.isArray(members)) {
                 const currentMonthIndex = new Date().getMonth();
 

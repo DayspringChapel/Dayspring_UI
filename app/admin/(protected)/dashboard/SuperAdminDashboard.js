@@ -7,6 +7,7 @@ import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
+import { REPORTS_TILE, ROLES_PERMISSIONS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
 import styles from './dashboard.module.css';
 
 // ── Purple / gold sovereign theme ───────────────────────────────────────────
@@ -34,6 +35,13 @@ export default function SuperAdminDashboard({ userName }) {
     const [data, setData]           = useState(null);
     const [loading, setLoading]     = useState(true);
     const [navigating, setNavigating] = useState(null); // path being loaded
+    const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+
+    useEffect(() => {
+        apiClient.refreshCurrentUserPermissions()
+            .then(() => setPermissions(apiClient.getCurrentPermissions()))
+            .catch(() => {});
+    }, []);
 
     async function load() {
         try {
@@ -135,7 +143,7 @@ export default function SuperAdminDashboard({ userName }) {
         { label: 'Books',   value: stats.books,    color: '#3b82f6' },
     ];
 
-    const quickActions = [
+    const quickActions = withPermissionTiles([
         { label: 'Manage Members',  path: '/admin/members', color: '#7c3aed', icon: '👤' },
         { label: 'Approve Content', path: '/admin/approvals',      color: '#ef4444', icon: '✅' },
         { label: 'Publishing',      path: '/admin/publishing',     color: '#3b82f6', icon: '📤' },
@@ -144,7 +152,7 @@ export default function SuperAdminDashboard({ userName }) {
         { label: 'Requisitions',    path: '/admin/requisitions',   color: '#f59e0b', icon: '📝' },
         { label: 'Appointments',    path: '/admin/appointments',   color: '#be123c', icon: '📋' },
         { label: 'Content',         path: '/admin/content',        color: '#10b981', icon: '📚' },
-    ];
+    ], (p) => permissions.includes(p), [REPORTS_TILE, ROLES_PERMISSIONS_TILE]);
 
     return (
         <>

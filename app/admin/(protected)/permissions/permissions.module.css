@@ -208,3 +208,177 @@
     color: #e2e8f0;
     font-size: 0.85rem;
 }
+
+/* ── Role management section ─────────────────────────────────────────── */
+
+.manageSection {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.manageHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.roleCards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.9rem;
+}
+
+.roleCard {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    background: #fff;
+}
+
+.roleCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.roleCardName {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+.systemBadge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    background: #f1f5f9;
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+}
+
+.roleCardMeta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 0.7rem;
+}
+
+.roleCardActions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ── Create / edit role modal ────────────────────────────────────────── */
+
+.modalOverlay {
+    --ink: #172033;
+    --muted: #5b667a;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 14, 26, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    padding: 1.75rem 2rem;
+    border-radius: 1.25rem;
+    background: #fff;
+    box-shadow: 0 32px 80px rgba(10, 14, 26, 0.25);
+    color: var(--ink);
+}
+
+.modal h2 {
+    margin: 0 0 1.25rem;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--ink);
+}
+
+.field {
+    margin-bottom: 1.1rem;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.field input[type="text"] {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.6rem;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.permGroups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.permGroupTitle {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #64748b;
+    margin-bottom: 0.45rem;
+}
+
+.permCheck {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    font-size: 0.85rem;
+    color: #334155;
+    cursor: pointer;
+}
+
+.permCheck input {
+    margin-top: 0.2rem;
+}
+
+.permCheckDesc {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    display: block;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+}
+
+.hint {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin: 0.4rem 0 0;
+}

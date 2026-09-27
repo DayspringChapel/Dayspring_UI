@@ -7,6 +7,7 @@ import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
+import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
 import styles from './dashboard.module.css';
 
 // ── Teal / emerald executive theme ──────────────────────────────────────────
@@ -28,6 +29,13 @@ export default function ChurchAdminDashboard({ userName }) {
     const [data, setData]             = useState(null);
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
+    const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+
+    useEffect(() => {
+        apiClient.refreshCurrentUserPermissions()
+            .then(() => setPermissions(apiClient.getCurrentPermissions()))
+            .catch(() => {});
+    }, []);
 
     async function load() {
         try {
@@ -137,14 +145,14 @@ export default function ChurchAdminDashboard({ userName }) {
         { label: 'Reqs',    value: stats.requisitions, color: '#f59e0b' },
     ];
 
-    const quickActions = [
+    const quickActions = withPermissionTiles([
         { label: 'Manage Members', path: '/admin/members', color: '#0d9488', icon: '👤' },
         { label: 'Appointments', path: '/admin/appointments',   color: '#be123c', icon: '📋' },
         { label: 'Requisitions', path: '/admin/requisitions',   color: '#f59e0b', icon: '📝' },
         { label: 'Small Groups', path: '/admin/small-groups',   color: '#10b981', icon: '🤝' },
         { label: 'Events',       path: '/admin/content',        color: '#2dd4bf', icon: '📌' },
         { label: 'Departments',  path: '/admin/units',          color: '#6366f1', icon: '🏛️' },
-    ];
+    ], (p) => permissions.includes(p), [REPORTS_TILE]);
 
     return (
         <>

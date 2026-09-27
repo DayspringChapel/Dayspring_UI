@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from './Sidebar.module.css';
@@ -26,6 +26,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const [mediaOpen, setMediaOpen] = useState(() =>
         ['/admin/media', '/admin/workflow', '/admin/approvals', '/admin/publishing'].includes(pathname)
     );
+    const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+
+    // Refreshed on every mount so a role/permission change (or a permission that didn't exist
+    // yet at last login, e.g. after a deploy) shows up without forcing a re-login.
+    useEffect(() => {
+        apiClient.refreshCurrentUserPermissions()
+            .then(() => setPermissions(apiClient.getCurrentPermissions()))
+            .catch(() => {});
+    }, []);
 
     const role = resolveRole();
 
@@ -192,7 +201,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Publishing',
                     path: '/admin/publishing',
-                    roles: ['superAdmin', 'churchMedia'],
+                    // Anyone who can publish to at least one destination (e.g. churchAdmin: WhatsApp only).
+                    anyPermission: ['CanPublishContent', 'CanPublishToFacebook', 'CanPublishToInstagram', 'CanPublishToX', 'CanPublishToYouTube', 'CanPublishToWhatsApp'],
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path d="M3 13H17M10 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -205,7 +215,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'User Roles',
             path: '/admin/roles',
-            roles: ['superAdmin'],
+            permission: 'CanAssignRoles',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6C5 8.76142 7.23858 11 10 11C12.7614 11 15 8.76142 15 6C15 3.23858 12.7614 1 10 1ZM7 6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6C13 7.65685 11.6569 9 10 9C8.34315 9 7 7.65685 7 6Z" fill="currentColor" />
@@ -215,12 +225,22 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
         },
         {
-            title: 'Permissions',
+            title: 'Roles & Permissions',
             path: '/admin/permissions',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanAssignPermission',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6V7H4C3.44772 7 3 7.44772 3 8V17C3 17.5523 3.44772 18 4 18H16C16.5523 18 17 17.5523 17 17V8C17 7.44772 16.5523 7 16 7H15V6C15 3.23858 12.7614 1 10 1ZM13 7V6C13 4.34315 11.6569 3 10 3C8.34315 3 7 4.34315 7 6V7H13ZM10 10C9.44772 10 9 10.4477 9 11V14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14V11C11 10.4477 10.5523 10 10 10Z" fill="currentColor" />
+                </svg>
+            ),
+        },
+        {
+            title: 'Reports',
+            path: '/admin/reports',
+            permission: 'CanViewReports',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M4 17V10M10 17V4M16 17V13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             ),
         },
@@ -236,9 +256,17 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         },
     ];
 
-    const visible = menuItems.filter(item =>
-        item.roles === 'all' || item.roles.includes(role)
-    );
+    // `permission` (when set) is checked against the caller's real permission claims, so a
+    // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
+    // for items not yet tied to a specific permission.
+    const canSee = (item) => {
+        if (item.permission) return permissions.includes(item.permission);
+        if (item.anyPermission) return item.anyPermission.some((p) => permissions.includes(p));
+        if (!item.roles || item.roles === 'all') return true;
+        return item.roles.includes(role);
+    };
+
+    const visible = menuItems.filter(canSee);
 
     return (
         <>
@@ -254,9 +282,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 <nav className={styles.nav}>
                     {visible.map((item) => {
                         if (item.children) {
-                            const visibleChildren = item.children.filter((c) =>
-                                !c.roles || c.roles === 'all' || c.roles.includes(role)
-                            );
+                            const visibleChildren = item.children.filter(canSee);
                             const isGroupActive = pathname === item.path ||
                                 visibleChildren.some((c) => pathname === c.path);
                             return (

@@ -7,6 +7,7 @@ import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
+import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
 import styles from './dashboard.module.css';
 
 // ── Rose / violet creative theme ────────────────────────────────────────────
@@ -25,16 +26,22 @@ export default function ChurchMediaDashboard({ userName }) {
     const [data, setData]             = useState(null);
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
+    const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+
+    useEffect(() => {
+        apiClient.refreshCurrentUserPermissions()
+            .then(() => setPermissions(apiClient.getCurrentPermissions()))
+            .catch(() => {});
+    }, []);
 
     async function load() {
         try {
             const [
-                mediaRes, approvalsRes, scheduledRes,
+                mediaRes, scheduledRes,
                 sermonsRes, albumsRes, imagesRes, seriesRes,
                 myAssignmentsRes,
             ] = await Promise.allSettled([
                 apiClient.getMediaContents(),
-                apiClient.getAdminApprovalQueue(),
                 apiClient.getAllScheduledPosts(),
                 apiClient.getSermons(),
                 apiClient.getAlbums(),
@@ -76,7 +83,8 @@ export default function ChurchMediaDashboard({ userName }) {
                     inReview:         pipeline.inReview + pipeline.submitted,
                     readyOrScheduled: pipeline.ready + pipeline.scheduled,
                     published:        pipeline.published,
-                    pendingApprovals: v(approvalsRes).length,
+                    // 5 = AdminApproval, 6 = SuperAdminApproval (the admin queue itself is admin-only).
+                    pendingApprovals: mediaArr.filter(m => m.workflowStatus === 5 || m.workflowStatus === 6).length,
                     scheduledPosts:   v(scheduledRes).length,
                     sermons:          v(sermonsRes).length,
                     albums:           v(albumsRes).length,
@@ -139,14 +147,14 @@ export default function ChurchMediaDashboard({ userName }) {
         { label: 'Social',   value: myRoles.socialMedia, color: '#3b82f6' },
     ];
 
-    const quickActions = [
+    const quickActions = withPermissionTiles([
         { label: 'Upload Media', path: '/admin/media/create', color: '#db2777', icon: '⬆️' },
         { label: 'My Content',   path: '/admin/media',        color: '#7c3aed', icon: '🎬' },
         { label: 'Workflow',     path: '/admin/workflow',     color: '#0369a1', icon: '🔄' },
         { label: 'Approvals',    path: '/admin/approvals',    color: '#ef4444', icon: '✅' },
         { label: 'Publishing',   path: '/admin/publishing',   color: '#3b82f6', icon: '📤' },
         { label: 'Sermons',      path: '/admin/content',      color: '#f472b6', icon: '🎙️' },
-    ];
+    ], (p) => permissions.includes(p), [REPORTS_TILE]);
 
     return (
         <>

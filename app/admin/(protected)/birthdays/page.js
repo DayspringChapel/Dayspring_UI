@@ -15,7 +15,7 @@ export default function BirthdaysPage() {
 
     async function loadMembers() {
         try {
-            const data = await apiClient.getBioData();
+            const data = await apiClient.getBirthdays();
             setMembers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to load members:', error);
