@@ -199,13 +199,20 @@
 
 /* Schedule modal */
 .modalOverlay {
+    /* Rendered in a portal on <body>, so it can't inherit the .page tokens. */
+    --ink: #172033;
+    --muted: #5b667a;
+    --line: rgba(23, 32, 51, 0.1);
+    --paper: rgba(255, 255, 255, 0.92);
+    --brand: #d9752c;
+    --brand-dark: #8f3f12;
     position: fixed;
     inset: 0;
     background: rgba(10, 14, 26, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 50;
+    z-index: 1000;
     padding: 1.5rem;
     backdrop-filter: blur(4px);
 }
@@ -219,6 +226,10 @@
     background: #ffffff;
     box-shadow: 0 32px 80px rgba(10, 14, 26, 0.25);
     animation: scaleIn 0.25s ease both;
+    /* Tall forms scroll inside the card instead of running off-screen. */
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    color: var(--ink);
 }
 
 .modal h2 {

@@ -1,6 +1,5 @@
-import { getChatConfig } from '@/lib/chatbotConfigStore';
 import { getReply } from '@/lib/chatbotEngine';
-import { fetchSocialLinksServer } from '@/lib/serverApi';
+import { fetchChatbotConfigServer, fetchSocialLinksServer } from '@/lib/serverApi';
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,8 +14,10 @@ export async function POST(request) {
         }
 
         const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
-        const { additionalInfo } = getChatConfig();
-        const social = await fetchSocialLinksServer();
+        const [{ additionalInfo }, social] = await Promise.all([
+            fetchChatbotConfigServer(),
+            fetchSocialLinksServer(),
+        ]);
         const reply = getReply(lastUserMessage?.content ?? '', { adminInfo: additionalInfo, whatsappNumber: social?.whatsAppNumber });
 
         const encoder = new TextEncoder();

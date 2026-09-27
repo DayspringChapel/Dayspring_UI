@@ -155,13 +155,20 @@
 
 /* Modal */
 .modalOverlay {
+    /* Rendered in a portal on <body>, so it can't inherit the .page tokens. */
+    --ink: #172033;
+    --muted: #5b667a;
+    --line: rgba(23, 32, 51, 0.1);
+    --paper: rgba(255, 255, 255, 0.92);
+    --brand: #d9752c;
+    --brand-dark: #8f3f12;
     position: fixed;
     inset: 0;
     background: rgba(10, 14, 26, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 50;
+    z-index: 1000;
     padding: 1.5rem;
     backdrop-filter: blur(4px);
 }

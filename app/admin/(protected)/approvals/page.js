@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
+import Portal from '@/components/ui/Portal';
 import styles from './approvals.module.css';
 
 export default function ApprovalsPage() {
@@ -119,6 +120,7 @@ export default function ApprovalsPage() {
             )}
 
             {modal && (
+                <Portal>
                 <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && closeModal()}>
                     <div className={styles.modal}>
                         <h2>{modal.type === 'approve' ? 'Approve Content' : 'Send Back for Correction'}</h2>
@@ -155,6 +157,7 @@ export default function ApprovalsPage() {
                         </div>
                     </div>
                 </div>
+                </Portal>
             )}
         </div>
     );

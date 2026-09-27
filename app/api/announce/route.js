@@ -199,10 +199,6 @@ async function postToInstagram(description, imageUrl) {
 
 export async function POST(request) {
     try {
-        if (!(await hasServerPermission(request, 'CanPublishContent'))) {
-            return Response.json({ error: 'Forbidden' }, { status: 403 });
-        }
-
         const body = await request.json();
 
         // Support two calling modes:
@@ -222,6 +218,23 @@ export async function POST(request) {
             return descriptions?.[platform] || descriptions?.youtube || descriptions?.facebook ||
                    descriptions?.instagram || Object.values(descriptions || {})[0] || '';
         };
+
+        // Each platform needs its own permission (e.g. churchAdmin may post to WhatsApp only).
+        const PLATFORM_PERMISSION = {
+            facebook: 'CanPublishToFacebook',
+            twitter: 'CanPublishToX',
+            whatsapp: 'CanPublishToWhatsApp',
+            instagram: 'CanPublishToInstagram',
+        };
+        const unknown = targetList.filter((t) => !PLATFORM_PERMISSION[t]);
+        if (unknown.length) {
+            return Response.json({ error: `Unknown platform(s): ${unknown.join(', ')}` }, { status: 400 });
+        }
+        const checks = await Promise.all(targetList.map((t) => hasServerPermission(request, PLATFORM_PERMISSION[t])));
+        const denied = targetList.filter((_, i) => !checks[i]);
+        if (denied.length) {
+            return Response.json({ error: `You are not allowed to post to: ${denied.join(', ')}` }, { status: 403 });
+        }
 
         const tasks = {};
 

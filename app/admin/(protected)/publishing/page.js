@@ -5,15 +5,39 @@ import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
 import { humanizeLabel } from '@/lib/format';
+import Portal from '@/components/ui/Portal';
 import styles from './publishing.module.css';
 
 const PLATFORMS = [
-    { value: 1, label: 'Facebook' },
-    { value: 2, label: 'Instagram' },
-    { value: 3, label: 'X (Twitter)' },
-    { value: 4, label: 'YouTube' },
-    { value: 5, label: 'WhatsApp' },
+    { value: 1, label: 'Facebook', permission: 'CanPublishToFacebook' },
+    { value: 2, label: 'Instagram', permission: 'CanPublishToInstagram' },
+    { value: 3, label: 'X (Twitter)', permission: 'CanPublishToX' },
+    { value: 4, label: 'YouTube', permission: 'CanPublishToYouTube' },
+    { value: 5, label: 'WhatsApp', permission: 'CanPublishToWhatsApp' },
 ];
+
+// Platforms the signed-in user may post to (e.g. churchAdmin: WhatsApp only). Cosmetic only —
+// the API enforces the same per-platform permissions on every request.
+function allowedPlatforms() {
+    const role = apiClient.getUserData()?.role || apiClient.getUserData()?.Role || {};
+    const perms = role.permissions || role.Permissions || [];
+    return PLATFORMS.filter((p) => perms.includes(p.permission));
+}
+
+// Summarise per-platform results ({ platformName, outcome, message }) returned by publish/schedule.
+function describeSocialResults(results) {
+    const list = Array.isArray(results) ? results : [];
+    const failed = list.filter((r) => (r.outcome || r.Outcome) === 'Failed');
+    const done = list.filter((r) => ['Published', 'Scheduled'].includes(r.outcome || r.Outcome));
+    const name = (r) => r.platformName || r.PlatformName;
+    return {
+        failed,
+        text: [
+            done.length ? `${done.map(name).join(', ')}: ${done.every((r) => (r.outcome || r.Outcome) === 'Scheduled') ? 'scheduled' : 'posted'}` : '',
+            failed.length ? `Failed — ${failed.map((r) => `${name(r)}: ${String(r.message || r.Message || 'error').replace(/\.+$/, '')}`).join('; ')}` : '',
+        ].filter(Boolean).join('. '),
+    };
+}
 
 const CATEGORY_DESTINATION = {
     1: 'gallery',   // Gallery
@@ -54,6 +78,13 @@ const POST_STATUS = {
 const EMPTY_FORM = { contentId: '', platforms: [], scheduledAt: '', caption: '' };
 
 export default function PublishingPage() {
+    const [platforms, setPlatforms] = useState(() => allowedPlatforms());
+
+    useEffect(() => {
+        apiClient.refreshCurrentUserPermissions()
+            .then(() => setPlatforms(allowedPlatforms()))
+            .catch(() => {});
+    }, []);
     const [activeTab, setActiveTab] = useState('ready');
     const [scheduledPosts, setScheduledPosts] = useState([]);
     const [publishedPosts, setPublishedPosts] = useState([]);
@@ -146,7 +177,7 @@ export default function PublishingPage() {
                 if (!eventId) throw new Error('Failed to create the event');
             }
 
-            await apiClient.publishToDestination({
+            const published = await apiClient.publishToDestination({
                 contentId: destForm.contentId,
                 albumId: destKind === 'gallery' ? (destForm.albumId || null) : null,
                 eventId,
@@ -167,7 +198,13 @@ export default function PublishingPage() {
             setDestEventMode('existing');
             setNewEventForm(EMPTY_NEW_EVENT_FORM);
             setNewEventImage(null);
-            notify('success', 'Content published.');
+            // The website publish is committed even if a social platform fails, so report each outcome.
+            const social = describeSocialResults(published?.social || published?.Social);
+            if (social.failed.length) {
+                notify('warning', `Published to the website. ${social.text}. Retry the failed platform(s) from the Published tab.`);
+            } else {
+                notify('success', social.text ? `Published to the website. ${social.text}.` : 'Content published.');
+            }
         } catch (err) {
             notify('error', err.message || 'Failed to publish content. Please try again.');
         } finally {
@@ -218,7 +255,7 @@ export default function PublishingPage() {
         }
         setSubmitting(true);
         try {
-            await apiClient.schedulePublish(
+            const scheduled = await apiClient.schedulePublish(
                 form.contentId,
                 form.platforms,
                 new Date(form.scheduledAt).toISOString(),
@@ -228,7 +265,8 @@ export default function PublishingPage() {
             setScheduledPosts(updated || []);
             setShowForm(false);
             setForm(EMPTY_FORM);
-            notify('success', 'Post scheduled.');
+            const outcome = describeSocialResults(scheduled?.results || scheduled?.Results);
+            notify(outcome.failed.length ? 'warning' : 'success', outcome.text || 'Post scheduled.');
         } catch (err) {
             notify('error', err.message || 'Failed to schedule post. Please try again.');
         } finally {
@@ -539,6 +577,7 @@ export default function PublishingPage() {
 
             {/* Schedule modal */}
             {showForm && (
+                <Portal>
                 <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowForm(false)}>
                     <div className={styles.modal}>
                         <h2>Schedule a Post</h2>
@@ -559,7 +598,7 @@ export default function PublishingPage() {
                             <div className={styles.formGroup}>
                                 <label>Platforms *</label>
                                 <div className={styles.platformChips}>
-                                    {PLATFORMS.map((p) => (
+                                    {platforms.map((p) => (
                                         <button
                                             key={p.value}
                                             type="button"
@@ -600,10 +639,12 @@ export default function PublishingPage() {
                         </form>
                     </div>
                 </div>
+                </Portal>
             )}
 
             {/* Publish to Destination modal */}
             {showDestForm && (
+                <Portal>
                 <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowDestForm(false)}>
                     <div className={styles.modal}>
                         <h2>Publish to Destination</h2>
@@ -747,7 +788,7 @@ export default function PublishingPage() {
                             <div className={styles.formGroup}>
                                 <label>Also post to social platforms (optional)</label>
                                 <div className={styles.platformChips}>
-                                    {PLATFORMS.map((p) => (
+                                    {platforms.map((p) => (
                                         <button
                                             key={p.value}
                                             type="button"
@@ -783,6 +824,7 @@ export default function PublishingPage() {
                         </form>
                     </div>
                 </div>
+                </Portal>
             )}
         </div>
     );
