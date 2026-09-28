@@ -1,5 +1,8 @@
 'use client';
 
+// Parked: members don't get a dashboard yet (see app/admin/(protected)/dashboard/page.js, which
+// redirects them out of /admin instead of rendering this). Kept here for when that ships.
+
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
