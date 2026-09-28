@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import useSidebarCounts from '@/lib/useSidebarCounts';
 import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
 import AdminConfirm from './AdminConfirm';
@@ -37,6 +38,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }, []);
 
     const role = resolveRole();
+    const counts = useSidebarCounts(role);
 
     const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -93,6 +95,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             title: 'Appointments',
             path: '/admin/appointments',
             roles: ['superAdmin', 'churchAdmin'],
+            badgeKey: 'appointments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M6 2C6 1.44772 6.44772 1 7 1C7.55228 1 8 1.44772 8 2V3H12V2C12 1.44772 12.4477 1 13 1C13.5523 1 14 1.44772 14 2V3H15C16.6569 3 18 4.34315 18 6V15C18 16.6569 16.6569 18 15 18H5C3.34315 18 2 16.6569 2 15V6C2 4.34315 3.34315 3 5 3H6V2ZM5 5C4.44772 5 4 5.44772 4 6V7H16V6C16 5.44772 15.5523 5 15 5H5ZM16 9H4V15C4 15.5523 4.44772 16 5 16H15C15.5523 16 16 15.5523 16 15V9Z" fill="currentColor" />
@@ -103,6 +106,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             title: 'Requisitions',
             path: '/admin/requisitions',
             roles: ['superAdmin', 'churchAdmin'],
+            badgeKey: 'requisitions',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M4 2C2.89543 2 2 2.89543 2 4V16C2 17.1046 2.89543 18 4 18H16C17.1046 18 18 17.1046 18 16V4C18 2.89543 17.1046 2 16 2H4ZM7 6C6.44772 6 6 6.44772 6 7C6 7.55228 6.44772 8 7 8H13C13.5523 8 14 7.55228 14 7C14 6.44772 13.5523 6 13 6H7ZM6 10C6 9.44772 6.44772 9 7 9H13C13.5523 9 14 9.44772 14 10C14 10.5523 13.5523 11 13 11H7C6.44772 11 6 10.5523 6 10ZM7 12C6.44772 12 6 12.4477 6 13C6 13.5523 6.44772 14 7 14H10C10.5523 14 11 13.5523 11 13C11 12.4477 10.5523 12 10 12H7Z" fill="currentColor" />
@@ -161,6 +165,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             title: 'Birthdays',
             path: '/admin/birthdays',
             roles: 'all',
+            badgeKey: 'birthdays',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M10 2C10 1.44772 10.4477 1 11 1C11.5523 1 12 1.44772 12 2V3H13C14.6569 3 16 4.34315 16 6V7H4V6C4 4.34315 5.34315 3 7 3H8V2C8 1.44772 8.44772 1 9 1C9.55228 1 10 1.44772 10 2V3H10V2Z" fill="currentColor" />
@@ -192,6 +197,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     title: 'Approvals',
                     path: '/admin/approvals',
                     roles: ['superAdmin', 'churchAdmin'],
+                    badgeKey: 'approvals',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM13.7071 8.70711C14.0976 8.31658 14.0976 7.68342 13.7071 7.29289C13.3166 6.90237 12.6834 6.90237 12.2929 7.29289L9 10.5858L7.70711 9.29289C7.31658 8.90237 6.68342 8.90237 6.29289 9.29289C5.90237 9.68342 5.90237 10.3166 6.29289 10.7071L8.29289 12.7071C8.68342 13.0976 9.31658 13.0976 9.70711 12.7071L13.7071 8.70711Z" fill="currentColor" />
@@ -268,6 +274,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
     const visible = menuItems.filter(canSee);
 
+    const badgeFor = (item) => (item.badgeKey ? counts[item.badgeKey] || 0 : 0);
+    const groupBadgeFor = (item) =>
+        (item.children || []).filter(canSee).reduce((sum, c) => sum + badgeFor(c), 0);
+
     return (
         <>
             <BrandedSplash visible={loggingOut} mode="logout" />
@@ -285,6 +295,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                             const visibleChildren = item.children.filter(canSee);
                             const isGroupActive = pathname === item.path ||
                                 visibleChildren.some((c) => pathname === c.path);
+                            const groupBadge = groupBadgeFor(item);
                             return (
                                 <div key={item.path}>
                                     <button
@@ -297,6 +308,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                     >
                                         <span className={styles.icon}>{item.icon}</span>
                                         <span className={styles.label}>{item.title}</span>
+                                        {!mediaOpen && groupBadge > 0 && (
+                                            <span className={styles.navBadge}>{groupBadge > 99 ? '99+' : groupBadge}</span>
+                                        )}
                                         <span className={`${styles.chevron} ${mediaOpen ? styles.chevronOpen : ''}`}>
                                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                                 <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -304,24 +318,31 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                         </span>
                                     </button>
                                     <div className={`${styles.subMenu} ${mediaOpen ? styles.subMenuOpen : ''}`}>
-                                        {visibleChildren.map((child) => (
-                                            <button
-                                                key={child.path}
-                                                onClick={() => {
-                                                    router.push(child.path);
-                                                    if (window.innerWidth < 1024) setIsOpen(false);
-                                                }}
-                                                className={`${styles.subItem} ${pathname === child.path ? styles.active : ''}`}
-                                            >
-                                                <span className={styles.icon}>{child.icon}</span>
-                                                <span className={styles.label}>{child.title}</span>
-                                            </button>
-                                        ))}
+                                        {visibleChildren.map((child) => {
+                                            const childBadge = badgeFor(child);
+                                            return (
+                                                <button
+                                                    key={child.path}
+                                                    onClick={() => {
+                                                        router.push(child.path);
+                                                        if (window.innerWidth < 1024) setIsOpen(false);
+                                                    }}
+                                                    className={`${styles.subItem} ${pathname === child.path ? styles.active : ''}`}
+                                                >
+                                                    <span className={styles.icon}>{child.icon}</span>
+                                                    <span className={styles.label}>{child.title}</span>
+                                                    {childBadge > 0 && (
+                                                        <span className={styles.navBadge}>{childBadge > 99 ? '99+' : childBadge}</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             );
                         }
 
+                        const badge = badgeFor(item);
                         return (
                             <button
                                 key={item.path}
@@ -333,6 +354,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                             >
                                 <span className={styles.icon}>{item.icon}</span>
                                 <span className={styles.label}>{item.title}</span>
+                                {badge > 0 && (
+                                    <span className={styles.navBadge}>{badge > 99 ? '99+' : badge}</span>
+                                )}
                             </button>
                         );
                     })}
