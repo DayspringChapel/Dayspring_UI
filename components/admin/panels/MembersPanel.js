@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import styles from '../panels/Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
+import ImportCsvControl from '../ImportCsvControl';
 
 // ── Enum maps ────────────────────────────────────────────────────
 const APELLATION_OPTIONS = [
@@ -322,7 +323,11 @@ export default function MembersPanel() {
                     <h2>Members Directory</h2>
                     <p className={styles.cardDescription}>Register new members or update existing records.</p>
                 </div>
-                <button className={styles.addBtn} onClick={handleCreate}>Add Member</button>
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <ImportCsvControl kind="members" label="Members" onImported={loadData} />
+                    <ImportCsvControl kind="children" label="Children" onImported={loadData} />
+                    <button className={styles.addBtn} onClick={handleCreate}>Add Member</button>
+                </div>
             </div>
 
             {/* ── Filters ── */}

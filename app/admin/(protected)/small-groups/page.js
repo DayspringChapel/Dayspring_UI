@@ -5,6 +5,7 @@ import apiClient from '@/lib/apiClient';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
+import ImportCsvControl from '@/components/admin/ImportCsvControl';
 
 const emptyForm = {
     smallGroupName: '',
@@ -190,9 +191,12 @@ export default function SmallGroupsPage() {
         <div className="mx-auto max-w-[1400px] px-4">
             <AdminToast toast={toast} onClose={clearToast} />
             <AdminConfirm dialog={dialog} onClose={closeDialog} />
-            <div className="mb-8">
-                <h1 className="mb-2 text-2xl font-bold" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Small Groups</h1>
-                <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage care groups and assign small group leaders.</p>
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <h1 className="mb-2 text-2xl font-bold" style={{color:'#f1f5f9',letterSpacing:'-0.02em'}}>Small Groups</h1>
+                    <p className="text-lg" style={{color:'rgba(255,255,255,0.45)'}}>Manage care groups and assign small group leaders.</p>
+                </div>
+                <ImportCsvControl kind="small-groups" label="Small Groups" onImported={loadData} />
             </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_1fr]">
