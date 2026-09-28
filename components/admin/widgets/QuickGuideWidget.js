@@ -48,13 +48,13 @@ const TITLE = {
     member: 'Quick Guide',
 };
 
-export default function QuickGuideWidget() {
+export default function QuickGuideWidget({ onStartTour } = {}) {
     const [expanded, setExpanded] = useState(false);
     const role = resolveRole();
     const tips = TIPS[role] || TIPS.member;
 
     return (
-        <div style={{
+        <div data-tour="quick-guide" style={{
             background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)',
             borderRadius: '1rem', overflow: 'hidden',
         }}>
@@ -69,6 +69,22 @@ export default function QuickGuideWidget() {
                 <span>💡 {TITLE[role]}</span>
                 <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem' }}>{expanded ? '▲' : '▼'}</span>
             </button>
+            {onStartTour && (
+                <div style={{ padding: '0 1.1rem 0.9rem' }}>
+                    <button
+                        type="button"
+                        onClick={onStartTour}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                            background: 'transparent', border: '1px solid rgba(217,117,44,0.5)',
+                            color: '#f2a969', borderRadius: '999px', padding: '0.35rem 0.8rem',
+                            fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                        }}
+                    >
+                        ✨ Take the tour
+                    </button>
+                </div>
+            )}
             {expanded && (
                 <ul style={{ margin: 0, padding: '0 1.1rem 1rem 1.6rem', listStyle: 'disc' }}>
                     {tips.map((tip, i) => (

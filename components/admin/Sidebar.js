@@ -279,7 +279,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     <p>Admin Panel</p>
                 </div>
 
-                <nav className={styles.nav}>
+                <nav className={styles.nav} data-tour="sidebar-nav">
                     {visible.map((item) => {
                         if (item.children) {
                             const visibleChildren = item.children.filter(canSee);

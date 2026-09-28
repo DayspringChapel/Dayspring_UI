@@ -8,6 +8,8 @@ import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import DashboardTour from '@/components/admin/DashboardTour';
+import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
 
 // ── Rose / violet creative theme ────────────────────────────────────────────
@@ -27,6 +29,7 @@ export default function ChurchMediaDashboard({ userName }) {
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+    const [tourSignal, setTourSignal] = useState(0);
 
     useEffect(() => {
         apiClient.refreshCurrentUserPermissions()
@@ -160,7 +163,7 @@ export default function ChurchMediaDashboard({ userName }) {
         <>
             {navigating && <NavOverlay />}
             <div className={styles.page} style={THEME}>
-                <header className={styles.hero}>
+                <header className={styles.hero} data-tour="hero">
                     <div>
                         <span className={styles.badge}>Head Media</span>
                         <h1 className={styles.heroTitle}>Welcome, {userName}</h1>
@@ -206,7 +209,7 @@ export default function ChurchMediaDashboard({ userName }) {
                             </div>
                         )}
 
-                        <div className={styles.sideCard}>
+                        <div className={styles.sideCard} data-tour="quick-actions">
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>
                             <div className={styles.actionRowWrap}>
                                 {quickActions.map((a) => (
@@ -224,7 +227,7 @@ export default function ChurchMediaDashboard({ userName }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
-                        <QuickGuideWidget />
+                        <QuickGuideWidget onStartTour={() => setTourSignal((n) => n + 1)} />
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
                             <ul className={styles.snapshotList}>
@@ -240,6 +243,7 @@ export default function ChurchMediaDashboard({ userName }) {
                     </aside>
                 </div>
             </div>
+            <DashboardTour steps={tourStepsFor('churchMedia')} storageKey="churchMedia" restartSignal={tourSignal} />
         </>
     );
 }

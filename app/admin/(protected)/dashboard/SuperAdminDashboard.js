@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
+import DashboardTour from '@/components/admin/DashboardTour';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import { REPORTS_TILE, ROLES_PERMISSIONS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
 
 // ── Purple / gold sovereign theme ───────────────────────────────────────────
@@ -36,6 +38,7 @@ export default function SuperAdminDashboard({ userName }) {
     const [loading, setLoading]     = useState(true);
     const [navigating, setNavigating] = useState(null); // path being loaded
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+    const [tourSignal, setTourSignal] = useState(0);
 
     useEffect(() => {
         apiClient.refreshCurrentUserPermissions()
@@ -158,7 +161,7 @@ export default function SuperAdminDashboard({ userName }) {
         <>
             {navigating && <NavOverlay />}
             <div className={styles.page} style={THEME}>
-                <header className={styles.hero}>
+                <header className={styles.hero} data-tour="hero">
                     <div>
                         <span className={styles.badge}>Overseer</span>
                         <h1 className={styles.heroTitle}>Welcome, {userName}</h1>
@@ -202,7 +205,7 @@ export default function SuperAdminDashboard({ userName }) {
                             <BarChart bars={contentLibraryBars} height={160} />
                         </div>
 
-                        <div className={styles.sideCard}>
+                        <div className={styles.sideCard} data-tour="quick-actions">
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>
                             <div className={styles.actionRowWrap}>
                                 {quickActions.map((a) => (
@@ -220,10 +223,11 @@ export default function SuperAdminDashboard({ userName }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
-                        <QuickGuideWidget />
+                        <QuickGuideWidget onStartTour={() => setTourSignal((n) => n + 1)} />
                     </aside>
                 </div>
             </div>
+            <DashboardTour steps={tourStepsFor('superAdmin')} storageKey="superAdmin" restartSignal={tourSignal} />
         </>
     );
 }

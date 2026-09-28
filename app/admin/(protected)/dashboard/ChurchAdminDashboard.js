@@ -8,6 +8,8 @@ import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
 import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import DashboardTour from '@/components/admin/DashboardTour';
+import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
 
 // ── Teal / emerald executive theme ──────────────────────────────────────────
@@ -30,6 +32,7 @@ export default function ChurchAdminDashboard({ userName }) {
     const [loading, setLoading]       = useState(true);
     const [navigating, setNavigating] = useState(null);
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
+    const [tourSignal, setTourSignal] = useState(0);
 
     useEffect(() => {
         apiClient.refreshCurrentUserPermissions()
@@ -158,7 +161,7 @@ export default function ChurchAdminDashboard({ userName }) {
         <>
             {navigating && <NavOverlay />}
             <div className={styles.page} style={THEME}>
-                <header className={styles.hero}>
+                <header className={styles.hero} data-tour="hero">
                     <div>
                         <span className={styles.badge}>Admin</span>
                         <h1 className={styles.heroTitle}>Welcome, {userName}</h1>
@@ -212,7 +215,7 @@ export default function ChurchAdminDashboard({ userName }) {
                             <BarChart bars={memberGrowth} height={160} />
                         </div>
 
-                        <div className={styles.sideCard}>
+                        <div className={styles.sideCard} data-tour="quick-actions">
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>
                             <div className={styles.actionRowWrap}>
                                 {quickActions.map((a) => (
@@ -230,7 +233,7 @@ export default function ChurchAdminDashboard({ userName }) {
 
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
-                        <QuickGuideWidget />
+                        <QuickGuideWidget onStartTour={() => setTourSignal((n) => n + 1)} />
                         {stats.pendingAppts > 0 && (
                             <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
                                 <h4 className={styles.sideCardTitle}>Pending Actions</h4>
@@ -244,6 +247,7 @@ export default function ChurchAdminDashboard({ userName }) {
                     </aside>
                 </div>
             </div>
+            <DashboardTour steps={tourStepsFor('churchAdmin')} storageKey="churchAdmin" restartSignal={tourSignal} />
         </>
     );
 }
