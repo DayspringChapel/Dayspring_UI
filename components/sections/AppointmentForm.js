@@ -41,16 +41,22 @@ export default function AppointmentForm() {
 
         if (!formData.firstname.trim()) {
             newErrors.firstname = 'First name is required';
+        } else if (formData.firstname.length > 80) {
+            newErrors.firstname = 'First name must be 80 characters or fewer';
         }
 
         if (!formData.surname.trim()) {
             newErrors.surname = 'Surname is required';
+        } else if (formData.surname.length > 80) {
+            newErrors.surname = 'Surname must be 80 characters or fewer';
         }
 
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
             newErrors.email = 'Email is invalid';
+        } else if (formData.email.length > 50) {
+            newErrors.email = 'Email must be 50 characters or fewer';
         }
 
         if (!formData.phone.trim()) {
@@ -59,6 +65,8 @@ export default function AppointmentForm() {
 
         if (!formData.purpose.trim()) {
             newErrors.purpose = 'Purpose of appointment is required';
+        } else if (formData.purpose.length > 255) {
+            newErrors.purpose = `Purpose must be 255 characters or fewer (currently ${formData.purpose.length})`;
         }
 
         return newErrors;
@@ -90,6 +98,34 @@ export default function AppointmentForm() {
                 setSubmitted(true);
             } catch (error) {
                 console.error('Failed to schedule appointment:', error);
+
+                // Field-level validation errors from the backend (e.g. a 400 for an overlong
+                // purpose) — map them onto the matching input instead of a vague summary.
+                if (Array.isArray(error.fieldErrors) && error.fieldErrors.length > 0) {
+                    const fieldMap = {
+                        firstname: 'firstname',
+                        surname: 'surname',
+                        email: 'email',
+                        phonenumber: 'phone',
+                        purposeofappointment: 'purpose',
+                    };
+                    const fieldErrors = {};
+                    error.fieldErrors.forEach(({ field, errors: fieldMessages }) => {
+                        const key = fieldMap[field?.toLowerCase()];
+                        if (key && fieldMessages?.length) fieldErrors[key] = fieldMessages[0];
+                    });
+                    setErrors(fieldErrors);
+                    setApiError(Object.keys(fieldErrors).length
+                        ? 'Please fix the highlighted field(s) below.'
+                        : 'Invalid appointment data. Please check all fields and try again.');
+
+                    const firstField = Object.keys(fieldErrors)[0];
+                    if (firstField) {
+                        document.getElementById(firstField)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+
                 // Extract the error message from the backend if available
                 const errorMessage = error.message || 'Failed to submit appointment. Please try again.';
 
@@ -165,6 +201,7 @@ export default function AppointmentForm() {
                                         name="firstname"
                                         value={formData.firstname}
                                         onChange={handleChange}
+                                        maxLength={80}
                                         className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.firstname ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="John"
@@ -181,6 +218,7 @@ export default function AppointmentForm() {
                                         name="surname"
                                         value={formData.surname}
                                         onChange={handleChange}
+                                        maxLength={80}
                                         className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.surname ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Doe"
@@ -200,6 +238,7 @@ export default function AppointmentForm() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    maxLength={50}
                                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.email ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="john@example.com"
@@ -252,15 +291,21 @@ export default function AppointmentForm() {
 
                             {/* Purpose */}
                             <div>
-                                <label htmlFor="purpose" className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Purpose of Appointment *
-                                </label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label htmlFor="purpose" className="block text-sm font-semibold text-gray-700">
+                                        Purpose of Appointment *
+                                    </label>
+                                    <span className={`text-xs font-medium ${formData.purpose.length > 255 ? 'text-red-500' : 'text-gray-400'}`}>
+                                        {formData.purpose.length}/255
+                                    </span>
+                                </div>
                                 <textarea
                                     id="purpose"
                                     name="purpose"
                                     value={formData.purpose}
                                     onChange={handleChange}
                                     rows="4"
+                                    maxLength={255}
                                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 font-medium ${errors.purpose ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="Please briefly describe the purpose of your appointment..."
