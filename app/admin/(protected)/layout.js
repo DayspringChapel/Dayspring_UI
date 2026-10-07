@@ -6,6 +6,7 @@ import apiClient from '@/lib/apiClient';
 import Sidebar from '@/components/admin/Sidebar';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProfileBadge from '@/components/admin/ProfileBadge';
+import PageGuide from '@/components/admin/PageGuide';
 import styles from './admin.module.css';
 
 export default function ProtectedAdminLayout({ children }) {
@@ -73,6 +74,7 @@ export default function ProtectedAdminLayout({ children }) {
                     </div>
                 </header>
                 <main className={styles.content}>{children}</main>
+                <PageGuide />
             </div>
         </div>
     );

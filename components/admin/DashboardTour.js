@@ -14,6 +14,12 @@ import Portal from '@/components/ui/Portal';
  * Auto-starts once per `storageKey` (role-scoped), then only replays when `restartSignal` changes
  * — pair with a "Take the tour" button that bumps a counter.
  */
+function findEl(step) {
+    return step.selector
+        ? document.querySelector(step.selector)
+        : document.querySelector(`[data-tour="${step.id}"]`);
+}
+
 export default function DashboardTour({ steps, storageKey, restartSignal }) {
     const [active, setActive] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
@@ -23,7 +29,7 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
     const seenKey = `dayspring_tour_seen_${storageKey}`;
 
     const computeAvailable = useCallback(() => {
-        return steps.filter((s) => document.querySelector(`[data-tour="${s.id}"]`));
+        return steps.filter((s) => s.centered || findEl(s));
     }, [steps]);
 
     // First-visit auto-start.
@@ -32,15 +38,16 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
         try { seen = localStorage.getItem(seenKey) === '1'; } catch { /* private mode etc. */ }
         if (seen) return;
 
-        const id = requestAnimationFrame(() => {
+        // Short delay so pages that load data first have rendered their real content.
+        const id = setTimeout(() => {
             const found = computeAvailable();
             if (found.length > 0) {
                 setAvailableSteps(found);
                 setStepIndex(0);
                 setActive(true);
             }
-        });
-        return () => cancelAnimationFrame(id);
+        }, 900);
+        return () => clearTimeout(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -64,7 +71,8 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
 
     const updateRect = useCallback(() => {
         if (!current) return;
-        const el = document.querySelector(`[data-tour="${current.id}"]`);
+        if (current.centered) { setRect(null); return; }
+        const el = findEl(current);
         if (!el) { setStepIndex((i) => Math.min(i + 1, availableSteps.length)); return; }
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
         const r = el.getBoundingClientRect();
@@ -91,10 +99,12 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
         };
     }, [active, updateRect, finish]);
 
-    if (!active || !current || !rect) return null;
+    if (!active || !current) return null;
+    const centered = !!current.centered;
+    if (!centered && !rect) return null;
 
     const pad = 8;
-    const spot = {
+    const spot = centered ? null : {
         top: rect.top - pad,
         left: rect.left - pad,
         width: rect.width + pad * 2,
@@ -105,10 +115,17 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
     const viewportH = typeof window !== 'undefined' ? window.innerHeight : 800;
     const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const cardWidth = 320;
-    const spaceBelow = viewportH - (spot.top + spot.height);
-    const placeAbove = spaceBelow < 180 && spot.top > 180;
-    const cardTop = placeAbove ? Math.max(12, spot.top - 168) : Math.min(spot.top + spot.height + 14, viewportH - 180);
-    const cardLeft = Math.min(Math.max(spot.left, 12), viewportW - cardWidth - 12);
+    let cardTop;
+    let cardLeft;
+    if (centered) {
+        cardTop = Math.max(12, viewportH / 2 - 100);
+        cardLeft = Math.max(12, viewportW / 2 - cardWidth / 2);
+    } else {
+        const spaceBelow = viewportH - (spot.top + spot.height);
+        const placeAbove = spaceBelow < 180 && spot.top > 180;
+        cardTop = placeAbove ? Math.max(12, spot.top - 168) : Math.min(spot.top + spot.height + 14, viewportH - 180);
+        cardLeft = Math.min(Math.max(spot.left, 12), viewportW - cardWidth - 12);
+    }
 
     const isLast = stepIndex === availableSteps.length - 1;
 
@@ -120,7 +137,7 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
                 style={{
                     position: 'fixed', inset: 0, zIndex: 2000,
                     background: 'rgba(8, 11, 20, 0.72)',
-                    clipPath: `polygon(
+                    clipPath: centered ? undefined : `polygon(
                         0% 0%, 0% 100%, ${spot.left}px 100%, ${spot.left}px ${spot.top}px,
                         ${spot.left + spot.width}px ${spot.top}px, ${spot.left + spot.width}px ${spot.top + spot.height}px,
                         ${spot.left}px ${spot.top + spot.height}px, ${spot.left}px 100%, 100% 100%, 100% 0%
@@ -128,15 +145,17 @@ export default function DashboardTour({ steps, storageKey, restartSignal }) {
                     transition: 'clip-path 0.25s ease',
                 }}
             />
-            <div
-                style={{
-                    position: 'fixed',
-                    top: spot.top, left: spot.left, width: spot.width, height: spot.height,
-                    zIndex: 2001, borderRadius: '0.75rem',
-                    boxShadow: '0 0 0 3px #d9752c, 0 0 24px rgba(217,117,44,0.55)',
-                    pointerEvents: 'none', transition: 'top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease',
-                }}
-            />
+            {!centered && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: spot.top, left: spot.left, width: spot.width, height: spot.height,
+                        zIndex: 2001, borderRadius: '0.75rem',
+                        boxShadow: '0 0 0 3px #d9752c, 0 0 24px rgba(217,117,44,0.55)',
+                        pointerEvents: 'none', transition: 'top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease',
+                    }}
+                />
+            )}
             <div
                 role="dialog"
                 aria-label="Dashboard tour"
