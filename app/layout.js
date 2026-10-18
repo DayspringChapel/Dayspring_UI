@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer';
 import ChatWidget from '@/components/ChatWidget';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import InstallPrompt from '@/components/InstallPrompt';
 import { usePathname } from 'next/navigation';
 
 export default function RootLayout({ children }) {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
       <body>
         <ServiceWorkerRegister />
         <ConditionalLayout>{children}</ConditionalLayout>
+        <InstallPrompt />
       </body>
     </html>
   );

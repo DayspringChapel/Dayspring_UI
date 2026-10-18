@@ -1,47 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useInstallApp } from '@/lib/useInstallApp';
 
-// "Install app" button. Chrome, Edge and Android offer installing through a browser event, which
-// this button triggers. iPhone/iPad Safari has no such event, so there it shows the manual steps.
-// Hidden when the site is already running as an installed app.
+// Always-available "Install app" button (footer). Chrome, Edge and Android open the install
+// prompt; iPhone/iPad Safari shows the manual steps. Hidden once the app is installed.
 export default function InstallAppButton() {
-    const [installEvent, setInstallEvent] = useState(null);
-    const [isIos, setIsIos] = useState(false);
-    const [installed, setInstalled] = useState(false);
+    const { canInstall, canPrompt, promptInstall } = useInstallApp();
     const [showIosHelp, setShowIosHelp] = useState(false);
 
-    useEffect(() => {
-        Promise.resolve().then(() => {
-            setInstalled(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
-            setIsIos(/iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream);
-        });
-
-        const onPrompt = (event) => { event.preventDefault(); setInstallEvent(event); };
-        const onInstalled = () => { setInstalled(true); setInstallEvent(null); };
-        window.addEventListener('beforeinstallprompt', onPrompt);
-        window.addEventListener('appinstalled', onInstalled);
-        return () => {
-            window.removeEventListener('beforeinstallprompt', onPrompt);
-            window.removeEventListener('appinstalled', onInstalled);
-        };
-    }, []);
-
-    if (installed || (!installEvent && !isIos)) return null;
-
-    async function install() {
-        if (installEvent) {
-            installEvent.prompt();
-            await installEvent.userChoice;
-            setInstallEvent(null);
-        } else {
-            setShowIosHelp((open) => !open);
-        }
-    }
+    if (!canInstall) return null;
 
     return (
         <div className="mt-8 flex flex-col items-center gap-2 text-center">
-            <button type="button" onClick={install}
+            <button type="button"
+                onClick={() => (canPrompt ? promptInstall() : setShowIosHelp((open) => !open))}
                 className="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/10">
                 Install the DaySpring app
             </button>
