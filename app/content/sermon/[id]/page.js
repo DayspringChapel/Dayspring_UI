@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { fetchSermonByIdServer } from '@/lib/serverApi';
 import SermonPlayer from '@/components/SermonPlayer';
 import NewsletterSection from '@/components/sections/NewsletterSection';
+import CommentsPanel from '@/components/CommentsPanel';
 import { extractYouTubeId } from '@/lib/youtube';
 
 export async function generateMetadata({ params }) {
@@ -104,6 +105,13 @@ export default async function SermonDetailPage({ params }) {
                     </div>
                 ) : (
                     <SermonPlayer audioUrl={sermon.audioLink} title={sermon.title} />
+                )}
+
+                {/* ── Comments (YouTube + website) ───────────────────── */}
+                {extractYouTubeId(sermon.youtubeUrl) && (
+                    <div className="mt-6">
+                        <CommentsPanel videoId={extractYouTubeId(sermon.youtubeUrl)} />
+                    </div>
                 )}
             </div>
 

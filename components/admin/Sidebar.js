@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }, []);
 
     const role = resolveRole();
-    const counts = useSidebarCounts(role);
+    const counts = useSidebarCounts(role, permissions.includes('CanModerateComments'));
 
     const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -217,6 +217,17 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     ),
                 },
             ],
+        },
+        {
+            title: 'Comments',
+            path: '/admin/comments',
+            permission: 'CanModerateComments',
+            badgeKey: 'comments',
+            icon: (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M4 3C2.89543 3 2 3.89543 2 5V12C2 13.1046 2.89543 14 4 14H6V17L10 14H16C17.1046 14 18 13.1046 18 12V5C18 3.89543 17.1046 3 16 3H4ZM6 7C5.44772 7 5 7.44772 5 8C5 8.55228 5.44772 9 6 9H14C14.5523 9 15 8.55228 15 8C15 7.44772 14.5523 7 14 7H6Z" fill="currentColor" />
+                </svg>
+            ),
         },
         {
             title: 'User Roles',

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#d9752c">
+    <title>You're offline | DaySpring Chapel</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 1.5rem; background: #f8f9fa; color: #1a1a2e; text-align: center;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        main { max-width: 22rem; }
+        img { width: 96px; height: 96px; margin-bottom: 1rem; }
+        h1 { margin: 0 0 0.5rem; font-size: 1.4rem; }
+        p { margin: 0 0 1.5rem; color: #4b5563; line-height: 1.5; }
+        button {
+            border: 0; border-radius: 0.6rem; background: #d9752c; color: #fff; cursor: pointer;
+            padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <img src="/icons/icon-192.png" alt="DaySpring Chapel">
+        <h1>You're offline</h1>
+        <p>We couldn't reach DaySpring Chapel. Check your internet connection and try again.</p>
+        <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+</body>
+</html>
