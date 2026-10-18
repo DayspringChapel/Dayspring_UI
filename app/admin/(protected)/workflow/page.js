@@ -61,7 +61,7 @@ export default function WorkflowPage() {
     const { dialog, confirm, closeDialog } = useConfirm();
 
     const role = resolveRole();
-    const canReview = role === 'churchMedia' || role === 'superAdmin';
+    const canReview = apiClient.hasPermission('CanReviewContent');
 
     useEffect(() => { load(); }, []);
 
@@ -183,8 +183,8 @@ export default function WorkflowPage() {
 
     // Which approval stage (if any) the current role can act on for this item.
     const approvableStage = (item) => {
-        if (item.workflowStatus === 5 && (role === 'churchAdmin' || role === 'superAdmin')) return 5;
-        if (item.workflowStatus === 6 && role === 'superAdmin') return 6;
+        if (item.workflowStatus === 5 && apiClient.hasPermission('CanApproveAsAdmin')) return 5;
+        if (item.workflowStatus === 6 && apiClient.hasPermission('CanApproveAsSuperAdmin')) return 6;
         return null;
     };
 

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import { useContentRole, CONTENT_ROLE } from '@/lib/useContentRole';
 import styles from './create.module.css';
 
 const CATEGORIES = [
@@ -12,7 +13,7 @@ const CATEGORIES = [
     { value: '3', label: 'Sermon Video (YouTube)', contentType: '2' },
     { value: '4', label: 'Event Flier', contentType: '1' },
     { value: '5', label: 'Event Highlight Video', contentType: '2' },
-    { value: '6', label: 'Memory / Short', contentType: '2', roles: ['churchMedia', 'churchAdmin', 'superAdmin'] },
+    { value: '6', label: 'Memory / Short', contentType: '2', permission: 'CanManageMemoryShort' },
 ];
 
 const CONTENT_TYPE_LABELS = { '1': 'Image', '2': 'Video', '3': 'Audio', '4': 'PDF' };
@@ -20,10 +21,11 @@ const CONTENT_TYPE_LABELS = { '1': 'Image', '2': 'Video', '3': 'Audio', '4': 'PD
 export default function CreateMediaPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const userRoleValue = apiClient.getUserData()?.role || apiClient.getUserData()?.Role || {};
-    const roleName = (typeof userRoleValue === 'string' ? userRoleValue : userRoleValue.name || userRoleValue.Name || '').toLowerCase();
-    const role = roleName.includes('super') ? 'superAdmin' : roleName.includes('media') ? 'churchMedia' : roleName.includes('admin') ? 'churchAdmin' : 'member';
-    const availableCategories = CATEGORIES.filter((category) => !category.roles || category.roles.includes(role));
+    // Event fliers are graphics work: the Graphics team starts them, and the media head (who can review content) may too.
+    const { role: contentRole } = useContentRole();
+    const canUploadFlier = apiClient.hasPermission('CanReviewContent') || contentRole === CONTENT_ROLE.GRAPHICS;
+    const availableCategories = CATEGORIES.filter((category) =>
+        (!category.permission || apiClient.hasPermission(category.permission)) && (category.value !== '4' || canUploadFlier));
     const initialCategory = availableCategories.some((category) => category.value === searchParams.get('category'))
         ? searchParams.get('category')
         : '1';
@@ -40,6 +42,13 @@ export default function CreateMediaPage() {
     const [error, setError] = useState(null);
     const [dragOver, setDragOver] = useState(false);
     const [videoInputMode, setVideoInputMode] = useState('youtube'); // 'youtube' | 'upload' — Event Highlight Video only
+
+    // Arriving from "Upload Event Flier" before the member record has loaded: switch to the flier once it is allowed.
+    const wantsFlier = searchParams.get('category') === '4';
+    useEffect(() => {
+        if (!wantsFlier || !canUploadFlier) return;
+        Promise.resolve().then(() => setForm((prev) => (prev.category === '4' ? prev : { ...prev, category: '4' })));
+    }, [wantsFlier, canUploadFlier]);
 
     const selectedCategory = availableCategories.find((c) => c.value === form.category) || availableCategories[0];
     const isVideoSermon = form.category === '3';

@@ -6,17 +6,6 @@ import styles from './Panel.module.css';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
-function resolveRole() {
-    const userData = apiClient.getUserData();
-    if (!userData) return 'member';
-    const r = userData.role || userData.Role || {};
-    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
-    if (name.includes('super')) return 'superAdmin';
-    if (name.includes('media')) return 'churchMedia';
-    if (name.includes('admin')) return 'churchAdmin';
-    return 'member';
-}
-
 export default function CalendarYearsPanel() {
     const [calendarYears, setCalendarYears] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -28,8 +17,7 @@ export default function CalendarYearsPanel() {
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
 
-    const role = resolveRole();
-    const canManage = role === 'churchAdmin' || role === 'superAdmin';
+    const canManage = apiClient.hasPermission('CanManageCalendarYear');
 
     useEffect(() => { loadCalendarYears(); }, []);
 

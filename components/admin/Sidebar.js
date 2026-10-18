@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import useSidebarCounts from '@/lib/useSidebarCounts';
+import { PERMISSION_GROUPS } from '@/lib/permissionTiles';
 import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
 import AdminConfirm from './AdminConfirm';
@@ -69,7 +70,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Content',
             path: '/admin/content',
-            roles: 'all',
+            anyPermission: PERMISSION_GROUPS.websiteContent,
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M4 4C4 3.44772 4.44772 3 5 3H15C15.5523 3 16 3.44772 16 4V6C16 6.55228 15.5523 7 15 7H5C4.44772 7 4 6.55228 4 6V4Z" fill="currentColor" />
@@ -94,7 +95,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Appointments',
             path: '/admin/appointments',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanManageAppointment',
             badgeKey: 'appointments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -105,7 +106,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Requisitions',
             path: '/admin/requisitions',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanManageRequisition',
             badgeKey: 'requisitions',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -116,7 +117,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Giving',
             path: '/admin/giving',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanManageGiving',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2ZM10.75 5.75C10.75 5.33579 10.4142 5 10 5C9.58579 5 9.25 5.33579 9.25 5.75V6.5H8.5C7.67157 6.5 7 7.17157 7 8C7 8.82843 7.67157 9.5 8.5 9.5H9.25V10.5H8C7.17157 10.5 6.5 11.1716 6.5 12C6.5 12.8284 7.17157 13.5 8 13.5H9.25V14.25C9.25 14.6642 9.58579 15 10 15C10.4142 15 10.75 14.6642 10.75 14.25V13.5H11.5C12.3284 13.5 13 12.8284 13 12C13 11.1716 12.3284 10.5 11.5 10.5H10.75V9.5H12C12.8284 9.5 13.5 8.82843 13.5 8C13.5 7.17157 12.8284 6.5 12 6.5H10.75V5.75Z" fill="currentColor" />
@@ -126,7 +127,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Members',
             path: '/admin/members',
-            roles: ['superAdmin', 'churchAdmin', 'churchMedia'],
+            anyPermission: PERMISSION_GROUPS.members,
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M9 6C9 7.65685 7.65685 9 6 9C4.34315 9 3 7.65685 3 6C3 4.34315 4.34315 3 6 3C7.65685 3 9 4.34315 9 6Z" fill="currentColor" />
@@ -139,7 +140,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Units',
             path: '/admin/units',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanManageDepartments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M4 3C3.44772 3 3 3.44772 3 4V8C3 8.55228 3.44772 9 4 9H8C8.55228 9 9 8.55228 9 8V4C9 3.44772 8.55228 3 8 3H4ZM12 3C11.4477 3 11 3.44772 11 4V8C11 8.55228 11.4477 9 12 9H16C16.5523 9 17 8.55228 17 8V4C17 3.44772 16.5523 3 16 3H12ZM4 11C3.44772 11 3 11.4477 3 12V16C3 16.5523 3.44772 17 4 17H8C8.55228 17 9 16.5523 9 16V12C9 11.4477 8.55228 11 8 11H4ZM12 11C11.4477 11 11 11.4477 11 12V16C11 16.5523 11.4477 17 12 17H16C16.5523 17 17 16.5523 17 16V12C17 11.4477 16.5523 11 16 11H12Z" fill="currentColor" />
@@ -149,7 +150,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Small Groups',
             path: '/admin/small-groups',
-            roles: ['superAdmin', 'churchAdmin'],
+            permission: 'CanManageSmallGroup',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M10 3C8.34315 3 7 4.34315 7 6C7 7.65685 8.34315 9 10 9C11.6569 9 13 7.65685 13 6C13 4.34315 11.6569 3 10 3Z" fill="currentColor" />
@@ -176,7 +177,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Media',
             path: '/admin/media',
-            roles: 'all',
+            anyPermission: PERMISSION_GROUPS.media,
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.89543 2.89543 2 4 2H16C17.1046 2 18 2.89543 18 4V13C18 14.1046 17.1046 15 16 15H4C2.89543 15 2 14.1046 2 13V4ZM8 6C7.44772 6 7 6.44772 7 7V11C7 11.3688 7.20302 11.7077 7.52652 11.8817C7.85003 12.0557 8.2429 12.0366 8.5477 11.8321L12.5477 9.16542C12.8217 8.98169 12.99 8.68065 12.99 8.35714C12.99 8.03363 12.8217 7.73259 12.5477 7.54885L8.5477 4.88218C8.2429 4.67766 7.85003 4.65851 7.52652 4.83253C7.20302 5.00655 7 5.34547 7 5.71429V6H8ZM4 16H16C16.3506 16 16.6872 15.9398 17 15.8293V16C17 17.1046 16.1046 18 15 18H5C3.89543 18 3 17.1046 3 16V15.8293C3.31278 15.9398 3.64936 16 4 16Z" fill="currentColor" />
@@ -186,7 +187,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Workflow',
                     path: '/admin/workflow',
-                    roles: 'all',
+                    anyPermission: PERMISSION_GROUPS.workflow,
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path fillRule="evenodd" clipRule="evenodd" d="M2 5C2 3.89543 2.89543 3 4 3H7C8.10457 3 9 3.89543 9 5V7C9 8.10457 8.10457 9 7 9H4C2.89543 9 2 8.10457 2 7V5ZM11 5C11 3.89543 11.8954 3 13 3H16C17.1046 3 18 3.89543 18 5V7C18 8.10457 17.1046 9 16 9H13C11.8954 9 11 8.10457 11 7V5ZM2 13C2 11.8954 2.89543 11 4 11H7C8.10457 11 9 11.8954 9 13V15C9 16.1046 8.10457 17 7 17H4C2.89543 17 2 16.1046 2 15V13ZM9 14H11M11 14V12C11 11.4477 11.4477 11 12 11H14M14 11V9M14 9H16M14 9H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -196,7 +197,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 {
                     title: 'Approvals',
                     path: '/admin/approvals',
-                    roles: ['superAdmin', 'churchAdmin'],
+                    anyPermission: PERMISSION_GROUPS.approve,
                     badgeKey: 'approvals',
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -208,7 +209,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     title: 'Publishing',
                     path: '/admin/publishing',
                     // Anyone who can publish to at least one destination (e.g. churchAdmin: WhatsApp only).
-                    anyPermission: ['CanPublishContent', 'CanPublishToFacebook', 'CanPublishToInstagram', 'CanPublishToX', 'CanPublishToYouTube', 'CanPublishToWhatsApp'],
+                    anyPermission: PERMISSION_GROUPS.publish,
                     icon: (
                         <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                             <path d="M3 13H17M10 3V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -264,7 +265,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {
             title: 'Settings',
             path: '/admin/settings',
-            roles: 'all',
+            anyPermission: PERMISSION_GROUPS.settings,
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" fill="currentColor" />

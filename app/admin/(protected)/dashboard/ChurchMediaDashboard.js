@@ -7,7 +7,7 @@ import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
-import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import { REPORTS_TILE, PERMISSION_GROUPS, canSeeItem, visibleItems, withPermissionTiles } from '@/lib/permissionTiles';
 import DashboardTour from '@/components/admin/DashboardTour';
 import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
@@ -114,16 +114,18 @@ export default function ChurchMediaDashboard({ userName }) {
     if (loading) return <DashSkeleton />;
     const { stats, pipeline, byType, myRoles } = data;
 
-    const topStats = [
-        { label: 'Total Uploads',     value: stats.totalMedia,        color: '#db2777', note: 'All media content',   icon: '🎬' },
-        { label: 'Awaiting Admin',    value: stats.pendingApprovals,  color: '#ef4444', note: 'Forwarded, not yours to act on', icon: '⚡' },
-        { label: 'Published',         value: stats.published,         color: '#10b981', note: 'Live on platforms',   icon: '✅' },
-        { label: 'Scheduled',         value: stats.scheduledPosts,    color: '#3b82f6', note: 'Queued to publish',   icon: '📅' },
-        { label: 'Draft',             value: stats.draft,             color: '#94a3b8', note: 'Work in progress',    icon: '✏️' },
-        { label: 'In Review',         value: stats.inReview,          color: '#f59e0b', note: 'Under review',        icon: '🔍' },
-        { label: 'My Assignments',    value: stats.myAssignments,     color: '#7c3aed', note: 'Assigned to you',     icon: '🙋' },
-        { label: 'Sermons',           value: stats.sermons,           color: '#f472b6', note: 'Messages uploaded',   icon: '🎙️' },
-    ];
+    const hasPermission = (p) => permissions.includes(p);
+
+    const topStats = visibleItems([
+        { label: 'Total Uploads',     value: stats.totalMedia,        color: '#db2777', note: 'All media content',   icon: '🎬', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Awaiting Admin',    value: stats.pendingApprovals,  color: '#ef4444', note: 'Forwarded, not yours to act on', icon: '⚡', anyPermission: PERMISSION_GROUPS.workflow },
+        { label: 'Published',         value: stats.published,         color: '#10b981', note: 'Live on platforms',   icon: '✅', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Scheduled',         value: stats.scheduledPosts,    color: '#3b82f6', note: 'Queued to publish',   icon: '📅', anyPermission: PERMISSION_GROUPS.publish },
+        { label: 'Draft',             value: stats.draft,             color: '#94a3b8', note: 'Work in progress',    icon: '✏️', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'In Review',         value: stats.inReview,          color: '#f59e0b', note: 'Under review',        icon: '🔍', anyPermission: PERMISSION_GROUPS.workflow },
+        { label: 'My Assignments',    value: stats.myAssignments,     color: '#7c3aed', note: 'Assigned to you',     icon: '🙋', anyPermission: PERMISSION_GROUPS.workflow },
+        { label: 'Sermons',           value: stats.sermons,           color: '#f472b6', note: 'Messages uploaded',   icon: '🎙️', permission: 'CanManageSermon' },
+    ], hasPermission);
 
     const pipelineSegments = [
         { label: 'Draft',     value: pipeline.draft,     color: '#94a3b8' },
@@ -135,14 +137,14 @@ export default function ChurchMediaDashboard({ userName }) {
         { label: 'Rejected',  value: pipeline.rejected,  color: '#ef4444' },
     ].filter(s => s.value > 0);
 
-    const contentBars = [
-        { label: 'Sermons', value: stats.sermons, color: '#f472b6' },
-        { label: 'Albums',  value: stats.albums,  color: '#be123c' },
-        { label: 'Images',  value: stats.images,  color: '#0f766e' },
-        { label: 'Series',  value: stats.series,  color: '#7c3aed' },
-        { label: 'Videos',  value: byType.videos, color: '#db2777' },
-        { label: 'Photos',  value: byType.images, color: '#2563eb' },
-    ];
+    const contentBars = visibleItems([
+        { label: 'Sermons', value: stats.sermons, color: '#f472b6', permission: 'CanManageSermon' },
+        { label: 'Albums',  value: stats.albums,  color: '#be123c', permission: 'CanManageAlbum' },
+        { label: 'Images',  value: stats.images,  color: '#0f766e', permission: 'CanManageImage' },
+        { label: 'Series',  value: stats.series,  color: '#7c3aed', permission: 'CanManageSeries' },
+        { label: 'Videos',  value: byType.videos, color: '#db2777', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Photos',  value: byType.images, color: '#2563eb', anyPermission: PERMISSION_GROUPS.media },
+    ], hasPermission);
 
     const myRoleBars = [
         { label: 'Media',    value: myRoles.media,       color: '#db2777' },
@@ -151,13 +153,13 @@ export default function ChurchMediaDashboard({ userName }) {
     ];
 
     const quickActions = withPermissionTiles([
-        { label: 'Upload Media', path: '/admin/media/create', color: '#db2777', icon: '⬆️' },
-        { label: 'My Content',   path: '/admin/media',        color: '#7c3aed', icon: '🎬' },
-        { label: 'Workflow',     path: '/admin/workflow',     color: '#0369a1', icon: '🔄' },
-        { label: 'Approvals',    path: '/admin/approvals',    color: '#ef4444', icon: '✅' },
-        { label: 'Publishing',   path: '/admin/publishing',   color: '#3b82f6', icon: '📤' },
-        { label: 'Sermons',      path: '/admin/content',      color: '#f472b6', icon: '🎙️' },
-    ], (p) => permissions.includes(p), [REPORTS_TILE]);
+        { label: 'Upload Media', path: '/admin/media/create', color: '#db2777', icon: '⬆️', permission: 'CanUploadContent' },
+        { label: 'My Content',   path: '/admin/media',        color: '#7c3aed', icon: '🎬', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Workflow',     path: '/admin/workflow',     color: '#0369a1', icon: '🔄', anyPermission: PERMISSION_GROUPS.workflow },
+        { label: 'Approvals',    path: '/admin/approvals',    color: '#ef4444', icon: '✅', anyPermission: PERMISSION_GROUPS.approve },
+        { label: 'Publishing',   path: '/admin/publishing',   color: '#3b82f6', icon: '📤', anyPermission: PERMISSION_GROUPS.publish },
+        { label: 'Sermons',      path: '/admin/content',      color: '#f472b6', icon: '🎙️', permission: 'CanManageSermon' },
+    ], hasPermission, [REPORTS_TILE]);
 
     return (
         <>
@@ -185,6 +187,7 @@ export default function ChurchMediaDashboard({ userName }) {
                         </section>
 
                         <section className={styles.chartsRow}>
+                            {canSeeItem({ anyPermission: PERMISSION_GROUPS.media }, hasPermission) && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Content Pipeline</h3>
                                 <p className={styles.chartSub}>Status breakdown of all {stats.totalMedia} uploads</p>
@@ -194,14 +197,17 @@ export default function ChurchMediaDashboard({ userName }) {
                                     centerLabel="Uploads"
                                 />
                             </div>
+                            )}
+                            {contentBars.length > 0 && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Content Library</h3>
                                 <p className={styles.chartSub}>Breakdown by content type</p>
                                 <BarChart bars={contentBars} height={190} />
                             </div>
+                            )}
                         </section>
 
-                        {stats.myAssignments > 0 && (
+                        {stats.myAssignments > 0 && canSeeItem({ anyPermission: PERMISSION_GROUPS.workflow }, hasPermission) && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>My Personnel Assignments</h3>
                                 <p className={styles.chartSub}>Your role breakdown across {stats.myAssignments} assigned content items</p>
@@ -228,6 +234,7 @@ export default function ChurchMediaDashboard({ userName }) {
                     <aside className={styles.col1Sticky}>
                         <BirthdayWidget />
                         <QuickGuideWidget onStartTour={() => setTourSignal((n) => n + 1)} />
+                        {canSeeItem({ anyPermission: PERMISSION_GROUPS.media }, hasPermission) && (
                         <div className={styles.sideCard}>
                             <h4 className={styles.sideCardTitle}>Pipeline Summary</h4>
                             <ul className={styles.snapshotList}>
@@ -240,6 +247,7 @@ export default function ChurchMediaDashboard({ userName }) {
                                 <SnapItem label="Rejected"  value={pipeline.rejected}  color="#ef4444" />
                             </ul>
                         </div>
+                        )}
                     </aside>
                 </div>
             </div>

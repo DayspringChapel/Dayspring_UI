@@ -7,7 +7,7 @@ import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
-import { REPORTS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import { REPORTS_TILE, PERMISSION_GROUPS, canSeeItem, visibleItems, withPermissionTiles } from '@/lib/permissionTiles';
 import DashboardTour from '@/components/admin/DashboardTour';
 import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
@@ -116,16 +116,18 @@ export default function ChurchAdminDashboard({ userName }) {
     if (loading) return <DashSkeleton />;
     const { stats, apptStatus, reqStatus, memberGrowth } = data;
 
-    const topStats = [
-        { label: 'Members',              value: stats.members,      color: '#0d9488', note: 'Church members',     icon: '👥' },
-        { label: 'Pending Appointments', value: stats.pendingAppts, color: '#ef4444', note: 'Awaiting action',    icon: '⚡', urgent: true },
-        { label: 'Pending Requisitions', value: stats.pendingReqs,  color: '#f59e0b', note: 'Needs review',       icon: '📝', urgent: stats.pendingReqs > 0 },
-        { label: 'Events',               value: stats.events,       color: '#2dd4bf', note: 'Active events',      icon: '📌' },
-        { label: 'Small Groups',         value: stats.smallGroups,  color: '#10b981', note: 'Care groups',        icon: '🤝' },
-        { label: 'Departments',          value: stats.units,        color: '#6366f1', note: 'Ministry units',     icon: '🏛️' },
-        { label: 'Total Appointments',   value: stats.appointments, color: '#be123c', note: 'All time',           icon: '📋' },
-        { label: 'Givings Recorded',     value: stats.givings,      color: '#3b82f6', note: 'Financial records',  icon: '💰' },
-    ];
+    const hasPermission = (p) => permissions.includes(p);
+
+    const topStats = visibleItems([
+        { label: 'Members',              value: stats.members,      color: '#0d9488', note: 'Church members',     icon: '👥', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Pending Appointments', value: stats.pendingAppts, color: '#ef4444', note: 'Awaiting action',    icon: '⚡', urgent: true, permission: 'CanManageAppointment' },
+        { label: 'Pending Requisitions', value: stats.pendingReqs,  color: '#f59e0b', note: 'Needs review',       icon: '📝', urgent: stats.pendingReqs > 0, permission: 'CanManageRequisition' },
+        { label: 'Events',               value: stats.events,       color: '#2dd4bf', note: 'Active events',      icon: '📌', permission: 'CanManageEvent' },
+        { label: 'Small Groups',         value: stats.smallGroups,  color: '#10b981', note: 'Care groups',        icon: '🤝', permission: 'CanManageSmallGroup' },
+        { label: 'Departments',          value: stats.units,        color: '#6366f1', note: 'Ministry units',     icon: '🏛️', permission: 'CanManageDepartments' },
+        { label: 'Total Appointments',   value: stats.appointments, color: '#be123c', note: 'All time',           icon: '📋', permission: 'CanManageAppointment' },
+        { label: 'Givings Recorded',     value: stats.givings,      color: '#3b82f6', note: 'Financial records',  icon: '💰', permission: 'CanManageGiving' },
+    ], hasPermission);
 
     const apptSegments = [
         { label: 'Pending',   value: apptStatus.pending,   color: '#f59e0b' },
@@ -139,23 +141,23 @@ export default function ChurchAdminDashboard({ userName }) {
         { label: 'Rejected', value: reqStatus.rejected, color: '#ef4444' },
     ].filter(s => s.value > 0);
 
-    const ministryBars = [
-        { label: 'Members', value: stats.members,      color: '#0d9488' },
-        { label: 'Appts',   value: stats.appointments, color: '#be123c' },
-        { label: 'Events',  value: stats.events,       color: '#2dd4bf' },
-        { label: 'Groups',  value: stats.smallGroups,  color: '#10b981' },
-        { label: 'Units',   value: stats.units,        color: '#6366f1' },
-        { label: 'Reqs',    value: stats.requisitions, color: '#f59e0b' },
-    ];
+    const ministryBars = visibleItems([
+        { label: 'Members', value: stats.members,      color: '#0d9488', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Appts',   value: stats.appointments, color: '#be123c', permission: 'CanManageAppointment' },
+        { label: 'Events',  value: stats.events,       color: '#2dd4bf', permission: 'CanManageEvent' },
+        { label: 'Groups',  value: stats.smallGroups,  color: '#10b981', permission: 'CanManageSmallGroup' },
+        { label: 'Units',   value: stats.units,        color: '#6366f1', permission: 'CanManageDepartments' },
+        { label: 'Reqs',    value: stats.requisitions, color: '#f59e0b', permission: 'CanManageRequisition' },
+    ], hasPermission);
 
     const quickActions = withPermissionTiles([
-        { label: 'Manage Members', path: '/admin/members', color: '#0d9488', icon: '👤' },
-        { label: 'Appointments', path: '/admin/appointments',   color: '#be123c', icon: '📋' },
-        { label: 'Requisitions', path: '/admin/requisitions',   color: '#f59e0b', icon: '📝' },
-        { label: 'Small Groups', path: '/admin/small-groups',   color: '#10b981', icon: '🤝' },
-        { label: 'Events',       path: '/admin/content',        color: '#2dd4bf', icon: '📌' },
-        { label: 'Departments',  path: '/admin/units',          color: '#6366f1', icon: '🏛️' },
-    ], (p) => permissions.includes(p), [REPORTS_TILE]);
+        { label: 'Manage Members', path: '/admin/members', color: '#0d9488', icon: '👤', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Appointments', path: '/admin/appointments',   color: '#be123c', icon: '📋', permission: 'CanManageAppointment' },
+        { label: 'Requisitions', path: '/admin/requisitions',   color: '#f59e0b', icon: '📝', permission: 'CanManageRequisition' },
+        { label: 'Small Groups', path: '/admin/small-groups',   color: '#10b981', icon: '🤝', permission: 'CanManageSmallGroup' },
+        { label: 'Events',       path: '/admin/content',        color: '#2dd4bf', icon: '📌', permission: 'CanManageEvent' },
+        { label: 'Departments',  path: '/admin/units',          color: '#6366f1', icon: '🏛️', permission: 'CanManageDepartments' },
+    ], hasPermission, [REPORTS_TILE]);
 
     return (
         <>
@@ -170,7 +172,7 @@ export default function ChurchAdminDashboard({ userName }) {
                     <div className={styles.heroPill}>
                         <span className={styles.heroBig}>{stats.members}</span>
                         <span className={styles.heroSmall}>Church members</span>
-                        {stats.pendingAppts > 0 && (
+                        {stats.pendingAppts > 0 && (hasPermission('CanManageAppointment') || hasPermission('CanManageRequisition')) && (
                             <span className={styles.urgentPill}>{stats.pendingAppts} appts pending</span>
                         )}
                     </div>
@@ -183,6 +185,7 @@ export default function ChurchAdminDashboard({ userName }) {
                         </section>
 
                         <section className={styles.chartsRow}>
+                            {hasPermission('CanManageAppointment') && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Appointment Status</h3>
                                 <p className={styles.chartSub}>{stats.appointments} total pastoral requests</p>
@@ -192,6 +195,8 @@ export default function ChurchAdminDashboard({ userName }) {
                                     centerLabel="Total"
                                 />
                             </div>
+                            )}
+                            {hasPermission('CanManageRequisition') && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Requisition Status</h3>
                                 <p className={styles.chartSub}>{stats.pendingReqs} pending review</p>
@@ -201,19 +206,24 @@ export default function ChurchAdminDashboard({ userName }) {
                                     centerLabel="Total"
                                 />
                             </div>
+                            )}
                         </section>
 
+                        {ministryBars.length > 0 && (
                         <div className={styles.chartCard}>
                             <h3 className={styles.chartTitle}>Ministry Numbers</h3>
                             <p className={styles.chartSub}>Key ministry metrics side by side</p>
                             <BarChart bars={ministryBars} height={190} />
                         </div>
+                        )}
 
+                        {canSeeItem({ anyPermission: PERMISSION_GROUPS.members }, hasPermission) && (
                         <div className={styles.chartCard}>
                             <h3 className={styles.chartTitle}>New Members</h3>
                             <p className={styles.chartSub}>Monthly member sign-ups over the last 6 months</p>
                             <BarChart bars={memberGrowth} height={160} />
                         </div>
+                        )}
 
                         <div className={styles.sideCard} data-tour="quick-actions">
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>
@@ -238,9 +248,9 @@ export default function ChurchAdminDashboard({ userName }) {
                             <div className={styles.sideCard} style={{ borderLeft: '3px solid #f59e0b' }}>
                                 <h4 className={styles.sideCardTitle}>Pending Actions</h4>
                                 <ul className={styles.snapshotList}>
-                                    <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />
-                                    <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />
-                                    <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />
+                                    {hasPermission('CanManageAppointment') && <SnapItem label="Appointments to confirm" value={apptStatus.pending}   color="#f59e0b" />}
+                                    {hasPermission('CanManageRequisition') && <SnapItem label="Requisitions to review"  value={reqStatus.pending}    color="#ef4444" />}
+                                    {hasPermission('CanManageAppointment') && <SnapItem label="Confirmed appointments"  value={apptStatus.confirmed} color="#10b981" />}
                                 </ul>
                             </div>
                         )}

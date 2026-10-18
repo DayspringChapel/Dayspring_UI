@@ -8,7 +8,7 @@ import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DashboardTour from '@/components/admin/DashboardTour';
 import DonutChart from '@/components/admin/charts/DonutChart';
 import BarChart from '@/components/admin/charts/BarChart';
-import { REPORTS_TILE, ROLES_PERMISSIONS_TILE, withPermissionTiles } from '@/lib/permissionTiles';
+import { REPORTS_TILE, ROLES_PERMISSIONS_TILE, PERMISSION_GROUPS, canSeeItem, visibleItems, withPermissionTiles } from '@/lib/permissionTiles';
 import { tourStepsFor } from '@/lib/tourSteps';
 import styles from './dashboard.module.css';
 
@@ -109,16 +109,18 @@ export default function SuperAdminDashboard({ userName }) {
     if (loading) return <DashSkeleton />;
     const { stats, pipeline } = data;
 
-    const topStats = [
-        { label: 'Total Members',      value: stats.members,          color: '#7c3aed', note: 'Church members',     icon: '👥' },
-        { label: 'Pending Approvals',  value: stats.pendingApprovals, color: '#ef4444', note: 'Needs your action',  icon: '⚡', urgent: true },
-        { label: 'Scheduled Posts',    value: stats.scheduledPosts,   color: '#3b82f6', note: 'Publishing queue',   icon: '📅' },
-        { label: 'Media Content',      value: stats.media,            color: '#a78bfa', note: 'Total uploads',      icon: '🎬' },
-        { label: 'Events',             value: stats.events,           color: '#0f766e', note: 'Active events',      icon: '📌' },
-        { label: 'Sermons',            value: stats.sermons,          color: '#f59e0b', note: 'Messages available', icon: '🎙️' },
-        { label: 'Appointments',       value: stats.appointments,     color: '#be123c', note: 'Pastoral requests',  icon: '📋' },
-        { label: 'Small Groups',       value: stats.smallGroups,      color: '#10b981', note: 'Care groups',        icon: '🤝' },
-    ];
+    const hasPermission = (p) => permissions.includes(p);
+
+    const topStats = visibleItems([
+        { label: 'Total Members',      value: stats.members,          color: '#7c3aed', note: 'Church members',     icon: '👥', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Pending Approvals',  value: stats.pendingApprovals, color: '#ef4444', note: 'Needs your action',  icon: '⚡', urgent: true, anyPermission: PERMISSION_GROUPS.approve },
+        { label: 'Scheduled Posts',    value: stats.scheduledPosts,   color: '#3b82f6', note: 'Publishing queue',   icon: '📅', anyPermission: PERMISSION_GROUPS.publish },
+        { label: 'Media Content',      value: stats.media,            color: '#a78bfa', note: 'Total uploads',      icon: '🎬', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Events',             value: stats.events,           color: '#0f766e', note: 'Active events',      icon: '📌', permission: 'CanManageEvent' },
+        { label: 'Sermons',            value: stats.sermons,          color: '#f59e0b', note: 'Messages available', icon: '🎙️', permission: 'CanManageSermon' },
+        { label: 'Appointments',       value: stats.appointments,     color: '#be123c', note: 'Pastoral requests',  icon: '📋', permission: 'CanManageAppointment' },
+        { label: 'Small Groups',       value: stats.smallGroups,      color: '#10b981', note: 'Care groups',        icon: '🤝', permission: 'CanManageSmallGroup' },
+    ], hasPermission);
 
     const pipelineSegments = [
         { label: 'Draft',     value: pipeline.draft,     color: PIPELINE_COLORS.draft },
@@ -129,33 +131,33 @@ export default function SuperAdminDashboard({ userName }) {
         { label: 'Rejected',  value: pipeline.rejected,  color: PIPELINE_COLORS.rejected },
     ].filter(s => s.value > 0);
 
-    const ministryBars = [
-        { label: 'Members',  value: stats.members,     color: '#7c3aed' },
-        { label: 'Units',    value: stats.units,       color: '#a78bfa' },
-        { label: 'Groups',   value: stats.smallGroups, color: '#10b981' },
-        { label: 'Events',   value: stats.events,      color: '#0f766e' },
-        { label: 'Sermons',  value: stats.sermons,     color: '#f59e0b' },
-        { label: 'Books',    value: stats.books,       color: '#3b82f6' },
-        { label: 'Albums',   value: stats.albums,      color: '#be123c' },
-    ];
+    const ministryBars = visibleItems([
+        { label: 'Members',  value: stats.members,     color: '#7c3aed', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Units',    value: stats.units,       color: '#a78bfa', permission: 'CanManageDepartments' },
+        { label: 'Groups',   value: stats.smallGroups, color: '#10b981', permission: 'CanManageSmallGroup' },
+        { label: 'Events',   value: stats.events,      color: '#0f766e', permission: 'CanManageEvent' },
+        { label: 'Sermons',  value: stats.sermons,     color: '#f59e0b', permission: 'CanManageSermon' },
+        { label: 'Books',    value: stats.books,       color: '#3b82f6', permission: 'CanManageBooks' },
+        { label: 'Albums',   value: stats.albums,      color: '#be123c', permission: 'CanManageAlbum' },
+    ], hasPermission);
 
-    const contentLibraryBars = [
-        { label: 'Media',   value: stats.media,   color: '#a78bfa' },
-        { label: 'Sermons', value: stats.sermons,  color: '#f59e0b' },
-        { label: 'Albums',  value: stats.albums,   color: '#be123c' },
-        { label: 'Books',   value: stats.books,    color: '#3b82f6' },
-    ];
+    const contentLibraryBars = visibleItems([
+        { label: 'Media',   value: stats.media,   color: '#a78bfa', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Sermons', value: stats.sermons,  color: '#f59e0b', permission: 'CanManageSermon' },
+        { label: 'Albums',  value: stats.albums,   color: '#be123c', permission: 'CanManageAlbum' },
+        { label: 'Books',   value: stats.books,    color: '#3b82f6', permission: 'CanManageBooks' },
+    ], hasPermission);
 
     const quickActions = withPermissionTiles([
-        { label: 'Manage Members',  path: '/admin/members', color: '#7c3aed', icon: '👤' },
-        { label: 'Approve Content', path: '/admin/approvals',      color: '#ef4444', icon: '✅' },
-        { label: 'Publishing',      path: '/admin/publishing',     color: '#3b82f6', icon: '📤' },
-        { label: 'Media Library',   path: '/admin/media',          color: '#a78bfa', icon: '🎬' },
-        { label: 'Workflow',        path: '/admin/workflow',       color: '#0369a1', icon: '🔄' },
-        { label: 'Requisitions',    path: '/admin/requisitions',   color: '#f59e0b', icon: '📝' },
-        { label: 'Appointments',    path: '/admin/appointments',   color: '#be123c', icon: '📋' },
-        { label: 'Content',         path: '/admin/content',        color: '#10b981', icon: '📚' },
-    ], (p) => permissions.includes(p), [REPORTS_TILE, ROLES_PERMISSIONS_TILE]);
+        { label: 'Manage Members',  path: '/admin/members', color: '#7c3aed', icon: '👤', anyPermission: PERMISSION_GROUPS.members },
+        { label: 'Approve Content', path: '/admin/approvals',      color: '#ef4444', icon: '✅', anyPermission: PERMISSION_GROUPS.approve },
+        { label: 'Publishing',      path: '/admin/publishing',     color: '#3b82f6', icon: '📤', anyPermission: PERMISSION_GROUPS.publish },
+        { label: 'Media Library',   path: '/admin/media',          color: '#a78bfa', icon: '🎬', anyPermission: PERMISSION_GROUPS.media },
+        { label: 'Workflow',        path: '/admin/workflow',       color: '#0369a1', icon: '🔄', anyPermission: PERMISSION_GROUPS.workflow },
+        { label: 'Requisitions',    path: '/admin/requisitions',   color: '#f59e0b', icon: '📝', permission: 'CanManageRequisition' },
+        { label: 'Appointments',    path: '/admin/appointments',   color: '#be123c', icon: '📋', permission: 'CanManageAppointment' },
+        { label: 'Content',         path: '/admin/content',        color: '#10b981', icon: '📚', anyPermission: PERMISSION_GROUPS.websiteContent },
+    ], hasPermission, [REPORTS_TILE, ROLES_PERMISSIONS_TILE]);
 
     return (
         <>
@@ -183,6 +185,7 @@ export default function SuperAdminDashboard({ userName }) {
                         </section>
 
                         <section className={styles.chartsRow}>
+                            {canSeeItem({ anyPermission: PERMISSION_GROUPS.media }, hasPermission) && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Content Pipeline</h3>
                                 <p className={styles.chartSub}>Workflow status of all {stats.media} uploads</p>
@@ -192,18 +195,23 @@ export default function SuperAdminDashboard({ userName }) {
                                     centerLabel="Total"
                                 />
                             </div>
+                            )}
+                            {ministryBars.length > 0 && (
                             <div className={styles.chartCard}>
                                 <h3 className={styles.chartTitle}>Ministry Overview</h3>
                                 <p className={styles.chartSub}>Key ministry numbers at a glance</p>
                                 <BarChart bars={ministryBars} height={190} />
                             </div>
+                            )}
                         </section>
 
+                        {contentLibraryBars.length > 0 && (
                         <div className={styles.chartCard}>
                             <h3 className={styles.chartTitle}>Content Library</h3>
                             <p className={styles.chartSub}>Media, sermons, albums, and books across the system</p>
                             <BarChart bars={contentLibraryBars} height={160} />
                         </div>
+                        )}
 
                         <div className={styles.sideCard} data-tour="quick-actions">
                             <h4 className={styles.sideCardTitle}>Quick Actions</h4>

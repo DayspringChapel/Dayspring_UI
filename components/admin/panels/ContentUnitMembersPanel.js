@@ -7,9 +7,9 @@ import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 
 const CONTENT_ROLE_OPTIONS = [
-    { value: 1, label: 'Media' },
-    { value: 2, label: 'Graphics' },
-    { value: 3, label: 'Social Media' },
+    { value: 1, label: 'Media', hint: 'Photos and video.' },
+    { value: 2, label: 'Graphics', hint: 'Designs and event fliers. Event fliers start with Graphics (or the media head).' },
+    { value: 3, label: 'Social Media', hint: 'Can also publish approved content to the website and social platforms.' },
 ];
 
 const roleLabel = (role) => CONTENT_ROLE_OPTIONS.find((r) => r.value === role)?.label || null;
@@ -109,6 +109,11 @@ export default function ContentUnitMembersPanel() {
                     <p className={styles.cardDescription}>
                         Grant or revoke content roles for members of this unit. Granting a role lets a member log in and upload content for vetting.
                     </p>
+                    <ul style={{ margin: '0.6rem 0 0', paddingLeft: '1.1rem', color: 'rgba(255,255,255,0.65)', fontSize: '0.82rem', lineHeight: 1.55 }}>
+                        {CONTENT_ROLE_OPTIONS.map((r) => (
+                            <li key={r.value}><strong style={{ color: '#f1f5f9' }}>{r.label}:</strong> {r.hint}</li>
+                        ))}
+                    </ul>
                 </div>
             </div>
 

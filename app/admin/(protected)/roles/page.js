@@ -30,8 +30,7 @@ export default function RolesPage() {
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
 
-    const callerRole = resolveCallerRole();
-    const isSuperAdmin = callerRole === 'superAdmin';
+    const canAssignRoles = apiClient.hasPermission('CanAssignRoles');
 
     useEffect(() => { loadData(); }, []);
 
@@ -139,7 +138,7 @@ export default function RolesPage() {
         return <div className={styles.loading}><div className={styles.spinner} /><p>Loading members…</p></div>;
     }
 
-    if (!isSuperAdmin) {
+    if (!canAssignRoles) {
         return (
             <div className={styles.panel}>
                 <div className={styles.empty}>

@@ -8,30 +8,20 @@ import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
 import CalendarYearsPanel from '@/components/admin/panels/CalendarYearsPanel';
 import ChurchProgramsPanel from '@/components/admin/panels/ChurchProgramsPanel';
+import { visibleItems } from '@/lib/permissionTiles';
 
-function resolveRole() {
-    const userData = apiClient.getUserData();
-    if (!userData) return 'member';
-    const r = userData.role || userData.Role || {};
-    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
-    if (name.includes('super')) return 'superAdmin';
-    if (name.includes('media')) return 'churchMedia';
-    if (name.includes('admin')) return 'churchAdmin';
-    return 'member';
-}
-
+// Each tab is shown only to users who hold the permission its API needs.
 const ALL_TABS = [
-    { id: 'events',  label: 'Events',  icon: '🎉', roles: 'all' },
-    { id: 'sermons', label: 'Sermons', icon: '🎤', roles: 'all' },
-    { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', roles: 'all' },
-    { id: 'programs', label: 'Programs', icon: '⛪', roles: 'all' },
-    { id: 'books',   label: 'Books',   icon: '📚', roles: 'all' },
-    { id: 'albums',  label: 'Images',  icon: '📸', roles: 'all' },
+    { id: 'events',  label: 'Events',  icon: '🎉', permission: 'CanManageEvent' },
+    { id: 'sermons', label: 'Sermons', icon: '🎤', permission: 'CanManageSermon' },
+    { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', permission: 'CanManageCalendarYear' },
+    { id: 'programs', label: 'Programs', icon: '⛪', permission: 'CanManageEvent' },
+    { id: 'books',   label: 'Books',   icon: '📚', permission: 'CanManageBooks' },
+    { id: 'albums',  label: 'Images',  icon: '📸', anyPermission: ['CanManageAlbum', 'CanManageImage'] },
 ];
 
 export default function ContentManagement() {
-    const role = resolveRole();
-    const tabs = ALL_TABS.filter(t => t.roles === 'all' || t.roles.includes(role));
+    const tabs = visibleItems(ALL_TABS, (p) => apiClient.hasPermission(p));
     const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? 'sermons');
 
     return (

@@ -7,6 +7,9 @@
     left: 0;
     top: 0;
     height: 100vh;
+    /* On phones 100vh is taller than the visible screen (the browser's bars cover the bottom), which
+       hid the Logout button. dvh is the visible height; browsers without it keep the 100vh above. */
+    height: 100dvh;
     width: 260px;
     background: rgba(8, 11, 27, 0.92);
     backdrop-filter: blur(28px) saturate(180%);
@@ -48,6 +51,7 @@
 /* ── Nav list ─────────────────────────────────────────────────── */
 .nav {
     flex: 1;
+    min-height: 0;
     padding: 1.1rem 0.75rem;
     overflow-y: auto;
     display: flex;
@@ -134,7 +138,8 @@
 
 /* ── Logout footer ────────────────────────────────────────────── */
 .footer {
-    padding: 1.1rem 0.75rem;
+    flex-shrink: 0;
+    padding: 1.1rem 0.75rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 

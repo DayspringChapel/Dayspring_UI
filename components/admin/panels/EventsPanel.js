@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import { useContentRole, CONTENT_ROLE } from '@/lib/useContentRole';
 import AdminToast, { useToast } from '../AdminToast';
 import AdminConfirm, { useConfirm } from '../AdminConfirm';
 import VideoEmbed from '@/components/VideoEmbed';
@@ -21,17 +22,6 @@ const WORKFLOW_BADGES = {
     12: { label: 'Rejected', cls: 'bg-red-100 text-red-700' },
 };
 
-function resolveRole() {
-    const userData = apiClient.getUserData();
-    if (!userData) return 'member';
-    const r = userData.role || userData.Role || {};
-    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
-    if (name.includes('super')) return 'superAdmin';
-    if (name.includes('media')) return 'churchMedia';
-    if (name.includes('admin')) return 'churchAdmin';
-    return 'member';
-}
-
 export default function EventsPanel() {
     const router = useRouter();
     const [events, setEvents] = useState([]);
@@ -44,6 +34,12 @@ export default function EventsPanel() {
     const [viewingEvent, setViewingEvent] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [calendarYears, setCalendarYears] = useState([]);
+    const [approvedFliers, setApprovedFliers] = useState([]);
+    const [draftFliers, setDraftFliers] = useState([]);
+    const [fromFlier, setFromFlier] = useState(null);
+    const [fetchingFlierImage, setFetchingFlierImage] = useState(false);
+    const [submittingFlierId, setSubmittingFlierId] = useState(null);
+    const flierRequest = useRef(0);
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
@@ -55,15 +51,24 @@ export default function EventsPanel() {
         calendarYearId: '',
     });
 
-    const role = resolveRole();
-    const canPublish = role === 'churchMedia' || role === 'superAdmin';
-    const canApproveEventWorkflow = role === 'churchAdmin' || role === 'superAdmin';
+    const canPublish = apiClient.hasPermission('CanPublishContent');
+    const canApproveAsAdmin = apiClient.hasPermission('CanApproveAsAdmin');
+    const canApproveAsSuperAdmin = apiClient.hasPermission('CanApproveAsSuperAdmin');
+    const canApproveEventWorkflow = canApproveAsAdmin || canApproveAsSuperAdmin;
+    const { role: contentRole } = useContentRole();
+    // Fliers start with the Graphics team; the media head (who can review content) may upload them too.
+    const canUploadFlier = apiClient.hasPermission('CanUploadContent')
+        && (apiClient.hasPermission('CanReviewContent') || contentRole === CONTENT_ROLE.GRAPHICS);
+    const canManageEvents = apiClient.hasPermission('CanManageEvent');
+    const canViewMedia = apiClient.hasPermission('CanViewMediaData');
+    const canSubmitContent = apiClient.hasPermission('CanSubmitContent');
+    const needsMedia = canApproveEventWorkflow || (canViewMedia && (canManageEvents || canSubmitContent));
 
     const refreshEvents = useCallback(async () => {
         try {
             const [eventsResult, mediaResult] = await Promise.allSettled([
                 apiClient.getAllEventsInternal(),
-                canApproveEventWorkflow ? apiClient.getMediaContents() : Promise.resolve([]),
+                needsMedia ? apiClient.getMediaContents() : Promise.resolve([]),
             ]);
 
             setEvents(eventsResult.status === 'fulfilled' && Array.isArray(eventsResult.value) ? eventsResult.value : []);
@@ -75,17 +80,29 @@ export default function EventsPanel() {
                     item.workflowStatus !== 0 &&
                     item.workflowStatus !== 10
                 )));
+
+                // Fliers that finished the approval steps can become events; a user's own drafts can be submitted.
+                const me = apiClient.getUserData();
+                const myId = me?.id || me?.Id;
+                setApprovedFliers(canManageEvents ? items.filter((item) => item.category === 4 && item.workflowStatus === 7) : []);
+                setDraftFliers(canSubmitContent && myId
+                    ? items.filter((item) => item.category === 4 && item.workflowStatus === 0 && item.ownerId === myId)
+                    : []);
             } else {
                 setEventWorkflowItems([]);
+                setApprovedFliers([]);
+                setDraftFliers([]);
             }
         } catch (error) {
             console.error('Failed to load events:', error);
             setEvents([]);
             setEventWorkflowItems([]);
+            setApprovedFliers([]);
+            setDraftFliers([]);
         } finally {
             setContextLoading(false);
         }
-    }, [canApproveEventWorkflow]);
+    }, [needsMedia, canManageEvents, canSubmitContent]);
 
     useEffect(() => { Promise.resolve().then(refreshEvents); }, [refreshEvents]);
 
@@ -104,6 +121,8 @@ export default function EventsPanel() {
         });
         setImagePreview(null);
         setEditingEvent(null);
+        setFromFlier(null);
+        flierRequest.current += 1;
     };
 
     const handleImageChange = (e) => {
@@ -237,6 +256,60 @@ export default function EventsPanel() {
         }
     };
 
+    // Opens the event form with the approved flier's title, description and image already filled in.
+    const startEventFromFlier = async (flier) => {
+        const ticket = ++flierRequest.current;
+        setEditingEvent(null);
+        setFromFlier(flier);
+        setFormData({ heading: flier.title || '', description: flier.description || '', datetime: '', eventImage: null, calendarYearId: '' });
+        setImagePreview(flier.cloudinaryUrl || null);
+        setShowModal(true);
+        if (!flier.cloudinaryUrl) return;
+
+        // The event form uploads its own image file, so the flier's picture is copied into the form.
+        setFetchingFlierImage(true);
+        try {
+            const response = await fetch(flier.cloudinaryUrl);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const blob = await response.blob();
+            if (ticket !== flierRequest.current) return;
+            const type = blob.type || 'image/jpeg';
+            const extension = (type.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/\+.*$/, '');
+            const baseName = (flier.title || 'event-flier').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'event-flier';
+            const file = new File([blob], `${baseName}.${extension}`, { type });
+            setFormData((previous) => ({ ...previous, eventImage: file }));
+        } catch (error) {
+            if (ticket !== flierRequest.current) return;
+            console.error('Could not copy the flier image:', error);
+            setImagePreview(null);
+            notify('warning', "The flier's image couldn't be copied automatically. Please choose the image again below.");
+        } finally {
+            if (ticket === flierRequest.current) setFetchingFlierImage(false);
+        }
+    };
+
+    const flierAlreadyBecameEvent = (flier) =>
+        events.some((event) => (event.heading || '').trim().toLowerCase() === (flier.title || '').trim().toLowerCase());
+
+    const submitDraftFlier = async (flier) => {
+        const yes = await confirm({
+            title: 'Submit for review',
+            message: `Send "${flier.title || 'this flier'}" for review? It will then go through the approval steps.`,
+            confirmLabel: 'Submit',
+        });
+        if (!yes) return;
+        setSubmittingFlierId(flier.id);
+        try {
+            await apiClient.submitForReview(flier.id, null);
+            await refreshEvents();
+            notify('success', 'Flier submitted for review.');
+        } catch (error) {
+            notify('error', error.message || 'Failed to submit the flier. Please try again.');
+        } finally {
+            setSubmittingFlierId(null);
+        }
+    };
+
     const handleEdit = (event) => {
         setEditingEvent(event);
         setFormData({
@@ -255,6 +328,9 @@ export default function EventsPanel() {
         setEditingEvent(null);
         setFormData({ heading: '', description: '', datetime: '', eventImage: null, calendarYearId: '' });
         setImagePreview(null);
+        setFromFlier(null);
+        setFetchingFlierImage(false);
+        flierRequest.current += 1;
     };
 
     if (contextLoading && events.length === 0) {
@@ -274,12 +350,14 @@ export default function EventsPanel() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Events</h2>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <button
-                        onClick={() => router.push('/admin/media/create?category=4')}
-                        className="w-full sm:w-auto px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg font-medium hover:bg-orange-50 transition-all duration-200 shadow-sm"
-                    >
-                        Upload Event Flier for Approval
-                    </button>
+                    {canUploadFlier && (
+                        <button
+                            onClick={() => router.push('/admin/media/create?category=4')}
+                            className="w-full sm:w-auto px-4 py-2 bg-white border border-orange-200 text-orange-700 rounded-lg font-medium hover:bg-orange-50 transition-all duration-200 shadow-sm"
+                        >
+                            Upload Event Flier for Approval
+                        </button>
+                    )}
                     <button
                         onClick={() => setShowModal(true)}
                         className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all duration-200 shadow-sm hover:shadow-md"
@@ -288,6 +366,92 @@ export default function EventsPanel() {
                     </button>
                 </div>
             </div>
+
+            {(approvedFliers.length > 0 || draftFliers.length > 0) && (
+                <div className="mb-6 bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden">
+                    {approvedFliers.length > 0 && (
+                        <div>
+                            <div className="px-4 sm:px-6 py-4 bg-green-50 border-b border-green-100">
+                                <h3 className="text-base font-bold text-gray-900">Approved fliers ready to become events</h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    Start an event from a flier: its title, description and image are filled in for you. Add the date and anything else, then create it.
+                                </p>
+                            </div>
+                            <div className="divide-y divide-gray-100">
+                                {approvedFliers.map((flier) => {
+                                    const created = flierAlreadyBecameEvent(flier);
+                                    return (
+                                        <div key={flier.id} className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-6 py-4">
+                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                {flier.cloudinaryUrl ? (
+                                                    <Image src={flier.cloudinaryUrl} alt="" width={56} height={56} className="w-14 h-14 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
+                                                ) : (
+                                                    <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0" />
+                                                )}
+                                                <div className="min-w-0">
+                                                    <p className="font-semibold text-gray-900 truncate">{flier.title || 'Untitled flier'}</p>
+                                                    <p className="text-sm text-gray-600">Approved flier · by {flier.ownerName || 'Unknown'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <button
+                                                    onClick={() => router.push(`/admin/media/detail?id=${flier.id}`)}
+                                                    className="px-3 py-2 text-sm font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                                                >
+                                                    View
+                                                </button>
+                                                {created ? (
+                                                    <span className="px-3 py-2 text-sm font-semibold text-green-700 bg-green-50 rounded-lg">Event already created</span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => startEventFromFlier(flier)}
+                                                        className="px-3 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                    >
+                                                        Create event from flier
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {draftFliers.length > 0 && (
+                        <div>
+                            <div className="px-4 sm:px-6 py-4 bg-gray-50 border-y border-gray-100">
+                                <h3 className="text-base font-bold text-gray-900">Your draft fliers</h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                    A draft stays with you until you submit it. Submitting sends it to the media team for review, then Admin and Super Admin approval.
+                                </p>
+                            </div>
+                            <div className="divide-y divide-gray-100">
+                                {draftFliers.map((flier) => (
+                                    <div key={flier.id} className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 sm:px-6 py-4">
+                                        <p className="font-semibold text-gray-900 flex-1 min-w-0 truncate">{flier.title || 'Untitled flier'}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                onClick={() => router.push(`/admin/media/detail?id=${flier.id}`)}
+                                                className="px-3 py-2 text-sm font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                                            >
+                                                Open
+                                            </button>
+                                            <button
+                                                onClick={() => submitDraftFlier(flier)}
+                                                disabled={submittingFlierId === flier.id}
+                                                className="px-3 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-60"
+                                            >
+                                                {submittingFlierId === flier.id ? 'Submitting…' : 'Submit for review'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {canApproveEventWorkflow && (
                 <div className="mb-6 bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
@@ -303,7 +467,7 @@ export default function EventsPanel() {
                         <div className="divide-y divide-gray-100">
                             {eventWorkflowItems.map((item) => {
                                 const badge = WORKFLOW_BADGES[item.workflowStatus] || { label: item.workflowStatusName || 'Unknown', cls: 'bg-gray-100 text-gray-600' };
-                                const canAct = (role === 'churchAdmin' && item.workflowStatus === 5) || (role === 'superAdmin' && item.workflowStatus === 6);
+                                const canAct = (item.workflowStatus === 5 && canApproveAsAdmin) || (item.workflowStatus === 6 && canApproveAsSuperAdmin);
                                 return (
                                     <div key={item.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 px-4 sm:px-6 py-4 items-center">
                                         <div className="sm:col-span-5">
@@ -336,7 +500,7 @@ export default function EventsPanel() {
                                                         disabled={actionLoading === item.id}
                                                         className="px-3 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-60"
                                                     >
-                                                        {role === 'churchAdmin' ? 'Approve -> Super Admin' : 'Approve'}
+                                                        {item.workflowStatus === 5 ? 'Approve -> Super Admin' : 'Approve'}
                                                     </button>
                                                 </>
                                             )}
@@ -582,7 +746,7 @@ export default function EventsPanel() {
                         {/* Modal Header */}
                         <div className="flex justify-between items-center p-6 border-b border-gray-100">
                             <h3 className="text-xl font-bold text-gray-900">
-                                {editingEvent ? 'Edit Event' : 'Add New Event'}
+                                {editingEvent ? 'Edit Event' : fromFlier ? 'Create Event from Flier' : 'Add New Event'}
                             </h3>
                             <button
                                 onClick={handleCloseModal}
@@ -594,6 +758,13 @@ export default function EventsPanel() {
 
                         {/* Modal Body */}
                         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                            {fromFlier && !editingEvent && (
+                                <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-900">
+                                    Starting from the approved flier <strong>{fromFlier.title || 'Untitled flier'}</strong>. Its title, description and image
+                                    are filled in. Set the date and add anything else, then create the event.
+                                    {fetchingFlierImage && <span className="block mt-1 text-orange-700">Copying the flier image…</span>}
+                                </div>
+                            )}
                             {/* Heading */}
                             <div>
                                 <label
@@ -766,10 +937,10 @@ export default function EventsPanel() {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={actionLoading}
+                                    disabled={actionLoading || fetchingFlierImage}
                                     className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    {actionLoading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
+                                    {fetchingFlierImage ? 'Preparing image...' : actionLoading ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
                                 </button>
                             </div>
                         </form>

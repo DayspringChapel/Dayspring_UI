@@ -5,17 +5,6 @@ import apiClient from '@/lib/apiClient';
 import Image from 'next/image';
 import HeroSettings from '@/components/admin/HeroSettings';
 
-function resolveRole() {
-    const userData = apiClient.getUserData();
-    if (!userData) return 'member';
-    const r = userData.role || userData.Role || {};
-    const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
-    if (name.includes('super')) return 'superAdmin';
-    if (name.includes('media')) return 'churchMedia';
-    if (name.includes('admin')) return 'churchAdmin';
-    return 'member';
-}
-
 const PLATFORMS = [
     {
         id: 'youtube',
@@ -75,10 +64,9 @@ const fieldStyle = (focused, color = '#F58634') => ({
 });
 
 export default function SettingsPage() {
-    const role = resolveRole();
-    const canManageLivestream = role === 'churchMedia' || role === 'superAdmin';
-    const canManageChatbot = role === 'churchAdmin' || role === 'superAdmin';
-    const canManageHero = ['churchMedia', 'churchAdmin', 'superAdmin'].includes(role);
+    const canManageLivestream = apiClient.hasPermission('CanManageLivestream');
+    const canManageChatbot = apiClient.hasPermission('CanManageChatbot');
+    const canManageHero = apiClient.hasPermission('CanManageHero');
 
     const [config, setConfig] = useState({
         youtube:   { active: false, url: '', description: '' },
