@@ -8,7 +8,9 @@ export default function OurCoreValues({ className = '' }) {
         'Integrity and Trust.',
         'Honor and Respect.',
         'Discipline.',
-
+        'Spiritual Growth.',
+        'Purity.',
+        'Excellence and Ethical Behaviour.',
     ];
 
     return (
