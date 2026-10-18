@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSocialLinks, whatsAppLink } from '@/lib/useSocialLinks';
 import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/components/icons/SocialIcons';
+import InstallAppButton from '@/components/InstallAppButton';
 
 const links = [
     { href: '/about', label: 'About' },
@@ -85,6 +86,7 @@ export default function Footer() {
                 </div>
             </div>
 
+            <InstallAppButton />
             <p className="mt-12 text-center text-xs text-white/70">© {currentYear} DaySpring Chapel. All rights reserved.</p>
         </footer>
     );
