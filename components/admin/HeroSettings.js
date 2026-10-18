@@ -5,6 +5,31 @@ import apiClient from '@/lib/apiClient';
 
 const DEFAULT_CONSTRAINTS = { minWidth: 1280, minHeight: 720, aspectRatio: '16:9', imageFormats: ['JPG', 'PNG', 'WebP'], videoFormats: ['MP4', 'WebM'], imageMaxMb: 10, videoMaxMb: 100, maxImages: 10 };
 
+// Explicit colours (not inherited ones) so the buttons stay readable on any background and screen.
+// Primary = solid orange; secondary = outlined; disabled stays visible but clearly inactive.
+function buttonStyle({ primary, disabled }) {
+    const base = {
+        flex: '1 1 10rem',
+        maxWidth: '18rem',
+        minHeight: '2.75rem',
+        padding: '0.65rem 1.25rem',
+        borderRadius: '0.6rem',
+        fontSize: '0.95rem',
+        fontWeight: 800,
+        lineHeight: 1.2,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'filter 0.15s',
+    };
+    if (disabled) {
+        return primary
+            ? { ...base, background: '#cbd5e1', color: '#475569', border: '2px solid #cbd5e1' }
+            : { ...base, background: '#f1f5f9', color: '#94a3b8', border: '2px solid #e2e8f0' };
+    }
+    return primary
+        ? { ...base, background: '#c2410c', color: '#ffffff', border: '2px solid #c2410c' }
+        : { ...base, background: '#ffffff', color: '#0f172a', border: '2px solid #475569' };
+}
+
 function readDimensions(file) {
     return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
@@ -107,7 +132,24 @@ export default function HeroSettings() {
             {mode === '2' && <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', color: '#0f172a' }}><label>Rotation seconds <input type="number" min="3" max="60" value={rotationSeconds} onChange={(event) => setRotationSeconds(Number(event.target.value))} /></label><label><input type="checkbox" checked={shuffle} onChange={(event) => setShuffle(event.target.checked)} /> Shuffle</label></div>}
             {settings?.items?.length > 0 && <p style={{ color: '#475569', fontSize: '0.8rem' }}>Active media: {settings.items.map((item) => `${item.width || '?'}×${item.height || '?'} ${item.format || ''}`).join(', ')}</p>}
             {status && <p style={{ color: status.includes('saved') || status.includes('restored') ? '#047857' : '#b91c1c' }}>{status}</p>}
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}><button onClick={save} disabled={saving || mode === '0'} style={{ padding: '0.65rem 1rem' }}>{saving ? 'Saving…' : 'Save Hero'}</button><button onClick={reset} disabled={saving} style={{ padding: '0.65rem 1rem' }}>Reset to Default</button></div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
+                <button
+                    type="button"
+                    onClick={save}
+                    disabled={saving || mode === '0'}
+                    style={buttonStyle({ primary: true, disabled: saving || mode === '0' })}
+                >
+                    {saving ? 'Saving…' : 'Save Hero'}
+                </button>
+                <button
+                    type="button"
+                    onClick={reset}
+                    disabled={saving}
+                    style={buttonStyle({ primary: false, disabled: saving })}
+                >
+                    Reset to Default
+                </button>
+            </div>
         </section>
     );
 }
