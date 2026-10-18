@@ -245,7 +245,57 @@ export default function AppointmentsPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-sm">
+                        {/* Phones: one card per appointment, so nothing runs off the screen */}
+                        <ul className="md:hidden flex flex-col gap-3" aria-label="Appointments">
+                            {paginatedAppointments.map((appointment) => {
+                                const phone = `${appointment.phoneNumber?.countryCode || ''}${appointment.phoneNumber?.number || ''}`.replace(/\s+/g, '');
+                                return (
+                                    <li key={appointment.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <p className="font-bold text-gray-900 break-words min-w-0">
+                                                {appointment.firstname} {appointment.surname}
+                                            </p>
+                                            <div className="flex-shrink-0">{getStatusBadge(appointment.status || 0)}</div>
+                                        </div>
+
+                                        <dl className="mt-3 space-y-1.5 text-sm">
+                                            <div className="flex gap-2">
+                                                <dt className="w-16 flex-shrink-0 text-gray-400">Email</dt>
+                                                <dd className="min-w-0 break-all text-gray-700">
+                                                    <a href={`mailto:${appointment.email}`} className="text-orange-700 hover:underline">{appointment.email}</a>
+                                                </dd>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <dt className="w-16 flex-shrink-0 text-gray-400">Phone</dt>
+                                                <dd className="min-w-0 text-gray-700">
+                                                    {phone
+                                                        ? <a href={`tel:${phone}`} className="text-orange-700 hover:underline">{appointment.phoneNumber?.countryCode} {appointment.phoneNumber?.number}</a>
+                                                        : '—'}
+                                                </dd>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <dt className="w-16 flex-shrink-0 text-gray-400">Venue</dt>
+                                                <dd className="min-w-0 text-gray-700">{getAppointmentVenueLabel(appointment.venueOfMeeting)}</dd>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <dt className="w-16 flex-shrink-0 text-gray-400">Purpose</dt>
+                                                <dd className="min-w-0 break-words text-gray-700 line-clamp-3">{appointment.purposeOfAppointment}</dd>
+                                            </div>
+                                        </dl>
+
+                                        <button
+                                            className="mt-4 w-full bg-orange-50 text-orange-700 hover:bg-orange-100 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                                            onClick={() => handleViewDetails(appointment)}
+                                        >
+                                            View Details
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+
+                        {/* Tablets and larger: the full table */}
+                        <div className="hidden md:block bg-white rounded-2xl border border-gray-200 overflow-x-auto shadow-sm">
                             <table className="w-full border-collapse">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -289,11 +339,11 @@ export default function AppointmentsPage() {
 
                         {/* Pagination Controls */}
                         {totalPages > 1 && (
-                            <div className="flex items-center justify-between mt-6 bg-white p-4 rounded-xl border border-gray-200">
-                                <div className="text-sm text-gray-600">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-6 bg-white p-4 rounded-xl border border-gray-200">
+                                <div className="text-sm text-gray-600 text-center sm:text-left">
                                     Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredAppointments.length)} of {filteredAppointments.length} appointments
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2">
                                     <button
                                         onClick={() => setCurrentPage(1)}
                                         disabled={currentPage === 1}
@@ -308,6 +358,11 @@ export default function AppointmentsPage() {
                                     >
                                         «
                                     </button>
+
+                                    {/* Phones: a short "Page x of y" instead of the row of page numbers */}
+                                    <span className="sm:hidden px-2 text-sm font-medium text-gray-600">
+                                        Page {currentPage} of {totalPages}
+                                    </span>
 
                                     {/* Page numbers */}
                                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -325,7 +380,7 @@ export default function AppointmentsPage() {
                                             <button
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
-                                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                                                className={`hidden sm:inline-block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
                                                     ? 'bg-orange-500 text-white'
                                                     : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
                                                     }`}
