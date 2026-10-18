@@ -33,7 +33,7 @@ export default function AdminLogin() {
         setLoading(true);
 
         try {
-            const response = await apiClient.login(formData.email, formData.password);
+            const response = await apiClient.login(formData.email.trim(), formData.password);
 
             if (response.token || response.success) {
                 const actualToken = response.token?.result || response.token;
@@ -110,6 +110,9 @@ export default function AdminLogin() {
                                         required
                                         placeholder="admin@dayspring.com"
                                         autoComplete="email"
+                                        autoCapitalize="none"
+                                        autoCorrect="off"
+                                        spellCheck={false}
                                     />
                                 </div>
                             </div>
