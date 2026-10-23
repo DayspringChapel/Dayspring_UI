@@ -87,7 +87,11 @@ export default function Footer() {
             </div>
 
             <InstallAppButton />
-            <p className="mt-12 text-center text-xs text-white/70">© {currentYear} DaySpring Chapel. All rights reserved.</p>
+            <p className="mt-12 text-center text-xs text-white/70">
+                © {currentYear} DaySpring Chapel. All rights reserved.
+                {' · '}
+                <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link>
+            </p>
         </footer>
     );
 }
