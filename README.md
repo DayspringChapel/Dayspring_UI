@@ -27,8 +27,12 @@ Required server environment:
 
 * `BACKEND_API_URL`: API origin, preferably HTTPS in production. Takes precedence
   over the older `NEXT_PUBLIC_BACKEND_API_URL` fallback.
-* `APP_ORIGIN`: exact HTTPS browser origin, without trailing slash. Cookie-authenticated
-  writes fail closed if this is missing or differs from the request Origin.
+* `APP_ORIGIN`: trusted HTTPS browser origin. For this deployment use
+  `https://dayspring-ui.vercel.app` (not the `/admin/login` URL). The repository's
+  `vercel.json` sets that public origin. Dashboard environment values must match it.
+  `APP_ORIGINS` may list additional exact origins separated by commas.
+  With neither setting, Vercel deployments use only Vercel's server-supplied project,
+  deployment and branch hostnames. Other production hosts fail closed without an origin.
 * `NODE_ENV=production`: enables Secure cookies; production must use HTTPS.
 
 Never put credentials in `NEXT_PUBLIC_` variables. Server-only social credentials
@@ -51,6 +55,11 @@ absolute expiry. Only non-secret user/permission state is held in browser memory
 Writes require an exact trusted Origin; the UI needs no cross-origin credentialed
 API access. Forward requests to Next preserving public Host/HTTPS scheme and set
 APP_ORIGIN to the public address. Do not cache session/proxy responses in a CDN.
+
+If login returns `Invalid request origin.`, open the Vercel project → Settings →
+Environment Variables and set `APP_ORIGIN=https://dayspring-ui.vercel.app` for
+Production, then redeploy. Environment changes do not update an existing deployment.
+Custom domains must be explicitly listed; do not disable the origin guard.
 Public pages, static assets and anonymous public content retain service-worker caching.
 Proxy data is cached only when the server confirms that no session credential was
 forwarded. Staff requests bypass the cache; no authenticated response is cached.
@@ -63,8 +72,8 @@ not make an arbitrary endpoint idempotent.
 
 ## Security and operational limits
 
-The enforced CSP restricts framing, base URLs and object plugins. A strict nonce-based
-script policy remains a hardening task; HttpOnly cookies do not eliminate XSS risks.
+The enforced CSP uses per-request script nonces and restricts framing, base URLs and
+object plugins. HttpOnly cookies do not eliminate XSS risks.
 The login limiter is process-local (10/minute per upstream peer); use a trusted edge
 limiter for multiple replicas and review trusted proxy handling before using forwarded
 IP addresses. Monitor backend `/health/live` and `/health/ready`.
@@ -77,5 +86,12 @@ revoked certificates do not download. The server needs
 `Certificates__DownloadCodeKeys__primary`; see the backend's
 `FORM_CERTIFICATE_DOWNLOADS.md` for the migration, permissions and configuration.
 
-Automatic template rendering, advanced/restricted forms and full multi-church membership
-isolation remain delivery gates in the workspace `docs/DAYSPRING_OS.md`.
+Advanced/restricted forms, the redesigned builder, automatic certificate templates,
+standalone batch generation, approval workflows and scoped church memberships are
+implemented. See `../docs/DAYSPRING_OS_DELIVERY.md` for deployment order, verification
+and remaining limits, including large exports and legacy-module tenancy.
+
+Church Admin, Church Media and Superadmin can manage forms. Deploy the backend
+permission migration before the new UI so existing roles receive their grants.
+Run `npm run generate:api` against a development API (or set `DAYSPRING_OPENAPI_URL`)
+to refresh `lib/api-contracts.d.ts` after API contract changes.

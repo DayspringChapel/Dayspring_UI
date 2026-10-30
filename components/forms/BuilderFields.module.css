@@ -1,0 +1,19 @@
+.fields { display: grid; gap: 12px; }
+.field { border: 1px solid #e0e6ec; border-radius: 11px; overflow: hidden; background: #fff; }
+.field[open] { border-color: #dba77f; box-shadow: 0 0 0 2px #d9752c08; }
+.summary { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 15px; list-style: none; }
+.summary::-webkit-details-marker { display: none; }
+.handle { color: #b5bec8; letter-spacing: -2px; font-size: 17px; }
+.number { border-radius: 7px; width: 27px; height: 27px; display: grid; place-items: center; background: #f1f4f7; color: #7a8998; font-size: 10px; font-weight: 700; }
+.name { color: #32465e; font-size: 12px; font-weight: 650; flex: 1; overflow-wrap: anywhere; }
+.type { color: #9aa5b2; font-size: 10px; }
+.required { color: #ce7c43; font-size: 12px; }
+.body { display: grid; gap: 14px; padding: 5px 17px 18px !important; }
+.body>legend { display: none; }
+.body>label { margin: 0 !important; }
+.body>label:has(input[type=checkbox]) { flex-direction: row; align-items: center; }
+.body>details { border-top: 1px solid #edf0f4; padding-top: 12px; }
+.body>details>summary { font-size: 11px; color: #8593a3; cursor: pointer; }
+.body>details>label { margin-block: 12px; }
+.body button { font-size: 10px; padding: 6px 9px; background: #f3f5f7; border-radius: 6px; color: #6d7c8d; cursor: pointer; }
+.body button:last-child { margin-left: auto; color: #a65c4f; background: #fcf4f2; }

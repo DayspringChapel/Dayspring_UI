@@ -41,10 +41,10 @@ export async function POST(request) {
         if (!upstream.ok) return NextResponse.json({ message: data.message || 'Sign-in failed.' }, { status: upstream.status, headers: privateHeaders });
         if (!/^[a-f0-9]{64}$/i.test(data.sessionToken || '')) throw new Error('Invalid upstream session');
         const response = NextResponse.json({ success: true, user: data.user }, { headers: privateHeaders });
-        response.cookies.set('dayspring_church', '', { path: '/', maxAge: 0, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
         response.cookies.set(SESSION_COOKIE, data.sessionToken, {
             ...cookieSettings(), ...(body.remember === true ? { expires: new Date(data.expiresAt) } : {}),
         });
+        response.cookies.set('dayspring_church', '', { path: '/', maxAge: 0, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
         return response;
     } catch {
         return NextResponse.json({ message: 'The sign-in service is unavailable.' }, { status: 503, headers: privateHeaders });

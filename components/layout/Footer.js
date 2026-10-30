@@ -7,6 +7,7 @@ import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/compon
 import InstallAppButton from '@/components/InstallAppButton';
 
 const links = [
+    { href: '/forms', label: 'Church forms' },
     { href: '/certificates/download', label: 'Certificate downloads' },
     { href: '/about', label: 'About' },
     { href: '/library', label: 'Library' },

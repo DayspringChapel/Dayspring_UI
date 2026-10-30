@@ -1,10 +1,13 @@
 'use client';
 import { FIELD_TYPES } from '@/lib/formCertificates';
+import styles from './BuilderFields.module.css';
 
 export default function BuilderFields({ fields, onChange, disabled }) {
     function update(index, patch) { onChange(fields.map((field, i) => i === index ? { ...field, ...patch } : field)); }
     function move(index, direction) { const next = [...fields]; [next[index], next[index + direction]] = [next[index + direction], next[index]]; onChange(next); }
-    return <>{fields.map((field, index) => <fieldset key={field.key} disabled={disabled} style={{ padding: 16, border: '1px solid #cbd5e1', borderRadius: 10, marginBlock: 12 }}>
+    return <div className={styles.fields}>{fields.map((field, index) => <details className={styles.field} key={field.key} open={index === fields.length - 1}>
+        <summary className={styles.summary}><span className={styles.handle} aria-hidden="true">⠿</span><span className={styles.number}>{String(index + 1).padStart(2, '0')}</span><span className={styles.name}>{field.label || 'Untitled question'}</span>{field.required && <span className={styles.required} aria-label="Required">*</span>}<span className={styles.type}>{field.type}</span></summary>
+        <fieldset className={styles.body} disabled={disabled}>
         <legend>Field {index + 1}: {field.label || 'Untitled'}</legend>
         <label>Label<input required maxLength={100} value={field.label} onChange={(e) => update(index, { label: e.target.value })} /></label>
         <label>Type<select value={field.type} onChange={(e) => update(index, { type: e.target.value })}>{FIELD_TYPES.map((type) => <option key={type}>{type}</option>)}</select></label>
@@ -26,5 +29,6 @@ export default function BuilderFields({ fields, onChange, disabled }) {
             <button type="button" disabled={index === fields.length - 1 || fields.some((f) => f.condition)} onClick={() => move(index, 1)}>Move down</button>
             <button type="button" disabled={fields.length === 1 || fields.some((f) => f.condition?.field === field.key)} onClick={() => onChange(fields.filter((_, i) => i !== index))}>Remove</button>
         </div>
-    </fieldset>)}</>;
+        </fieldset>
+    </details>)}</div>;
 }

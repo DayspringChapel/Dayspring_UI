@@ -7,6 +7,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import SuperAdminDashboard from './SuperAdminDashboard';
 import ChurchAdminDashboard from './ChurchAdminDashboard';
 import ChurchMediaDashboard from './ChurchMediaDashboard';
+import OsOverview from '@/components/admin/OsOverview';
 
 function resolveRole(userData) {
     if (!userData) return 'member';
@@ -45,9 +46,10 @@ export default function DashboardPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [role]);
 
-    if (role === 'superAdmin') return <SuperAdminDashboard userName={userName} />;
+    if (userData?.legacyChurch === false) return <OsOverview />;
+    if (role === 'superAdmin') return <><OsOverview /><SuperAdminDashboard userName={userName} /></>;
     if (role === 'churchMedia') return <ChurchMediaDashboard userName={userName} />;
-    if (role === 'churchAdmin') return <ChurchAdminDashboard userName={userName} />;
+    if (role === 'churchAdmin') return <><OsOverview /><ChurchAdminDashboard userName={userName} /></>;
 
     return <LoadingSpinner message="Redirecting…" minHeight="100vh" />;
 }

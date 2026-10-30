@@ -64,12 +64,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
     // 'all' means every role can see it; array restricts to listed roles
     const menuItems = [
-        { title: 'Certificates', path: '/admin/certificates', anyPermission: ['certificates.generate', 'certificates.records.view', 'certificates.templates.create', 'certificates.templates.edit'] },
-        { title: 'Administrative approvals', path: '/admin/administrative-approvals', anyPermission: ['approvals.view', 'approvals.act', 'forms.approve', 'certificates.approve'] },
-        { title: 'Workflow configuration', path: '/admin/workflow-configuration', permission: 'workflows.manage' },
-        { title: 'Operations', path: '/admin/operations', permission: 'operations.view' },
-        { title: 'Church access', path: '/admin/churches', roles: ['superAdmin'] },
-
         {
             title: 'Dashboard',
             path: '/admin/dashboard',
@@ -284,9 +278,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         },
         {
             title: 'Forms', path: '/admin/forms',
-            anyPermission: ['forms.create', 'forms.edit', 'forms.publish', 'forms.responses.view'],
+            anyPermission: PERMISSION_GROUPS.forms,
             icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h3" /></svg>,
         },
+        { title: 'Certificates', path: '/admin/certificates', anyPermission: ['certificates.generate', 'certificates.records.view', 'certificates.templates.create', 'certificates.templates.edit'] },
+        { title: 'Administrative approvals', path: '/admin/administrative-approvals', anyPermission: ['approvals.view', 'approvals.act', 'forms.approve', 'certificates.approve'] },
+        { title: 'Workflow configuration', path: '/admin/workflow-configuration', permission: 'workflows.manage' },
+        { title: 'Operations', path: '/admin/operations', permission: 'operations.view' },
+        { title: 'Church access', path: '/admin/churches', roles: ['superAdmin'] },
+
         {
             title: 'Settings',
             path: '/admin/settings',
@@ -303,6 +303,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
     // for items not yet tied to a specific permission.
     const canSee = (item) => {
+        if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].includes(item.path)) return false;
+
         if (item.permission) return permissions.includes(item.permission);
         if (item.anyPermission) return item.anyPermission.some((p) => permissions.includes(p));
         if (!item.roles || item.roles === 'all') return true;
