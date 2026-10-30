@@ -7,6 +7,7 @@ import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import styles from './login.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 export default function AdminLogin() {
     const router = useRouter();
@@ -29,23 +30,14 @@ export default function AdminLogin() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return;
         setError('');
         setLoading(true);
 
         try {
-            const response = await apiClient.login(formData.email.trim(), formData.password);
+            const response = await apiClient.login(formData.email.trim(), formData.password, rememberMe);
 
-            if (response.token || response.success) {
-                const actualToken = response.token?.result || response.token;
-
-                if (actualToken) {
-                    apiClient.setAuthTokens(actualToken, response.refreshToken, rememberMe);
-                }
-
-                if (response.user || response.data) {
-                    apiClient.setUserData(response.user || response.data);
-                }
-
+            if (response.success) {
                 router.replace('/admin/dashboard');
             } else {
                 setError('Login failed. Please check your credentials.');
@@ -73,13 +65,13 @@ export default function AdminLogin() {
                 <div className={styles.container}>
                     <div className={styles.loginCard}>
                         <div className={styles.brandRow}>
-                            <Image src="/logo.png" alt="DaySpring Chapel" width={48} height={26} className={styles.brandLogo} />
-                            <span className={styles.brandName}>DaySpring Chapel</span>
+                            <Image src={PLATFORM_BRANDING.logo} alt={PLATFORM_BRANDING.name} width={48} height={48} className={styles.brandLogo} />
+                            <span className={styles.brandName}>{PLATFORM_BRANDING.name}</span>
                         </div>
 
                         <div className={styles.header}>
                             <h1>Welcome Back</h1>
-                            <p>Sign in to manage your church content</p>
+                            <p>Sign in to your church operating system</p>
                         </div>
 
                         <form onSubmit={handleSubmit} className={styles.form}>

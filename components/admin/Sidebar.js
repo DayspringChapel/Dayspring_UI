@@ -8,6 +8,8 @@ import { PERMISSION_GROUPS } from '@/lib/permissionTiles';
 import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
 import AdminConfirm from './AdminConfirm';
+import ChurchSelector from '@/components/admin/ChurchSelector';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 function resolveRole() {
     const userData = apiClient.getUserData();
@@ -25,6 +27,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const pathname = usePathname();
     const [loggingOut, setLoggingOut] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [logoutError, setLogoutError] = useState('');
     const [mediaOpen, setMediaOpen] = useState(() =>
         ['/admin/media', '/admin/workflow', '/admin/approvals', '/admin/publishing'].includes(pathname)
     );
@@ -33,9 +36,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // Refreshed on every mount so a role/permission change (or a permission that didn't exist
     // yet at last login, e.g. after a deploy) shows up without forcing a re-login.
     useEffect(() => {
+        const sync = () => setPermissions(apiClient.getCurrentPermissions());
+        window.addEventListener('dayspring:permissions', sync);
         apiClient.refreshCurrentUserPermissions()
             .then(() => setPermissions(apiClient.getCurrentPermissions()))
             .catch(() => {});
+        return () => window.removeEventListener('dayspring:permissions', sync);
     }, []);
 
     const role = resolveRole();
@@ -43,17 +49,27 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
     const handleLogout = () => setShowLogoutConfirm(true);
 
-    const confirmLogout = () => {
+    const confirmLogout = async () => {
         setShowLogoutConfirm(false);
         setLoggingOut(true);
-        setTimeout(() => {
-            apiClient.logout();
+        setLogoutError('');
+        try {
+            await apiClient.logout();
             router.push('/admin/login');
-        }, 1600);
+        } catch (error) {
+            setLogoutError(error.message);
+            setLoggingOut(false);
+        }
     };
 
     // 'all' means every role can see it; array restricts to listed roles
     const menuItems = [
+        { title: 'Certificates', path: '/admin/certificates', anyPermission: ['certificates.generate', 'certificates.records.view', 'certificates.templates.create', 'certificates.templates.edit'] },
+        { title: 'Administrative approvals', path: '/admin/administrative-approvals', anyPermission: ['approvals.view', 'approvals.act', 'forms.approve', 'certificates.approve'] },
+        { title: 'Workflow configuration', path: '/admin/workflow-configuration', permission: 'workflows.manage' },
+        { title: 'Operations', path: '/admin/operations', permission: 'operations.view' },
+        { title: 'Church access', path: '/admin/churches', roles: ['superAdmin'] },
+
         {
             title: 'Dashboard',
             path: '/admin/dashboard',
@@ -263,6 +279,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
         },
         {
+            title: 'Audit log', path: '/admin/audit', permission: 'audit.view',
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 3h10v18H7zM10 8h4M10 12h4M10 16h4" /></svg>,
+        },
+        {
+            title: 'Forms', path: '/admin/forms',
+            anyPermission: ['forms.create', 'forms.edit', 'forms.publish', 'forms.responses.view'],
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h3" /></svg>,
+        },
+        {
             title: 'Settings',
             path: '/admin/settings',
             anyPermission: PERMISSION_GROUPS.settings,
@@ -297,8 +322,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
             <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
                 <div className={styles.header}>
-                    <h2>DaySpring Chapel</h2>
-                    <p>Admin Panel</p>
+                    <h2>{PLATFORM_BRANDING.name}</h2>
+                    <p>{PLATFORM_BRANDING.tagline}</p><ChurchSelector />
                 </div>
 
                 <nav className={styles.nav} data-tour="sidebar-nav">
@@ -375,6 +400,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 </nav>
 
                 <div className={styles.footer}>
+                    {logoutError && <p role="alert">{logoutError}</p>}
                     <button onClick={handleLogout} className={styles.logoutBtn}>
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path fillRule="evenodd" clipRule="evenodd" d="M3 3C2.44772 3 2 3.44772 2 4V16C2 16.5523 2.44772 17 3 17H10C10.5523 17 11 16.5523 11 16C11 15.4477 10.5523 15 10 15H4V5H10C10.5523 5 11 4.55228 11 4C11 3.44772 10.5523 3 10 3H3ZM14.2929 6.29289C14.6834 5.90237 15.3166 5.90237 15.7071 6.29289L18.7071 9.29289C19.0976 9.68342 19.0976 10.3166 18.7071 10.7071L15.7071 13.7071C15.3166 14.0976 14.6834 14.0976 14.2929 13.7071C13.9024 13.3166 13.9024 12.6834 14.2929 12.2929L15.5858 11H9C8.44772 11 8 10.5523 8 10C8 9.44772 8.44772 9 9 9H15.5858L14.2929 7.70711C13.9024 7.31658 13.9024 6.68342 14.2929 6.29289Z" fill="currentColor" />

@@ -1,6 +1,8 @@
 import { fetchChatbotConfigServer } from '@/lib/serverApi';
+import { sessionAuthorization, isTrustedOrigin } from '@/lib/session.server';
 
 const API_BASE = (
+    process.env.BACKEND_API_URL ||
     process.env.NEXT_PUBLIC_BACKEND_API_URL ||
     'https://dayspring-backend-4ar8.onrender.com'
 ).replace(/\/$/, '');
@@ -12,7 +14,8 @@ export async function GET() {
 // Persisted in the backend (SiteSettings) so it survives restarts and is shared by every
 // server instance. The backend enforces the CanManageChatbot permission.
 export async function POST(request) {
-    const authorization = request.headers.get('authorization');
+    if (!isTrustedOrigin(request)) return Response.json({ error: 'Invalid request origin.' }, { status: 403 });
+    const authorization = sessionAuthorization(request);
     if (!authorization) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     try {

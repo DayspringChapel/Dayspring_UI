@@ -14,6 +14,7 @@
 
 import crypto from 'crypto';
 import { hasServerPermission } from '@/lib/serverApi';
+import { isTrustedOrigin } from '@/lib/session.server';
 
 // ── Facebook ──────────────────────────────────────────────────────────────────
 
@@ -198,6 +199,7 @@ async function postToInstagram(description, imageUrl) {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function POST(request) {
+    if (!isTrustedOrigin(request)) return Response.json({ error: 'Invalid request origin.' }, { status: 403 });
     try {
         const body = await request.json();
 

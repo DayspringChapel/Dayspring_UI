@@ -1,0 +1,21 @@
+.page { max-width: 800px; margin: 0 auto; padding: 120px 20px 72px; color: #14263b; min-height: 65vh; }
+.card { background: white; padding: clamp(20px, 4vw, 40px); border: 1px solid #dfe5ec; border-radius: 18px; box-shadow: 0 12px 36px #14263b0a; }
+.stack { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
+.stack h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; font-weight: 750; }
+.stack h2 { font-size: 1.2rem; font-weight: 700; }
+.stack p { line-height: 1.65; }
+.label { display: flex; flex-direction: column; gap: 8px; font-weight: 600; }
+.label input:not([type=checkbox]), .label textarea, .label select { width: 100%; border: 1px solid #bec9d5; border-radius: 8px; background: white; padding: 11px 12px; color: #14263b; font-weight: 400; }
+.label textarea { min-height: 120px; }
+.checkbox { display: flex; align-items: center; gap: 10px; }
+.checkbox input { width: 18px; height: 18px; }
+.stack button { background: #14263b; color: white; border-radius: 9px; padding: 12px 18px; font-weight: 650; cursor: pointer; }
+.stack button:disabled { opacity: .5; cursor: default; }
+.stack a { text-decoration: underline; color: #8f440e; }
+.muted { color: #526174; font-size: .925rem; }
+.code { display: block; overflow-wrap: anywhere; background: #fff1e5; border: 1px solid #f0c29e; border-radius: 10px; padding: 20px; font-size: 1.1rem; line-height: 1.8; user-select: all; }
+.reference { overflow-wrap: anywhere; font-size: .875rem; }
+.notice { padding: 16px; border-radius: 9px; background: #edf5fb; }
+.error { padding: 16px; border-radius: 9px; background: #fff0f0; color: #9f2525; }
+.stack :is(input, textarea, select, button, a):focus-visible { outline: 3px solid #d9752c; outline-offset: 3px; }
+.fieldset { display: flex; flex-direction: column; gap: 20px; border: 0; padding: 0; margin: 0; }

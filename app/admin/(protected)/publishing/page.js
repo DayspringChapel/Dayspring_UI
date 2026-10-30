@@ -290,7 +290,6 @@ export default function PublishingPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiClient.getToken()}`,
                 },
                 body: JSON.stringify({
                     targets:      Object.keys(streamTargets).filter((k) => streamTargets[k]),

@@ -1,0 +1,14 @@
+.page { background: #fff; border: 1px solid #e4e9ef; border-radius: 16px; padding: clamp(16px, 3vw, 32px); color: #14263b; }
+.heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.heading h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+.heading p { color: #526174; }
+.tableWrap { overflow-x: auto; margin-top: 16px; }
+.tableWrap table { border-collapse: collapse; width: 100%; text-align: left; font-size: .875rem; }
+.tableWrap th, .tableWrap td { padding: 12px; border-bottom: 1px solid #e4e9ef; vertical-align: top; }
+.tableWrap th { background: #f5f7fa; white-space: nowrap; }
+.tableWrap pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 480px; padding: 12px 0; }
+.tableWrap summary { cursor: pointer; color: #85400e; }
+.pagination { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+.page button { border-radius: 8px; padding: 8px 16px; background: #14263b; color: white; cursor: pointer; }
+.page button:disabled { opacity: .45; cursor: default; }
+.page button:focus-visible, .tableWrap summary:focus-visible { outline: 3px solid #d9752c; outline-offset: 3px; }

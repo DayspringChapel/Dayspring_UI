@@ -1,15 +1,12 @@
-'use client';
 
 import './globals.css';
-import Navigation from '@/components/layout/Navigation';
-import Footer from '@/components/layout/Footer';
-import ChatWidget from '@/components/ChatWidget';
-import WhatsAppButton from '@/components/WhatsAppButton';
+import AppChrome from '@/components/layout/AppChrome';
+import { connection } from 'next/server';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import InstallPrompt from '@/components/InstallPrompt';
-import { usePathname } from 'next/navigation';
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  await connection();
   return (
     <html lang="en">
       <head>
@@ -22,30 +19,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ServiceWorkerRegister />
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <AppChrome>{children}</AppChrome>
         <InstallPrompt />
       </body>
     </html>
-  );
-}
-
-function ConditionalLayout({ children }) {
-  const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith('/admin');
-
-  if (isAdminRoute) {
-    // Admin routes: no nav/footer
-    return <>{children}</>;
-  }
-
-  // Regular routes: with nav/footer
-  return (
-    <>
-      <Navigation />
-      <main>{children}</main>
-      <Footer />
-      <WhatsAppButton />
-      <ChatWidget />
-    </>
   );
 }

@@ -211,7 +211,7 @@ export default function SettingsPage() {
         try {
             const res = await fetch('/api/chatbot-config', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiClient.getToken()}` },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ additionalInfo: botInfo }),
             });
             if (!res.ok) throw new Error();

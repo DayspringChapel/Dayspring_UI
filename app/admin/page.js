@@ -8,8 +8,9 @@ export default function AdminIndexPage() {
     const router = useRouter();
 
     useEffect(() => {
-        const token = apiClient.getToken();
-        router.replace(token ? '/admin/dashboard' : '/admin/login');
+        apiClient.restoreSession()
+            .then((user) => router.replace(user ? '/admin/dashboard' : '/admin/login'))
+            .catch(() => router.replace('/admin/login'));
     }, [router]);
 
     return null;

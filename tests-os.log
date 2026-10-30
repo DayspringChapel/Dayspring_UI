@@ -1,0 +1,178 @@
+
+> dayspring-chapel-nextjs@0.1.0 test
+> node --test tests/*.test.js
+
+TAP version 13
+# Subtest: form versions preserve older field definitions
+not ok 1 - form versions preserve older field definitions
+  ---
+  duration_ms: 10.0327
+  type: 'test'
+  location: 'C:\\Users\\DELL\\Documents\\Projects\\DaySpring\\Dayspring_UI\\tests\\form-certificates.test.js:7:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+    +     condition: null,
+          key: 'name',
+          label: 'Original name',
+          options: [],
+          required: true,
+          type: 'text'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      key: 'name'
+      label: 'Original name'
+      type: 'text'
+      required: true
+      options:
+  actual:
+    0:
+      key: 'name'
+      label: 'Original name'
+      type: 'text'
+      required: true
+      options:
+      condition: ~
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/DELL/Documents/Projects/DaySpring/Dayspring_UI/tests/form-certificates.test.js:8:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: certificate code is sent in the POST body and not exposed in a URL
+ok 2 - certificate code is sent in the POST body and not exposed in a URL
+  ---
+  duration_ms: 104.7696
+  type: 'test'
+  ...
+# Subtest: pending preparation is shown instead of a fake or premature download
+ok 3 - pending preparation is shown instead of a fake or premature download
+  ---
+  duration_ms: 1.999
+  type: 'test'
+  ...
+# Subtest: revocation and invalid codes do not return a file
+ok 4 - revocation and invalid codes do not return a file
+  ---
+  duration_ms: 2.6911
+  type: 'test'
+  ...
+# API request failed: Error: Key conflict
+#     at execute (file:///C:/Users/DELL/Documents/Projects/DaySpring/Dayspring_UI/lib/apiClient.js:468:34)
+#     at async ApiClient.request (file:///C:/Users/DELL/Documents/Projects/DaySpring/Dayspring_UI/lib/apiClient.js:500:20)
+#     at async waitForActual (node:assert:565:5)
+#     at async Function.rejects (node:assert:686:25)
+#     at async TestContext.<anonymous> (file:///C:/Users/DELL/Documents/Projects/DaySpring/Dayspring_UI/tests/foundations.test.js:85:5)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {
+#   status: 409,
+#   ambiguous: false
+# }
+# Subtest: reads retry network failures with bounded backoff
+ok 5 - reads retry network failures with bounded backoff
+  ---
+  duration_ms: 64.2709
+  type: 'test'
+  ...
+# Subtest: lost write responses never replay the operation
+ok 6 - lost write responses never replay the operation
+  ---
+  duration_ms: 1.703
+  type: 'test'
+  ...
+# Subtest: writes, deletes and uploads do not retry 429
+ok 7 - writes, deletes and uploads do not retry 429
+  ---
+  duration_ms: 2.0375
+  type: 'test'
+  ...
+# Subtest: a lost multipart upload response is sent once and remains ambiguous
+ok 8 - a lost multipart upload response is sent once and remains ambiguous
+  ---
+  duration_ms: 2.2283
+  type: 'test'
+  ...
+# Subtest: retry-after values are bounded and attempts stop
+ok 9 - retry-after values are bounded and attempts stop
+  ---
+  duration_ms: 4.9151
+  type: 'test'
+  ...
+# Subtest: cancellation aborts retries
+ok 10 - cancellation aborts retries
+  ---
+  duration_ms: 2.0546
+  type: 'test'
+  ...
+# Subtest: API client forwards operation keys and normalizes conflicts
+ok 11 - API client forwards operation keys and normalizes conflicts
+  ---
+  duration_ms: 6.6928
+  type: 'test'
+  ...
+# Subtest: session cookies are opaque and hostile cookie values are ignored
+ok 12 - session cookies are opaque and hostile cookie values are ignored
+  ---
+  duration_ms: 2.9761
+  type: 'test'
+  ...
+# Subtest: CSRF check accepts only exact configured origin
+ok 13 - CSRF check accepts only exact configured origin
+  ---
+  duration_ms: 2.2057
+  type: 'test'
+  ...
+# Subtest: production requires an explicit origin and secure HttpOnly cookies
+ok 14 - production requires an explicit origin and secure HttpOnly cookies
+  ---
+  duration_ms: 1.5713
+  type: 'test'
+  ...
+# Subtest: login receives user state but does not expose or store a bearer token
+ok 15 - login receives user state but does not expose or store a bearer token
+  ---
+  duration_ms: 1.7751
+  type: 'test'
+  ...
+# Subtest: public content is cached only with server proof of anonymous fetching
+ok 16 - public content is cached only with server proof of anonymous fetching
+  ---
+  duration_ms: 59.653
+  type: 'test'
+  ...
+# Subtest: staff requests bypass offline caches completely
+ok 17 - staff requests bypass offline caches completely
+  ---
+  duration_ms: 2.1208
+  type: 'test'
+  ...
+# Subtest: previously cached anonymous public content remains available offline
+ok 18 - previously cached anonymous public content remains available offline
+  ---
+  duration_ms: 6.5551
+  type: 'test'
+  ...
+# Subtest: private API routes never enter the public data cache
+ok 19 - private API routes never enter the public data cache
+  ---
+  duration_ms: 2.6582
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 18
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 409.6222

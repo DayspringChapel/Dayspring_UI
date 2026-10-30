@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function AdminConfirm({ dialog, onClose }) {
     if (!dialog) return null;
@@ -127,14 +127,17 @@ function AdminConfirmDialog({ dialog, onClose }) {
 
 export function useConfirm() {
     const [dialog, setDialog] = useState(null);
+    const resolver = useRef(null);
 
     const confirm = ({ title, message, confirmLabel = 'Confirm', danger = false, showInput = false, inputLabel, inputPlaceholder }) =>
         new Promise((resolve) => {
+            resolver.current?.(false);
+            resolver.current = resolve;
             setDialog({
                 title, message, confirmLabel, danger, showInput, inputLabel, inputPlaceholder,
-                onConfirm: (value) => { resolve(showInput ? (value || '') : true); setDialog(null); },
+                onConfirm: (value) => { resolve(showInput ? (value || '') : true); resolver.current = null; setDialog(null); },
             });
         });
 
-    return { dialog, confirm, closeDialog: () => setDialog(null) };
+    return { dialog, confirm, closeDialog: () => { resolver.current?.(false); resolver.current = null; setDialog(null); } };
 }

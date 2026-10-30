@@ -11,21 +11,38 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ProfileBadge from '@/components/admin/ProfileBadge';
 import PageGuide from '@/components/admin/PageGuide';
 import styles from './admin.module.css';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 export default function ProtectedAdminLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const [loading, setLoading] = useState(true);
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
-    // 'pending' until the permissions have been re-read from the server, so a role change takes effect
-    // without a fresh login; 'failed' (e.g. offline) falls back to what is stored, and the API still enforces access.
     const [permissionsCheck, setPermissionsCheck] = useState('pending');
 
     useEffect(() => {
-        apiClient.refreshCurrentUserPermissions()
-            .then(() => { setPermissions(apiClient.getCurrentPermissions()); setPermissionsCheck('done'); })
-            .catch(() => setPermissionsCheck('failed'));
-    }, []);
+        let active = true;
+        const check = () => apiClient.restoreSession()
+            .then((user) => {
+                if (!active) return;
+                if (!user) router.replace('/admin/login');
+                setPermissions(apiClient.getCurrentPermissions());
+                setPermissionsCheck('done');
+                setLoading(false);
+            })
+            .catch(() => { if (active) { setPermissionsCheck('failed'); setLoading(false); } });
+        const sync = () => setPermissions(apiClient.getCurrentPermissions());
+        check();
+        const interval = setInterval(check, 60000);
+        window.addEventListener('focus', check);
+        window.addEventListener('dayspring:permissions', sync);
+        return () => {
+            active = false;
+            clearInterval(interval);
+            window.removeEventListener('focus', check);
+            window.removeEventListener('dayspring:permissions', sync);
+        };
+    }, [pathname, router]);
     const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 1024);
 
     useEffect(() => {
@@ -41,33 +58,20 @@ export default function ProtectedAdminLayout({ children }) {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(() => {
-        const token = apiClient.getToken();
-
-        if (!token) {
-            router.replace('/admin/login');
-            Promise.resolve().then(() => setLoading(false));
-            return;
-        }
-
-        Promise.resolve().then(() => setLoading(false));
-    }, [router]);
-
-    const token = typeof window !== 'undefined' ? apiClient.getToken() : null;
-
-    if (!loading && !token) {
-        return null;
-    }
-
     if (loading) {
-        return <LoadingSpinner message="Preparing your dashboard" minHeight="100vh" />;
+        return <LoadingSpinner message={`Preparing ${PLATFORM_BRANDING.name}`} minHeight="100vh" />;
     }
+    if (permissionsCheck === 'failed') return <div role="alert" style={{ padding: '2rem' }}>
+        <p>Your session could not be verified. Check your connection and try again.</p>
+        <button onClick={() => window.location.reload()}>Try again</button>
+    </div>;
+    if (!apiClient.hasSession()) return null;
 
     // Is this page open to the signed-in user? Deny only once the permissions are fresh, so a stale
     // stored list never shows a false "no access".
     const rule = accessRuleFor(pathname);
     const allowedNow = !rule || canSeeItem(rule, (p) => permissions.includes(p));
-    const access = allowedNow || permissionsCheck === 'failed' ? 'allowed' : permissionsCheck === 'pending' ? 'checking' : 'denied';
+    const access = permissionsCheck === 'pending' ? 'checking' : allowedNow ? 'allowed' : 'denied';
 
     return (
         <div className={styles.adminLayout}>
@@ -88,7 +92,7 @@ export default function ProtectedAdminLayout({ children }) {
                             />
                         </svg>
                     </button>
-                    <h1 className={styles.pageTitle}>DaySpring Chapel CMS</h1>
+                    <h1 className={styles.pageTitle}>{PLATFORM_BRANDING.name}</h1>
                     <div style={{ marginLeft: 'auto' }}>
                         <ProfileBadge />
                     </div>

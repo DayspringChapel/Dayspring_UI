@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import styles from '@/components/admin/panels/Panel.module.css';
@@ -40,6 +40,8 @@ export default function PermissionsPage() {
 
     const [draft, setDraft] = useState(null); // null = modal closed; EMPTY_DRAFT-shaped object otherwise
     const [saving, setSaving] = useState(false);
+    const saveOperation = useRef(null);
+    const savePending = useRef(false);
 
     // Role management is restricted to whoever holds CanAssignPermission (superAdmin by
     // default) — re-checked from the server so a permission change takes effect without
@@ -82,8 +84,8 @@ export default function PermissionsPage() {
 
     const allPermissionNames = useMemo(() => groups.flatMap((g) => g.permissions.map((p) => p.name)), [groups]);
 
-    const openCreate = () => setDraft({ ...EMPTY_DRAFT, permissions: new Set() });
-    const openEdit = (role) => setDraft({ id: role.id, name: role.name, permissions: new Set(role.permissions) });
+    const openCreate = () => { saveOperation.current = null; setDraft({ ...EMPTY_DRAFT, permissions: new Set() }); };
+    const openEdit = (role) => { saveOperation.current = null; setDraft({ id: role.id, name: role.name, permissions: new Set(role.permissions) }); };
     const closeDraft = () => setDraft(null);
 
     const togglePermission = (name) => {
@@ -96,25 +98,32 @@ export default function PermissionsPage() {
 
     const handleSave = async (e) => {
         e.preventDefault();
+        if (savePending.current) return;
         if (!draft.name.trim()) {
             notify('warning', 'Enter a role name.');
             return;
         }
         setSaving(true);
+        savePending.current = true;
         try {
-            const permissions = [...draft.permissions];
+            const permissions = [...draft.permissions].sort();
+            const fingerprint = JSON.stringify([draft.id, draft.name.trim(), permissions]);
+            if (saveOperation.current?.fingerprint !== fingerprint)
+                saveOperation.current = { fingerprint, key: crypto.randomUUID() };
             if (draft.id) {
-                await apiClient.updateRole(draft.id, draft.name.trim(), permissions);
+                await apiClient.updateRole(draft.id, draft.name.trim(), permissions, saveOperation.current.key);
                 notify('success', `"${draft.name.trim()}" updated.`);
             } else {
-                await apiClient.createRole(draft.name.trim(), permissions);
+                await apiClient.createRole(draft.name.trim(), permissions, saveOperation.current.key);
                 notify('success', `Role "${draft.name.trim()}" created.`);
             }
             closeDraft();
+            saveOperation.current = null;
             await loadData();
         } catch (err) {
             notify('error', err.message || 'Failed to save the role. Please try again.');
         } finally {
+            savePending.current = false;
             setSaving(false);
         }
     };

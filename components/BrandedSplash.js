@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import styles from './BrandedSplash.module.css';
+import { PLATFORM_BRANDING } from '@/lib/branding';
 
 const SUBTITLE = {
     login:  'Signing you in',
@@ -30,8 +31,8 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
                         </circle>
                     </svg>
                     <Image
-                        src="/logo.png"
-                        alt="DaySpring Chapel"
+                        src={PLATFORM_BRANDING.logo}
+                        alt={PLATFORM_BRANDING.name}
                         width={56}
                         height={30}
                         className={styles.logoImage}
@@ -42,7 +43,7 @@ export default function BrandedSplash({ visible, mode = 'login' }) {
                 {/* Church name */}
                 <div className={styles.nameBlock}>
                     <span className={styles.nameMain}>DAYSPRING</span>
-                    <span className={styles.nameSub}>CHAPEL</span>
+                    <span className={styles.nameSub}>OS</span>
                 </div>
 
                 {/* Shimmer divider */}

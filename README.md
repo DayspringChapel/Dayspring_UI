@@ -1,61 +1,81 @@
-# Dayspring-Frontend
-This repository contains all frontend code for the Dayspring Chapel Management application, including user interfaces for interacting with the backend
+# Dayspring OS frontend and DaySpring Chapel website
 
-## S3 deployment
+Next.js App Router application. The public website retains church branding; the
+administrative application uses Dayspring OS branding from `lib/branding.js`.
 
-The UI in `dayspring-chapel-nextjs` is now configured for static export so it can be hosted from an S3 bucket.
+## Local development
 
-### Required frontend environment variable
+Use Node 22+, run `npm ci`, copy `.env.example` to `.env.local`, then `npm run dev`.
+The backend must include the browser-session migration. Run `npm test` for transport
+and session-security checks, `npm run lint` for ESLint and `npm run build` for a
+production build.
 
-Set this at build time:
+## Production runtime
 
-- `NEXT_PUBLIC_BACKEND_API_URL`: public base URL of the backend API, for example `https://dayspring-backend-4ar8.onrender.com`
+This application requires a running Next.js server. It uses server route handlers
+for sessions, the backend proxy, announcements, chat and YouTube, plus dynamic pages.
+S3 static export cannot serve these features. S3/CloudFront can serve static assets
+or sit in front of the application with correct routing; they cannot replace it.
 
-### GitHub Actions deployment
+On Linux the build produces standalone output. `Dockerfile` runs that output as a
+non-root user. Build with `docker build -t dayspring-ui .`, then run with port 3000
+and environment variables. `render.yaml` assumes this repository is the service root.
+For a parent workspace, set the service root to `Dayspring_UI` in hosting settings.
+Windows development omits standalone output; use `npm start` after build.
 
-This repository includes a GitHub Actions workflow at `.github/workflows/s3-deploy.yml` that builds the static site from `dayspring-chapel-nextjs/out` and syncs it to S3.
+Required server environment:
 
-Add these GitHub repository secrets before enabling the pipeline:
+* `BACKEND_API_URL`: API origin, preferably HTTPS in production. Takes precedence
+  over the older `NEXT_PUBLIC_BACKEND_API_URL` fallback.
+* `APP_ORIGIN`: exact HTTPS browser origin, without trailing slash. Cookie-authenticated
+  writes fail closed if this is missing or differs from the request Origin.
+* `NODE_ENV=production`: enables Secure cookies; production must use HTTPS.
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_REGION`
-- `AWS_S3_BUCKET`
-- `NEXT_PUBLIC_BACKEND_API_URL`
-- `CLOUDFRONT_DISTRIBUTION_ID` optional, if you want automatic cache invalidation
+Never put credentials in `NEXT_PUBLIC_` variables. Server-only social credentials
+and YouTube configuration are described in `.env.example`. Configure backend JWT
+settings even when the UI uses browser sessions, to preserve existing API clients.
 
-### Bucket setup
+## Session migration and API integration
 
-- Enable static website hosting on the S3 bucket
-- Set the index document to `index.html`
-- Set the error document to `index.html`
-- Allow public read access for the site, or place CloudFront in front of the bucket
+Deploy the backend migration/API first, then the frontend. Existing web users sign
+in again; old browser-storage credentials are removed, not migrated. JWT API clients
+remain supported. Do not roll back to the old browser-token frontend for session recovery.
 
-### Important backend requirement
+The browser uses `/api/auth/session` and `/api/backend/api/v1/...`. Next sends the
+opaque HttpOnly session cookie as an authorization header to a fixed upstream;
+no JWT or refresh token is returned to browser JavaScript. Sessions are stored as
+hashes in PostgreSQL, expire after 12 hours (7 days when remembered), and are
+revoked by confirmed logout or password change. Re-authentication is required at
+absolute expiry. Only non-secret user/permission state is held in browser memory.
 
-Because the UI now calls the backend directly from the browser, the backend must allow CORS from your frontend origin, for example:
+Writes require an exact trusted Origin; the UI needs no cross-origin credentialed
+API access. Forward requests to Next preserving public Host/HTTPS scheme and set
+APP_ORIGIN to the public address. Do not cache session/proxy responses in a CDN.
+Public pages, static assets and anonymous public content retain service-worker caching.
+Proxy data is cached only when the server confirms that no session credential was
+forwarded. Staff requests bypass the cache; no authenticated response is cached.
 
-- `http://<bucket-website-endpoint>`
-- `https://<your-cloudfront-domain>`
-- `https://<your-custom-domain>`
+Transport retries apply only to GET/HEAD network failures or 429, bounded by three
+retries, backoff and timeouts. Writes and uploads are sent once. After an ambiguous
+failure, check persisted state before retrying. `idempotencyKey` is accepted by the
+client for endpoints that implement backend deduplication; sending the header does
+not make an arbitrary endpoint idempotent.
 
-## GitHub Actions deployment
+## Security and operational limits
 
-This repository includes a GitHub Actions workflow at `.github/workflows/ec2-deploy.yml` that builds the Next.js standalone output from `dayspring-chapel-nextjs` and deploys it to an EC2 instance over SSH.
+The enforced CSP restricts framing, base URLs and object plugins. A strict nonce-based
+script policy remains a hardening task; HttpOnly cookies do not eliminate XSS risks.
+The login limiter is process-local (10/minute per upstream peer); use a trusted edge
+limiter for multiple replicas and review trusted proxy handling before using forwarded
+IP addresses. Monitor backend `/health/live` and `/health/ready`.
 
-Add these GitHub repository secrets before enabling the pipeline:
+The first form/certificate download flow is available at `/admin/forms`, public
+`/forms/{id}`, and `/certificates/download`. Enable **Attach certificate to this form**
+to return a private code after a saved response. Administrators attach a recipient PDF,
+another administrator approves it, then an authorized issuer releases it. Pending or
+revoked certificates do not download. The server needs
+`Certificates__DownloadCodeKeys__primary`; see the backend's
+`FORM_CERTIFICATE_DOWNLOADS.md` for the migration, permissions and configuration.
 
-- `EC2_HOST`: public IP or DNS name of the EC2 instance
-- `EC2_USER`: SSH username for the instance
-- `EC2_SSH_KEY`: private key contents used by GitHub Actions to connect
-- `EC2_DEPLOY_PATH`: absolute path on the server where the app should live, for example `/var/www/dayspring-chapel-nextjs`
-- `EC2_PORT`: optional SSH port if not `22`
-
-Server prerequisites:
-
-- Node.js installed
-- `pm2` installed globally
-- A reverse proxy such as Nginx pointing to port `3000`
-- Application environment variables configured on the EC2 server before starting `pm2`
-
-The workflow runs on pushes to `main` and can also be triggered manually from GitHub Actions.
+Automatic template rendering, advanced/restricted forms and full multi-church membership
+isolation remain delivery gates in the workspace `docs/DAYSPRING_OS.md`.

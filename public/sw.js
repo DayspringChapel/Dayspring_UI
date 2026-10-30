@@ -9,7 +9,7 @@
 // What it never does: cache the /admin area, any request carrying a login token, or any non-GET request.
 // Pages and data are network-first, so a new deploy or new content is never hidden behind a stale copy.
 // Bump VERSION to drop every old cache.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL = `dayspring-shell-${VERSION}`;
 const STATIC = `dayspring-static-${VERSION}`;
 const PAGES = `dayspring-pages-${VERSION}`;
@@ -24,6 +24,7 @@ const MAX_ENTRIES = { [STATIC]: 150, [PAGES]: 30, [DATA]: 60 };
 // Read-only public content. Everything else on the API (users, members, appointments, comments,
 // settings, reports...) is left alone.
 const PUBLIC_API = /^\/api\/v1\/(Sermons|Series|Events|ChurchPrograms|CalendarYears|Books|Albums|Images)(\/|$)/i;
+const PUBLIC_PROXY = /^\/api\/backend\/api\/v\d+\/(Sermons|Series|Events|ChurchPrograms|CalendarYears|Books|Albums|Images)(\/|$)/i;
 const IMAGE_OR_FONT = /\.(?:png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf)$/i;
 
 self.addEventListener('install', (event) => {
@@ -52,9 +53,13 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Never cache anything that carries a login token.
-    if (request.headers.has('Authorization')) return;
+    if (request.headers.has('Authorization') || request.headers.has('X-Dayspring-Staff')) return;
 
     if (sameOrigin) {
+        if (PUBLIC_PROXY.test(url.pathname)) {
+            event.respondWith(networkFirst(request, DATA, true));
+            return;
+        }
         if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/')) return;
         if (url.pathname.startsWith('/_next/static/')) {
             event.respondWith(cacheFirst(request, STATIC));
@@ -106,10 +111,11 @@ async function staleWhileRevalidate(request, cacheName) {
     return cached || (await refresh) || Response.error();
 }
 
-async function networkFirst(request, cacheName) {
+async function networkFirst(request, cacheName, requirePublicProof = false) {
     try {
         const response = await fetch(request);
-        if (response.ok) await put(cacheName, request, response.clone());
+        if (response.ok && (!requirePublicProof || response.headers.get('X-Dayspring-Public') === 'true'))
+            await put(cacheName, request, response.clone());
         return response;
     } catch {
         const cached = await caches.match(request, { cacheName });
