@@ -15,7 +15,7 @@ export default function FormReceipt({ receipt }) {
         <p>Submission reference: <code className={styles.reference}>{receipt.reference}</code></p>
         {receipt.certificateCode ? <>
             <h2>Save your certificate download code</h2>
-            <p>A certificate is attached to this form. Use this private code to collect yours after it has been prepared, approved and issued.</p>
+            <p>A certificate is attached to this form. Use this private code to collect yours after the form creator has prepared and issued it.</p>
             <code className={styles.code}>{receipt.certificateCode}</code>
             <button type="button" onClick={copy}>Copy my code</button>
             {copyStatus && <p role="status">{copyStatus}</p>}

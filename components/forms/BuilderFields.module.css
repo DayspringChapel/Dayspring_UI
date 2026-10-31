@@ -1,9 +1,16 @@
 .fields { display: grid; gap: 12px; }
 .field { border: 1px solid #e0e6ec; border-radius: 11px; overflow: hidden; background: #fff; }
-.field[open] { border-color: #dba77f; box-shadow: 0 0 0 2px #d9752c08; }
+.field[open] { border-color: #cbd5e1; border-left: 5px solid var(--form-accent,#7c3aed); box-shadow: 0 2px 8px #14263b08; }
 .summary { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 15px; list-style: none; }
 .summary::-webkit-details-marker { display: none; }
 .handle { color: #b5bec8; letter-spacing: -2px; font-size: 17px; }
+.handle { cursor: grab; touch-action: none; padding: 8px; background: #f1f5f9; border-radius: 6px; border: 0; flex-shrink: 0; }
+.handle:active { cursor: grabbing; }
+.sectionCard { border-top: 5px solid var(--form-accent,#b95b1d); margin-top: 25px; }
+.sectionCard>.summary { background: #f1f5f9; }
+.dropTarget { outline: 3px dashed var(--form-accent,#b95b1d); outline-offset: 3px; }
+.dragging { opacity: .55; }
+.orderNotice { font-size: 12px; color: #475569; min-height: 1em; }
 .number { border-radius: 7px; width: 27px; height: 27px; display: grid; place-items: center; background: #f1f4f7; color: #7a8998; font-size: 10px; font-weight: 700; }
 .name { color: #32465e; font-size: 12px; font-weight: 650; flex: 1; overflow-wrap: anywhere; }
 .type { color: #9aa5b2; font-size: 10px; }
@@ -17,3 +24,10 @@
 .body>details>label { margin-block: 12px; }
 .body button { font-size: 10px; padding: 6px 9px; background: #f3f5f7; border-radius: 6px; color: #6d7c8d; cursor: pointer; }
 .body button:last-child { margin-left: auto; color: #a65c4f; background: #fcf4f2; }
+.questionHeader { display: grid; grid-template-columns: minmax(0,1fr) 180px; gap: 18px; }
+.body label { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #475569; }
+.body input:not([type=checkbox]),.body textarea,.body select { width: 100%; padding: 12px; border: 1px solid #dbe2e9; border-radius: 6px; background: #fff; color: #172b43; font-size: 13px; }
+.questionHeader input { background: #f8fafc !important; border: 0 !important; border-bottom: 2px solid #dbe2e9 !important; border-radius: 3px 3px 0 0 !important; font-size: 16px !important; }
+.body textarea { min-height: 90px; }
+.body input[type=checkbox] { accent-color: var(--form-accent,#7c3aed); }
+@media(max-width:650px) { .questionHeader { grid-template-columns: minmax(0,1fr); } .body>div:last-child { flex-wrap: wrap; } }

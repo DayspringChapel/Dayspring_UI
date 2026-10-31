@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 export default function AdminConfirm({ dialog, onClose }) {
     if (!dialog) return null;
@@ -9,6 +9,21 @@ export default function AdminConfirm({ dialog, onClose }) {
 
 function AdminConfirmDialog({ dialog, onClose }) {
     const [inputValue, setInputValue] = useState('');
+    const panel = useRef(null); const titleId = useId(); const inputId = useId();
+    useEffect(() => {
+        const previous = document.activeElement;
+        const element = panel.current; element?.querySelector('textarea,button')?.focus();
+        const keyboard = (event) => {
+            if (event.key === 'Escape') onClose();
+            if (event.key !== 'Tab') return;
+            const items = [...element.querySelectorAll('button:not(:disabled),textarea')];
+            const first = items[0]; const last = items.at(-1);
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        };
+        element?.addEventListener('keydown', keyboard);
+        return () => { element?.removeEventListener('keydown', keyboard); previous?.focus(); };
+    }, [onClose]);
 
     const {
         title = 'Confirm Action',
@@ -33,6 +48,7 @@ function AdminConfirmDialog({ dialog, onClose }) {
             onClick={onClose}
         >
             <div
+                ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId}
                 style={{
                     background: '#fff', borderRadius: '1rem',
                     boxShadow: '0 20px 60px rgba(0,0,0,0.2)', width: '100%', maxWidth: 420,
@@ -59,7 +75,7 @@ function AdminConfirmDialog({ dialog, onClose }) {
                     )}
                 </div>
 
-                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>
+                <h3 id={titleId} style={{ margin: '0 0 0.5rem', fontSize: '1.1rem', fontWeight: 800, color: '#111' }}>
                     {title}
                 </h3>
                 <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: '#64748b', lineHeight: 1.6 }}>
@@ -69,11 +85,12 @@ function AdminConfirmDialog({ dialog, onClose }) {
                 {showInput && (
                     <div style={{ marginBottom: '1.5rem' }}>
                         {inputLabel && (
-                            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '0.4rem' }}>
+                            <label htmlFor={inputId} style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#374151', marginBottom: '0.4rem' }}>
                                 {inputLabel}
                             </label>
                         )}
                         <textarea
+                            id={inputId}
                             autoFocus
                             rows={3}
                             value={inputValue}

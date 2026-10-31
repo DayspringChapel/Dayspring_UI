@@ -1,5 +1,5 @@
 // Generated from the backend OpenAPI specification. Run npm run generate:api; do not edit.
-// SHA-256: 24048a0f199af9999d326b34c40623afc3b3047ebe2cdfff812fff702f172486
+// SHA-256: 64b927b2ea711395c211d3d2c5defc5fab8e655776f88278b02d229bd1281e93
 export interface ApiSchemas {
   "Dayspring_Backend.Controllers.AdministrativeWorkflowsController.DecisionRequest": { "expectedRevision"?: number; "decision"?: (string) | null; "comment"?: (string) | null; };
   "Dayspring_Backend.Controllers.AdministrativeWorkflowsController.DefinitionRequest": { "name"?: (string) | null; "stages"?: (Array<ApiSchemas["Dayspring_Backend.Operations.ApprovalStage"]>) | null; "preventSelfApproval"?: boolean; "expectedRevision"?: (number) | null; };
@@ -9,6 +9,7 @@ export interface ApiSchemas {
   "Dayspring_Backend.Controllers.ChurchesController.ChurchRequest": { "name"?: (string) | null; "color"?: (string) | null; "logoUrl"?: (string) | null; };
   "Dayspring_Backend.Controllers.ChurchesController.MembershipRequest": { "userId"?: string; "roleId"?: (string) | null; };
   "Dayspring_Backend.Controllers.FormCertificatesController.DownloadRequest": { "code"?: (string) | null; };
+  "Dayspring_Backend.Controllers.FormsController.CollectionRequest": { "expectedRevision"?: number; "opensAt"?: (string) | null; "closesAt"?: (string) | null; "timeZone"?: (string) | null; "paused"?: boolean; "analysisEnabled"?: boolean; };
   "Dayspring_Backend.Controllers.FormsController.PublicationRequest": { "published"?: boolean; "expectedRevision"?: number; };
   "Dayspring_Backend.Controllers.FormsController.ReviewRequest": { "expectedRevision"?: number; "status"?: (string) | null; "comment"?: (string) | null; };
   "Dayspring_Backend.Controllers.FormsController.RevisionRequest": { "expectedRevision"?: number; };
@@ -17,8 +18,10 @@ export interface ApiSchemas {
   "Dayspring_Backend.Forms.CertificateRecipientInput": { "name"?: (string) | null; "values"?: ({ [key: string]: string; }) | null; "submissionId"?: (string) | null; };
   "Dayspring_Backend.Forms.CreateCertificateBatchRequest": { "templateId"?: string; "title"?: (string) | null; "recipients"?: (Array<ApiSchemas["Dayspring_Backend.Forms.CertificateRecipientInput"]>) | null; "operationKey"?: (string) | null; };
   "Dayspring_Backend.Forms.FieldCondition": { "field"?: (string) | null; "value"?: (string) | null; };
+  "Dayspring_Backend.Forms.FormAppearance": { "backgroundColor"?: (string) | null; "accentColor"?: (string) | null; "backgroundPattern"?: (string) | null; "headerImageDataUrl"?: (string) | null; };
   "Dayspring_Backend.Forms.FormField": { "key"?: (string) | null; "label"?: (string) | null; "type"?: (string) | null; "required"?: boolean; "options"?: (Array<string>) | null; "placeholder"?: (string) | null; "description"?: (string) | null; "defaultValue"?: (string) | null; "minimum"?: (number) | null; "maximum"?: (number) | null; "minLength"?: (number) | null; "maxLength"?: (number) | null; "condition"?: ApiSchemas["Dayspring_Backend.Forms.FieldCondition"]; "errorMessage"?: (string) | null; "maxFileBytes"?: (number) | null; "acceptedTypes"?: (Array<string>) | null; "rows"?: (Array<string>) | null; };
-  "Dayspring_Backend.Forms.FormSettings": { "showOnWebsite"?: boolean; "accessMode"?: (string) | null; "allowedUsers"?: (Array<string>) | null; "opensAt"?: (string) | null; "closesAt"?: (string) | null; "timeZone"?: (string) | null; "requireApproval"?: boolean; };
+  "Dayspring_Backend.Forms.FormSettings": { "showOnWebsite"?: boolean; "accessMode"?: (string) | null; "allowedUsers"?: (Array<string>) | null; "opensAt"?: (string) | null; "closesAt"?: (string) | null; "timeZone"?: (string) | null; "requireApproval"?: boolean; "appearance"?: ApiSchemas["Dayspring_Backend.Forms.FormAppearance"]; "collectionPaused"?: boolean; "analysisEnabled"?: boolean; };
+  "Dayspring_Backend.Forms.PrepareTrainingCertificates": { "templateId"?: string; "nameField"?: (string) | null; "completionDate"?: (string) | null; "operationKey"?: (string) | null; "reviewStatus"?: (string) | null; "filterField"?: (string) | null; "filterValue"?: (string) | null; };
   "Dayspring_Backend.Forms.SaveFormRequest": { "title"?: (string) | null; "description"?: (string) | null; "attachCertificate"?: boolean; "fields"?: (Array<ApiSchemas["Dayspring_Backend.Forms.FormField"]>) | null; "expectedRevision"?: (number) | null; "settings"?: ApiSchemas["Dayspring_Backend.Forms.FormSettings"]; };
   "Dayspring_Backend.Forms.SubmitFormRequest": { "formRevision"?: number; "answers"?: ({ [key: string]: string; }) | null; };
   "Dayspring_Backend.Models.Constants.Apellation": 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
@@ -222,11 +225,17 @@ export interface ApiOperations {
   "GET /api/v1/churches/{churchId}/memberships": { request: undefined; response: unknown };
   "GET /api/v1/forms": { request: undefined; response: unknown };
   "GET /api/v1/forms/listed": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{formId}/certificates": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{formId}/certificates/batches/{id}": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{formId}/certificates/individual/{id}/file": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{formId}/certificates/records/{id}/file": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{formId}/certificates/templates/{id}/preview": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/analytics": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/export": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/preview": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/qr": { request: undefined; response: unknown };
+  "GET /api/v1/forms/{id}/stats": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/submissions": { request: undefined; response: unknown };
   "GET /api/v1/forms/{id}/submissions/{submissionId}/uploads/{fileId}": { request: undefined; response: unknown };
   "GET /api/v1/notifications": { request: undefined; response: unknown };
@@ -317,6 +326,12 @@ export interface ApiOperations {
   "POST /api/v1/certificates/{id}/revoke": { request: ApiSchemas["Dayspring_Backend.Forms.CertificateDecision"]; response: unknown };
   "POST /api/v1/churches": { request: ApiSchemas["Dayspring_Backend.Controllers.ChurchesController.ChurchRequest"]; response: unknown };
   "POST /api/v1/forms": { request: ApiSchemas["Dayspring_Backend.Forms.SaveFormRequest"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/batches": { request: ApiSchemas["Dayspring_Backend.Forms.PrepareTrainingCertificates"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/batches/{id}/issue": { request: ApiSchemas["Dayspring_Backend.Forms.CertificateDecision"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/individual/{id}/issue": { request: ApiSchemas["Dayspring_Backend.Forms.CertificateDecision"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/individual/{id}/revoke": { request: ApiSchemas["Dayspring_Backend.Forms.CertificateDecision"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/records/{id}/revoke": { request: ApiSchemas["Dayspring_Backend.Forms.CertificateDecision"]; response: unknown };
+  "POST /api/v1/forms/{formId}/certificates/templates": { request: { "Name"?: string; "Fields"?: string; "PreviousId"?: string; "File"?: string; }; response: unknown };
   "POST /api/v1/forms/{id}/archive": { request: ApiSchemas["Dayspring_Backend.Controllers.FormsController.RevisionRequest"]; response: unknown };
   "POST /api/v1/forms/{id}/duplicate": { request: undefined; response: unknown };
   "POST /api/v1/forms/{id}/publication": { request: ApiSchemas["Dayspring_Backend.Controllers.FormsController.PublicationRequest"]; response: unknown };
@@ -344,6 +359,7 @@ export interface ApiOperations {
   "PUT /api/v1/administrative-workflows/definitions/{subjectType}": { request: ApiSchemas["Dayspring_Backend.Controllers.AdministrativeWorkflowsController.DefinitionRequest"]; response: unknown };
   "PUT /api/v1/churches/{churchId}/memberships": { request: ApiSchemas["Dayspring_Backend.Controllers.ChurchesController.MembershipRequest"]; response: unknown };
   "PUT /api/v1/forms/{id}": { request: ApiSchemas["Dayspring_Backend.Forms.SaveFormRequest"]; response: unknown };
+  "PUT /api/v1/forms/{id}/collection": { request: ApiSchemas["Dayspring_Backend.Controllers.FormsController.CollectionRequest"]; response: unknown };
   "PUT /api/v1/site-settings/chatbot": { request: ApiSchemas["Dayspring_Backend.Models.DTOs.RequestDTOs.UpdateChatbotSettingsRequest"]; response: unknown };
   "PUT /api/v1/site-settings/hero": { request: ApiSchemas["Dayspring_Backend.Models.Enum.HeroMode"] & { "Files"?: Array<string>; "MemoryShortIds"?: Array<string>; "RotationSeconds"?: number; "Shuffle"?: boolean; }; response: unknown };
   "PUT /api/v1/site-settings/hero/reset": { request: undefined; response: unknown };

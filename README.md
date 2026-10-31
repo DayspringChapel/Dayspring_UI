@@ -95,3 +95,33 @@ Church Admin, Church Media and Superadmin can manage forms. Deploy the backend
 permission migration before the new UI so existing roles receive their grants.
 Run `npm run generate:api` against a development API (or set `DAYSPRING_OPENAPI_URL`)
 to refresh `lib/api-contracts.d.ts` after API contract changes.
+
+The sidebar groups the form library, certificates and church-wide certificate
+approval settings under **Forms & certificates**. Forms publish without approval. Media retains its own library
+and approvals. The form studio has Questions, Theme, Settings and Certificate tabs,
+with question duplication/reordering, preview and unsaved-change warnings. Themes
+support custom colors, background patterns and PNG/JPEG header images up to 300 KB.
+Save persists the theme; publication remains an explicit action. The public form and
+protected preview use the same themed surface. Library lists omit image bytes;
+opening an editor fetches the complete current form definition.
+
+## Creator-managed form workspaces
+
+Each form opens at `/admin/forms/{id}` with Overview, Responses, Analysis,
+Share & settings and Certificates tabs. Creators publish directly and share the
+standalone `/forms/{id}` respondent page, which has no church-site navigation.
+They can suspend/resume or stop collection, configure local-time start/end dates,
+review answers and attendance, export results and enable/disable basic analysis.
+Questions and section blocks support desktop/touch dragging and Move up/down;
+respondents navigate sections with required validation and progress indicators.
+
+For training forms, the creator can upload a background, position certificate
+fields, map participant names, prepare eligible PDFs through the durable worker,
+review and explicitly issue them. These permissions are restricted to the creator's
+own form; no church-wide certificate issuance permission is granted to Media.
+Respondents retrieve issued PDFs using their private codes. Standalone church-wide
+certificate batches retain their own approval workflow.
+
+Deploy the backend `CreatorFormWorkspaces` migration before this UI. It removes
+obsolete form-publication approval flags and preserves historical requests as
+superseded. See `../docs/FORMS_MANAGEMENT.md` for the complete operating guide.

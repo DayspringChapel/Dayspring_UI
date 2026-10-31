@@ -172,3 +172,7 @@
     .accessLabel { font-size: 10px; }
     .listingLabel { display: none; }
 }
+
+.previewQuestions { display: grid; gap: 24px; margin-top: 24px; }
+
+.embedded { display: grid; gap: 22px; min-width: 0; }

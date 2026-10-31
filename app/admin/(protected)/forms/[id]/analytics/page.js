@@ -8,7 +8,7 @@ function Bars({ rows, label = 'value' }) {
     const max = Math.max(1, ...rows.map((r) => r.count));
     return <div>{rows.map((r) => <div key={r[label]} style={{ marginBlock: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><span>{r[label]}</span><strong>{r.count}</strong></div><div style={{ background: '#edf1f5', height: 12, borderRadius: 8 }}><div style={{ width: `${r.count / max * 100}%`, height: 12, background: '#d9752c', borderRadius: 8 }} /></div></div>)}</div>;
 }
-export default function AnalyticsPage() {
+export default function AnalyticsPage({ embedded = false }) {
     const { id } = useParams(); const [data, setData] = useState(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
     useEffect(() => { const c = new AbortController(); apiClient.request(`/api/v1/forms/${id}/analytics`, { signal: c.signal }).then(setData).catch((e) => { if (!c.signal.aborted) setError(e.message); }); return () => c.abort(); }, [id]);
     async function download(format) {
@@ -29,7 +29,7 @@ export default function AnalyticsPage() {
         } catch (e) { setError(e.message); } finally { setBusy(false); }
     }
     const max = data ? Math.max(1, ...data.daily.map((r) => r.count)) : 1;
-    return <section className={styles.page}><header className={styles.header}><div><h2>Form analytics</h2><p>Completed responses · UTC</p></div><a href="/admin/forms">Back to forms</a></header>
+    return <section className={embedded ? styles.embedded : styles.page}><header className={styles.header}><div><h2>Form analytics</h2><p>Completed responses · UTC</p></div>{!embedded && <a href={`/admin/forms/${id}`}>Back to form</a>}</header>
         {error && <p role="alert" className={styles.error}>{error}</p>}
         {!data ? <p role="status">{error ? 'Analytics could not be loaded.' : 'Loading analytics…'}</p> : <>
             <div className={styles.grid}><article className={styles.card}><h3>Total submissions</h3><strong style={{ fontSize: 36 }}>{data.total}</strong></article><article className={styles.card}><h3>Response review</h3><Bars rows={data.statuses} label="status" /></article></div>

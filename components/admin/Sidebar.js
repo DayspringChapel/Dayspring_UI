@@ -28,9 +28,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const [loggingOut, setLoggingOut] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [logoutError, setLogoutError] = useState('');
-    const [mediaOpen, setMediaOpen] = useState(() =>
-        ['/admin/media', '/admin/workflow', '/admin/approvals', '/admin/publishing'].includes(pathname)
-    );
+    const [expandedGroups, setExpandedGroups] = useState({});
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
 
     // Refreshed on every mount so a role/permission change (or a permission that didn't exist
@@ -194,6 +192,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 </svg>
             ),
             children: [
+                { title: 'Media library', path: '/admin/media', anyPermission: PERMISSION_GROUPS.media },
                 {
                     title: 'Workflow',
                     path: '/admin/workflow',
@@ -277,13 +276,15 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 3h10v18H7zM10 8h4M10 12h4M10 16h4" /></svg>,
         },
         {
-            title: 'Forms', path: '/admin/forms',
-            anyPermission: PERMISSION_GROUPS.forms,
+            title: 'Forms & certificates', path: '/admin/forms',
             icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h3" /></svg>,
+            children: [
+                { title: 'Form library', path: '/admin/forms', anyPermission: PERMISSION_GROUPS.forms },
+                { title: 'Certificates', path: '/admin/certificates', anyPermission: ['certificates.generate', 'certificates.records.view', 'certificates.templates.create', 'certificates.templates.edit'] },
+                { title: 'Certificate approvals', path: '/admin/certificates/approvals', anyPermission: ['approvals.view', 'approvals.act', 'certificates.approve'] },
+                { title: 'Approval settings', path: '/admin/workflow-configuration', permission: 'workflows.manage' },
+            ],
         },
-        { title: 'Certificates', path: '/admin/certificates', anyPermission: ['certificates.generate', 'certificates.records.view', 'certificates.templates.create', 'certificates.templates.edit'] },
-        { title: 'Administrative approvals', path: '/admin/administrative-approvals', anyPermission: ['approvals.view', 'approvals.act', 'forms.approve', 'certificates.approve'] },
-        { title: 'Workflow configuration', path: '/admin/workflow-configuration', permission: 'workflows.manage' },
         { title: 'Operations', path: '/admin/operations', permission: 'operations.view' },
         { title: 'Church access', path: '/admin/churches', roles: ['superAdmin'] },
 
@@ -303,7 +304,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
     // for items not yet tied to a specific permission.
     const canSee = (item) => {
-        if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].includes(item.path)) return false;
+        if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].some((path) => item.path === path || item.path.startsWith(`${path}/`))) return false;
 
         if (item.permission) return permissions.includes(item.permission);
         if (item.anyPermission) return item.anyPermission.some((p) => permissions.includes(p));
@@ -311,7 +312,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         return item.roles.includes(role);
     };
 
-    const visible = menuItems.filter(canSee);
+    const visible = menuItems.filter((item) => item.children ? item.children.some(canSee) : canSee(item));
 
     const badgeFor = (item) => (item.badgeKey ? counts[item.badgeKey] || 0 : 0);
     const groupBadgeFor = (item) =>
@@ -332,31 +333,31 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     {visible.map((item) => {
                         if (item.children) {
                             const visibleChildren = item.children.filter(canSee);
-                            const isGroupActive = pathname === item.path ||
-                                visibleChildren.some((c) => pathname === c.path);
+                            const isGroupActive = visibleChildren.some((c) => pathname === c.path || pathname.startsWith(`${c.path}/`));
+                            const groupOpen = expandedGroups[item.path] ?? isGroupActive;
                             const groupBadge = groupBadgeFor(item);
                             return (
                                 <div key={item.path}>
                                     <button
                                         onClick={() => {
-                                            setMediaOpen((prev) => !prev);
-                                            router.push(item.path);
-                                            if (window.innerWidth < 1024) setIsOpen(false);
+                                            setExpandedGroups((prev) => ({ ...prev, [item.path]: !groupOpen }));
                                         }}
+                                        aria-expanded={groupOpen}
+                                        aria-controls={`sidebar-group-${item.title.replaceAll(" ", "-")}`}
                                         className={`${styles.navItem} ${isGroupActive ? styles.active : ''}`}
                                     >
                                         <span className={styles.icon}>{item.icon}</span>
                                         <span className={styles.label}>{item.title}</span>
-                                        {!mediaOpen && groupBadge > 0 && (
+                                        {!groupOpen && groupBadge > 0 && (
                                             <span className={styles.navBadge}>{groupBadge > 99 ? '99+' : groupBadge}</span>
                                         )}
-                                        <span className={`${styles.chevron} ${mediaOpen ? styles.chevronOpen : ''}`}>
+                                        <span className={`${styles.chevron} ${groupOpen ? styles.chevronOpen : ''}`}>
                                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                                                 <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                         </span>
                                     </button>
-                                    <div className={`${styles.subMenu} ${mediaOpen ? styles.subMenuOpen : ''}`}>
+                                    <div id={`sidebar-group-${item.title.replaceAll(" ", "-")}`} inert={!groupOpen} className={`${styles.subMenu} ${groupOpen ? styles.subMenuOpen : ''}`}>
                                         {visibleChildren.map((child) => {
                                             const childBadge = badgeFor(child);
                                             return (
@@ -366,7 +367,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                                                         router.push(child.path);
                                                         if (window.innerWidth < 1024) setIsOpen(false);
                                                     }}
-                                                    className={`${styles.subItem} ${pathname === child.path ? styles.active : ''}`}
+                                                    className={`${styles.subItem} ${(pathname === child.path || (pathname.startsWith(`${child.path}/`) && !visibleChildren.some((other) => other !== child && other.path.length > child.path.length && (pathname === other.path || pathname.startsWith(`${other.path}/`))))) ? styles.active : ''}`}
                                                 >
                                                     <span className={styles.icon}>{child.icon}</span>
                                                     <span className={styles.label}>{child.title}</span>

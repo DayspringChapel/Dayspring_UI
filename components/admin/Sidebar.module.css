@@ -191,7 +191,7 @@
 }
 
 .subMenuOpen {
-    max-height: 180px;
+    max-height: 420px;
     opacity: 1;
     transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.25s ease 0.05s;
@@ -206,7 +206,7 @@
     border: none;
     border-left: 2px solid rgba(255, 255, 255, 0.07);
     background: none;
-    color: rgba(255, 255, 255, 0.38);
+    color: rgba(255, 255, 255, 0.65);
     font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;

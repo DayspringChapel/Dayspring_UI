@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
-import DynamicFields from '@/components/forms/DynamicFields';
-import { formFields, fieldVisible } from '@/lib/formCertificates';
+import SectionedFields from '@/components/forms/SectionedFields';
+import { formFields, fieldVisible, formSettings } from '@/lib/formCertificates';
+import FormSurface from '@/components/forms/FormSurface';
 import FormReceipt from '@/components/forms/FormReceipt';
 import styles from '@/components/forms/forms.module.css';
 
@@ -53,24 +54,25 @@ function FormFiller({ id }) {
         } catch (e) { setError(e.message); } finally { submitting.current = false; setBusy(false); }
     }
 
-    return <div className={styles.page}><div className={`${styles.card} ${styles.stack}`}>
+    return <div className={styles.themedPage}><FormSurface settings={form ? formSettings(form) : {}}><div className={styles.stack}>
         {receipt ? <FormReceipt receipt={receipt} /> : !form ? <>
             <h1>{error ? 'Form unavailable' : 'Loading form…'}</h1>
             {error && <p role="alert" className={styles.error}>{error}</p>}
+        </> : form.canSubmit === false ? <>
+            <h1>{form.title}</h1><p>{form.description}</p><p role="status" className={styles.notice}>{form.settings?.collectionPaused ? 'Response collection is temporarily paused. Please check back later.' : form.settings?.opensAt && Date.parse(form.settings.opensAt) > Date.now() ? `Responses open on ${new Date(form.settings.opensAt).toLocaleString()}.` : 'This form is no longer collecting responses. Thank you for your interest.'}</p>
         </> : <>
             <h1>{form.title}</h1><p>{form.description}</p>
             {form.attachCertificate && <p className={styles.notice}>After submission, you will receive a private code to download your certificate once it has been issued.</p>}
             <form onSubmit={submit} className={styles.stack}>
                 <fieldset disabled={busy || uncertain} className={styles.fieldset}>
                     <legend className="sr-only">Your response</legend>
-                    <DynamicFields fields={form.fields} answers={answers} onChange={setAnswers} onUpload={upload} />
+                    <SectionedFields fields={form.fields} answers={answers} onChange={setAnswers} onUpload={upload} busy={busy} uncertain={uncertain} />
                 </fieldset>
                 {error && <p role="alert" className={styles.error}>{error}</p>}
                 {uncertain && <p>Your response may already have been saved. Check again using the same submission; a duplicate response will not be created.</p>}
-                <button disabled={busy} type="submit">{busy ? 'Saving your response…' : uncertain ? 'Check my submission again' : 'Submit form'}</button>
             </form>
         </>}
-    </div></div>;
+    </div></FormSurface></div>;
 }
 
 export default function PublicFormPage() {

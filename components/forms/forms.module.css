@@ -1,4 +1,6 @@
 .page { max-width: 800px; margin: 0 auto; padding: 120px 20px 72px; color: #14263b; min-height: 65vh; }
+.themedPage { padding-top: 0; }
+.themedPage>div { min-height: 100dvh; }
 .card { background: white; padding: clamp(20px, 4vw, 40px); border: 1px solid #dfe5ec; border-radius: 18px; box-shadow: 0 12px 36px #14263b0a; }
 .stack { display: flex; flex-direction: column; align-items: stretch; gap: 18px; }
 .stack h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; font-weight: 750; }

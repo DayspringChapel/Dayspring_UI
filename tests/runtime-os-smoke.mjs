@@ -29,9 +29,7 @@ const uploader = await user('os-uploader', ['forms.create', 'forms.edit', 'forms
 const reviewer = await user('os-reviewer', ['forms.approve', 'approvals.view', 'approvals.act', 'certificates.approve', 'certificates.issue', 'certificates.revoke', 'certificates.records.view']);
 const definition = { title: `OS training ${suffix}`, description: 'Synthetic end-to-end test', attachCertificate: true, fields: [{ key: 'name', label: 'Name', type: 'text', required: true }, { key: 'rating', label: 'Rating', type: 'rating', required: true, minimum: 1, maximum: 5 }], settings: { requireApproval: true, showOnWebsite: true, timeZone: 'Africa/Lagos', accessMode: 'Public' } };
 let form = await ok('forms', uploader.cookie, definition, 'POST', { 'Idempotency-Key': crypto.randomUUID() });
-assert.equal((await call(`forms/${form.id}/publication`, uploader.cookie, { published: true, expectedRevision: form.revision })).status, 409);
-const approval = await ok(`forms/${form.id}/submit-for-approval`, uploader.cookie, { expectedRevision: form.revision });
-await ok(`administrative-workflows/requests/${approval.id}/decision`, reviewer.cookie, { expectedRevision: 1, decision: 'Approve', comment: 'Synthetic form reviewed' });
+assert.equal((await call(`forms/${form.id}/submit-for-approval`, uploader.cookie, { expectedRevision: form.revision })).status, 409);
 form = await ok(`forms/${form.id}/publication`, uploader.cookie, { expectedRevision: form.revision, published: true });
 const key = crypto.randomUUID(); const answers = { formRevision: form.revision, answers: { name: 'Synthetic OS Recipient', rating: '5' } };
 const receipt = await ok(`forms/${form.id}/submissions`, null, answers, 'POST', { 'Idempotency-Key': key });
@@ -80,4 +78,4 @@ await ok(`Roles/${uploader.roleId}/update`, root, { name: `os-uploader-${suffix}
 assert.equal((await call(`forms/${form.id}/analytics`, uploader.cookie)).status, 403);
 const loginPage = await fetch(`${origin}/admin/login`); const csp = loginPage.headers.get('content-security-policy'); const html = await loginPage.text();
 assert.ok(csp?.includes("'strict-dynamic'")); assert.ok(/nonce="[A-Za-z0-9+/=]+"/.test(html));
-console.log('OS runtime smoke passed: independent form approval, persistence/replay, SQL analytics, XLSX export/import, branded QR, PDF template rendering, durable standalone-worker generation, batch approval/issuance, private form-code delivery, revocation, cross-church isolation, permission revocation and nonce CSP.');
+console.log('OS runtime smoke passed: direct creator publication, persistence/replay, SQL analytics, XLSX export/import, branded QR, PDF template rendering, durable standalone-worker generation, batch approval/issuance, private form-code delivery, revocation, cross-church isolation, permission revocation and nonce CSP.');
