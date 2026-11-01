@@ -1,0 +1,28 @@
+.question { padding: 0 0 26px; margin: 0; border: 0; border-bottom: 1px solid #edf0f4; min-width: 0; }
+.question:last-child { border-bottom: 0; padding-bottom: 0; }
+.question legend,.title { display: block; color: #24344b; font-size: 15px; font-weight: 650; line-height: 1.5; margin: 0 0 12px; padding: 0; }
+.required { color: #ad492b; }
+.question .description { font-size: 13px; line-height: 1.65; color: #6a788b; margin: -3px 0 15px; font-weight: 400; }
+.question .control { display: block; width: 100%; min-width: 0; min-height: 48px; background: #fcfdff; border: 1px solid #cdd6e2; border-radius: 8px; color: #24344b; font: inherit; font-size: 15px; padding: 12px 14px; transition: border-color .15s,box-shadow .15s; }
+.question textarea.control { min-height: 130px; resize: vertical; }
+.question .control:focus { border-color: var(--form-accent,#b95b1d); outline: none; box-shadow: 0 0 0 3px color-mix(in srgb,var(--form-accent,#b95b1d) 15%,transparent); }
+.question .control[aria-invalid=true] { border-color: #b42332; }
+.choices { display: grid; gap: 10px; }
+.pair { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.choices .choice { display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 14px 16px; margin: 0; min-height: 52px; border: 1px solid #dbe2ec; border-radius: 9px; cursor: pointer; color: #334155; background: #fff; font-size: 14px; font-weight: 500; }
+.choices .choice:hover { background: #f8fafc; }
+.choices .choice:has(:checked) { border-color: var(--form-accent,#b95b1d); background: color-mix(in srgb,var(--form-accent,#b95b1d) 5%,white); }
+.choice input[type=radio],.choice input[type=checkbox],.gridScroll input { width: 20px !important; height: 20px; min-height: 0; padding: 0 !important; margin: 0; flex: 0 0 20px; accent-color: var(--form-accent,#b95b1d); }
+.choice>span:not(.checkmark) { flex: 1; overflow-wrap: anywhere; }
+.choice .checkmark { visibility: hidden; font-size: 13px; color: var(--form-accent,#b95b1d); }
+.choice:has(:checked) .checkmark { visibility: visible; }
+.gridScroll { overflow-x: auto; border: 1px solid #dbe2ec; border-radius: 9px; }
+.gridScroll table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+.gridScroll :is(th,td) { padding: 15px 12px; border-bottom: 1px solid #edf0f4; text-align: center; }
+.gridScroll th:first-child { text-align: left; min-width: 100px; }
+.gridScroll thead { background: #f8fafc; }
+.upload { border: 1px dashed #c7d2df; padding: 18px; border-radius: 9px; background: #fafcff; }
+.upload input { width: 100%; font-size: 13px; }
+.upload small { display: block; font-size: 12px; color: #64748b; margin-top: 10px; }
+.question .error { font-size: 12px; color: #a12736; margin-top: 10px; }
+@media(max-width:550px) { .pair { grid-template-columns: minmax(0,1fr); } .question .control { font-size: 16px; } }

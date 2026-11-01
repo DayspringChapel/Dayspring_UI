@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
+const require = createRequire(import.meta.url); const { chromium } = require(process.env.DAYSPRING_PLAYWRIGHT_MODULE || 'playwright');
+const origin = process.env.DAYSPRING_SMOKE_ORIGIN; const api = process.env.DAYSPRING_SMOKE_API; const output = process.env.DAYSPRING_QA_OUTPUT;
+for (const value of [origin, api]) if (!value || !['127.0.0.1', 'localhost'].includes(new URL(value).hostname)) throw new Error('Synthetic localhost fixtures only.');
+if (output) await mkdir(output, { recursive: true });
+const rootLogin = await fetch(`${origin}/api/auth/session`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ userNameOrEmail: 'foundation@church.test', password: 'Foundation-local-only-123' }) });
+assert.equal(rootLogin.status, 200); const cookie = rootLogin.headers.getSetCookie().find((value) => value.startsWith('__Host-dayspring_session=')).split(';')[0];
+async function admin(resource, body, method = body ? 'POST' : 'GET') { const response = await fetch(`${origin}/api/backend/api/v1/${resource}`, { method, headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() }, ...(body ? { body: JSON.stringify(body) } : {}) }); assert.equal(response.status, 200, await response.clone().text()); return response.json(); }
+const suffix = crypto.randomUUID().slice(0, 8); const name = `Access coordinator ${suffix}`; const userName = `access-person-${suffix}`; const email = `${userName}@church.test`; const password = 'Access-local-test-password-123';
+const registration = await fetch(`${api}/api/v1/Users/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userName, email, password, securityQuestion1: 'Test?', securityAnswer1: 'Local synthetic fixture' }) }); assert.equal(registration.status, 200); const person = (await registration.json()).data;
+const browser = await chromium.launch({ headless: true, ...(process.env.DAYSPRING_CHROMIUM ? { executablePath: process.env.DAYSPRING_CHROMIUM } : {}) });
+let latest;
+async function shot(page, file) { if (output) await page.screenshot({ path: path.join(output, file), fullPage: true, animations: 'disabled' }); }
+async function layout(page, label) { for (const width of [320, 390, 768, 1280]) { await page.setViewportSize({ width, height: 1000 }); await page.waitForTimeout(120); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${label}: no overflow at ${width}`); await shot(page, `${label}-${width}.png`); } }
+try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, reducedMotion: 'reduce' });
+    await context.addInitScript(() => { const original = Storage.prototype.getItem; Storage.prototype.getItem = function (key) { return key.startsWith('dayspring_tour_seen_') ? '1' : original.call(this, key); }; });
+    await context.route('**/*', (route) => new URL(route.request().url()).hostname === '127.0.0.1' ? route.continue() : route.abort());
+    const page = await context.newPage(); latest = page; const errors = []; page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto(`${origin}/admin/login`); await page.getByLabel('Email', { exact: true }).fill('foundation@church.test'); await page.getByLabel('Password', { exact: true }).fill('Foundation-local-only-123'); await page.getByRole('button', { name: /^login$/i }).click(); await page.waitForURL('**/admin/dashboard');
+    await page.goto(`${origin}/admin/permissions?tab=permissions`); await page.getByRole('button', { name: /Create permission/ }).click();
+    const permissionLabel = `Training access ${suffix}`; await page.getByLabel('Permission name', { exact: true }).fill(permissionLabel);
+    await page.getByRole('checkbox', { name: 'Create forms', exact: true }).check(); await page.getByRole('checkbox', { name: /View form responses/ }).check(); await page.getByRole('button', { name: 'Save permission', exact: true }).click(); await page.getByText('Custom permission saved.', { exact: false }).waitFor();
+    await page.getByRole('tab', { name: 'Roles & dashboards' }).click(); await page.getByRole('button', { name: /Create role/ }).click(); await page.getByLabel('Role name', { exact: true }).fill(name);
+    await page.getByRole('button', { name: 'Capabilities', exact: true }).click(); await page.getByRole('checkbox', { name: new RegExp(permissionLabel) }).check();
+    await page.getByRole('button', { name: 'Resources', exact: true }).click(); await page.getByRole('checkbox', { name: /^Forms / }).check();
+    await page.getByLabel('Role configuration').getByRole('button', { name: 'Dashboard', exact: true }).click(); await page.getByRole('checkbox', { name: /^Active forms/ }).check(); await page.getByRole('checkbox', { name: /^Saved responses/ }).check();
+    await page.getByRole('button', { name: 'Save role', exact: true }).click(); await page.getByText('Role settings saved.', { exact: false }).waitFor();
+    await page.getByRole('tab', { name: 'People & assignments' }).click(); await page.getByLabel('Find a person').fill(email); await page.getByRole('button', { name: `Manage ${userName}`, exact: true }).click(); const dialog = page.getByRole('dialog'); await dialog.getByLabel('Assigned role').selectOption({ label: name }); await dialog.getByRole('button', { name: 'Save assignment' }).click(); await dialog.waitFor({ state: 'hidden' }); await page.getByRole('cell', { name, exact: true }).waitFor(); await layout(page, 'access-people');
+    const catalog = await admin('access/catalog'); const role = catalog.roles.find((item) => item.name === name); assert.ok(role); assert.equal(role.permissions.length, 1); assert.deepEqual(role.resources.sort(), ['dashboard', 'forms']);
+    await page.goto(`${origin}/admin/operations`); await page.getByRole('heading', { name: 'Application', exact: true }).waitFor(); await page.getByRole('heading', { name: 'Database', exact: true }).waitFor(); await layout(page, 'operations'); assert.ok(await page.locator('svg[role="img"]').count() >= 1, 'Actual monitoring samples produce a chart.');
+    await page.goto(`${origin}/admin/churches`); await page.waitForURL('**/admin/permissions?tab=people');
+    let form = await admin('forms', { title: `Training registration ${suffix}`, description: 'Register for the next training session. Your answers help us prepare your attendance record.', attachCertificate: false, fields: [{ key: 'name', label: 'Full name', type: 'text', required: true }, { key: 'attendance', label: 'Will you attend?', description: 'Choose the option that applies to you.', type: 'yesno', required: true }, { key: 'interests', label: 'Areas of interest', type: 'multiselect', options: ['Leadership', 'Media', 'Community'], required: true }], settings: { accessMode: 'Public', timeZone: 'Africa/Lagos', appearance: { backgroundColor: '#f7f3ef', accentColor: '#b95b1d', backgroundPattern: 'Plain' } } });
+    form = await admin(`forms/${form.id}/publication`, { expectedRevision: form.revision, published: true });
+    const respondentContext = await browser.newContext(); const respondent = await respondentContext.newPage(); latest = respondent;
+    await respondent.goto(`${origin}/forms/${form.id}`); await respondent.getByRole('heading', { name: form.title, exact: true }).waitFor(); assert.equal(await respondent.getByRole('navigation').count(), 0);
+    await respondent.getByLabel('Full name', { exact: false }).fill('Synthetic respondent'); await respondent.getByRole('radio', { name: 'Yes', exact: true }).check(); await respondent.getByRole('checkbox', { name: 'Media', exact: true }).check();
+    const radioBox = await respondent.getByRole('radio', { name: 'Yes', exact: true }).boundingBox(); assert.ok(radioBox.width <= 22 && radioBox.width >= 18, 'Radio retains compact width.');
+    await layout(respondent, 'respondent'); await respondent.getByRole('button', { name: 'Submit form', exact: true }).click(); await respondent.getByRole('heading', { name: 'Your form has been submitted' }).waitFor();
+    const member = await browser.newContext({ viewport: { width: 1280, height: 900 } }); const userPage = await member.newPage(); latest = userPage;
+    await userPage.goto(`${origin}/admin/login`); await userPage.getByLabel('Email', { exact: true }).fill(email); await userPage.getByLabel('Password', { exact: true }).fill(password); await userPage.getByRole('button', { name: /^login$/i }).click(); await userPage.waitForURL('**/admin/dashboard'); await userPage.getByRole('heading', { name: /Welcome/ }).waitFor(); await userPage.getByText(name, { exact: true }).first().waitFor(); assert.equal(await userPage.getByRole('button', { name: 'Operations', exact: true }).count(), 0);
+    const result = await userPage.evaluate(async () => { const response = await fetch('/api/backend/api/v1/operations'); return response.status; }); assert.equal(result, 403); await layout(userPage, 'custom-dashboard');
+    await admin(`access/roles/${role.id}`, { name: role.name, permissions: role.permissions, scope: 'Church', unitId: null, resources: ['forms'], widgets: [], expectedRevision: role.revision }, 'PUT');
+    await userPage.reload(); await userPage.waitForURL('**/admin/forms'); await userPage.getByRole('heading', { name: 'Your form library' }).waitFor();
+    assert.equal(await userPage.evaluate(async () => (await fetch('/api/backend/api/v1/access/dashboard')).status), 403, 'Disabled dashboard cannot be requested directly.');
+    await admin(`access/people/${person.id}`, { roleId: role.id, active: false }, 'PUT'); const suspended = await userPage.evaluate(async () => (await fetch('/api/auth/session')).status); assert.equal(suspended, 401);
+    assert.deepEqual(errors, []); console.log('PASS: custom permission and role creation, named assignment, scoped dashboard, direct API restriction, suspension, church access redirect, categorized monitoring charts and responsive layouts.');
+} catch (error) { if (latest) { await shot(latest, 'failure.png'); console.error((await latest.locator('body').innerText()).slice(-7000)); } throw error; } finally { await browser.close(); }

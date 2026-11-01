@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import { accessRuleFor } from '@/lib/routePermissions';
+import { canAccessPath, landingPath } from '@/lib/access';
 import { canSeeItem } from '@/lib/permissionTiles';
 import NoAccess from '@/components/admin/NoAccess';
 import Sidebar from '@/components/admin/Sidebar';
@@ -26,6 +27,10 @@ export default function ProtectedAdminLayout({ children }) {
             .then((user) => {
                 if (!active) return;
                 if (!user) router.replace('/admin/login');
+                else if (pathname === '/admin/dashboard' && !canAccessPath(user, pathname)) {
+                    const destination = landingPath(user, (path) => { const rule = accessRuleFor(path); return !rule || canSeeItem(rule, (permission) => apiClient.hasPermission(permission)); });
+                    if (destination) router.replace(destination);
+                }
                 setPermissions(apiClient.getCurrentPermissions());
                 setPermissionsCheck('done');
                 setLoading(false);
@@ -70,7 +75,7 @@ export default function ProtectedAdminLayout({ children }) {
     // Is this page open to the signed-in user? Deny only once the permissions are fresh, so a stale
     // stored list never shows a false "no access".
     const rule = accessRuleFor(pathname);
-    const allowedNow = !rule || canSeeItem(rule, (p) => permissions.includes(p));
+    const allowedNow = canAccessPath(apiClient.getUserData(), pathname) && (!rule || canSeeItem(rule, (p) => permissions.includes(p)));
     const access = permissionsCheck === 'pending' ? 'checking' : allowedNow ? 'allowed' : 'denied';
 
     return (

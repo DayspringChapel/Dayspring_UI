@@ -8,7 +8,7 @@ import { PERMISSION_GROUPS } from '@/lib/permissionTiles';
 import styles from './Sidebar.module.css';
 import BrandedSplash from '@/components/BrandedSplash';
 import AdminConfirm from './AdminConfirm';
-import ChurchSelector from '@/components/admin/ChurchSelector';
+import { canAccessPath } from '@/lib/access';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 
 function resolveRole() {
@@ -16,13 +16,14 @@ function resolveRole() {
     if (!userData) return 'member';
     const r = userData.role || userData.Role || {};
     const name = (typeof r === 'string' ? r : r.name || r.Name || '').toLowerCase();
-    if (name.includes('super')) return 'superAdmin';
-    if (name.includes('media')) return 'churchMedia';
-    if (name.includes('admin')) return 'churchAdmin';
+    if (name === 'superadmin') return 'superAdmin';
+    if (name === 'churchmedia') return 'churchMedia';
+    if (name === 'churchadmin') return 'churchAdmin';
     return 'member';
 }
 
 export default function Sidebar({ isOpen, setIsOpen }) {
+    useEffect(() => { if (document.cookie.split(';').some((cookie) => cookie.trim().startsWith('dayspring_church='))) { document.cookie = 'dayspring_church=; Path=/; Max-Age=0; SameSite=Lax'; window.location.reload(); } }, []);
     const router = useRouter();
     const pathname = usePathname();
     const [loggingOut, setLoggingOut] = useState(false);
@@ -240,21 +241,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
         },
         {
-            title: 'User Roles',
-            path: '/admin/roles',
-            permission: 'CanAssignRoles',
-            icon: (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6C5 8.76142 7.23858 11 10 11C12.7614 11 15 8.76142 15 6C15 3.23858 12.7614 1 10 1ZM7 6C7 4.34315 8.34315 3 10 3C11.6569 3 13 4.34315 13 6C13 7.65685 11.6569 9 10 9C8.34315 9 7 7.65685 7 6Z" fill="currentColor" />
-                    <path d="M14 13H6C4.34315 13 3 14.3431 3 16V18H5V16C5 15.4477 5.44772 15 6 15H14C14.5523 15 15 15.4477 15 16V18H17V16C17 14.3431 15.6569 13 14 13Z" fill="currentColor" />
-                    <path d="M16 7V9M16 9V11M16 9H14M16 9H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-            ),
-        },
-        {
             title: 'Roles & Permissions',
             path: '/admin/permissions',
-            permission: 'CanAssignPermission',
+            anyPermission: ['CanAssignPermission', 'CanAssignRoles'],
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path fillRule="evenodd" clipRule="evenodd" d="M10 1C7.23858 1 5 3.23858 5 6V7H4C3.44772 7 3 7.44772 3 8V17C3 17.5523 3.44772 18 4 18H16C16.5523 18 17 17.5523 17 17V8C17 7.44772 16.5523 7 16 7H15V6C15 3.23858 12.7614 1 10 1ZM13 7V6C13 4.34315 11.6569 3 10 3C8.34315 3 7 4.34315 7 6V7H13ZM10 10C9.44772 10 9 10.4477 9 11V14C9 14.5523 9.44772 15 10 15C10.5523 15 11 14.5523 11 14V11C11 10.4477 10.5523 10 10 10Z" fill="currentColor" />
@@ -286,7 +275,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ],
         },
         { title: 'Operations', path: '/admin/operations', permission: 'operations.view' },
-        { title: 'Church access', path: '/admin/churches', roles: ['superAdmin'] },
 
         {
             title: 'Settings',
@@ -304,6 +292,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
     // for items not yet tied to a specific permission.
     const canSee = (item) => {
+        if (!canAccessPath(apiClient.getUserData(), item.path)) return false;
         if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].some((path) => item.path === path || item.path.startsWith(`${path}/`))) return false;
 
         if (item.permission) return permissions.includes(item.permission);
@@ -326,7 +315,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
                 <div className={styles.header}>
                     <h2>{PLATFORM_BRANDING.name}</h2>
-                    <p>{PLATFORM_BRANDING.tagline}</p><ChurchSelector />
+                    <p>{PLATFORM_BRANDING.tagline}</p>
                 </div>
 
                 <nav className={styles.nav} data-tour="sidebar-nav">

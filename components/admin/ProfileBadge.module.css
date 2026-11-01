@@ -45,9 +45,9 @@
 }
 
 @media (max-width: 640px) {
-    .info {
-        display: none;
-    }
+    .info { display: flex; }
+    .name { max-width: 95px; font-size: 11px; }
+    .role { font-size: 9px; max-width: 95px; overflow-wrap: anywhere; }
     .profileBadge {
         padding: 0.3rem;
     }
