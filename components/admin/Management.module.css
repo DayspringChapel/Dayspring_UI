@@ -69,3 +69,7 @@
     .peopleTable td { border: 0; padding: 8px 12px; overflow-wrap: anywhere; }
     .peopleTable td::before { content: attr(data-label); display: block; color: #78889b; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 7px; }
 }
+
+.sessionRecovery { display: grid; place-items: center; min-height: 100vh; }
+.sessionRecovery > article { width: 100%; max-width: 520px; padding: 32px; }
+.sessionRecovery .actions { margin-top: 24px; }

@@ -7,6 +7,7 @@ import { accessRuleFor } from '@/lib/routePermissions';
 import { canAccessPath, landingPath } from '@/lib/access';
 import { canSeeItem } from '@/lib/permissionTiles';
 import NoAccess from '@/components/admin/NoAccess';
+import SessionRecovery from '@/components/admin/SessionRecovery';
 import Sidebar from '@/components/admin/Sidebar';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProfileBadge from '@/components/admin/ProfileBadge';
@@ -20,6 +21,8 @@ export default function ProtectedAdminLayout({ children }) {
     const [loading, setLoading] = useState(true);
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
     const [permissionsCheck, setPermissionsCheck] = useState('pending');
+    const [sessionError, setSessionError] = useState(null);
+    const [retryVersion, setRetryVersion] = useState(0);
 
     useEffect(() => {
         let active = true;
@@ -32,22 +35,31 @@ export default function ProtectedAdminLayout({ children }) {
                     if (destination) router.replace(destination);
                 }
                 setPermissions(apiClient.getCurrentPermissions());
+                setSessionError(null);
                 setPermissionsCheck('done');
                 setLoading(false);
             })
-            .catch(() => { if (active) { setPermissionsCheck('failed'); setLoading(false); } });
+            .catch((error) => { if (active) { setSessionError(error); setPermissionsCheck('failed'); setLoading(false); } });
         const sync = () => setPermissions(apiClient.getCurrentPermissions());
+        let resumeTimer;
+        const resume = () => { clearTimeout(resumeTimer); resumeTimer = setTimeout(check, 250); };
+        const visible = () => { if (document.visibilityState === 'visible') resume(); };
         check();
-        const interval = setInterval(check, 60000);
-        window.addEventListener('focus', check);
+        const interval = setInterval(() => { if (document.visibilityState !== 'hidden') check(); }, 60000);
+        window.addEventListener('focus', resume);
+        window.addEventListener('online', resume);
+        document.addEventListener('visibilitychange', visible);
         window.addEventListener('dayspring:permissions', sync);
         return () => {
             active = false;
             clearInterval(interval);
-            window.removeEventListener('focus', check);
+            clearTimeout(resumeTimer);
+            window.removeEventListener('focus', resume);
+            window.removeEventListener('online', resume);
+            document.removeEventListener('visibilitychange', visible);
             window.removeEventListener('dayspring:permissions', sync);
         };
-    }, [pathname, router]);
+    }, [pathname, router, retryVersion]);
     const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 1024);
 
     useEffect(() => {
@@ -66,10 +78,9 @@ export default function ProtectedAdminLayout({ children }) {
     if (loading) {
         return <LoadingSpinner message={`Preparing ${PLATFORM_BRANDING.name}`} minHeight="100vh" />;
     }
-    if (permissionsCheck === 'failed') return <div role="alert" style={{ padding: '2rem' }}>
-        <p>Your session could not be verified. Check your connection and try again.</p>
-        <button onClick={() => window.location.reload()}>Try again</button>
-    </div>;
+    if (permissionsCheck === 'failed') return <SessionRecovery error={sessionError}
+        onRetry={() => { setLoading(true); setPermissionsCheck('pending'); setRetryVersion((value) => value + 1); }}
+        onSignIn={() => router.replace('/admin/login')} />;
     if (!apiClient.hasSession()) return null;
 
     // Is this page open to the signed-in user? Deny only once the permissions are fresh, so a stale

@@ -32,14 +32,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const [expandedGroups, setExpandedGroups] = useState({});
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
 
-    // Refreshed on every mount so a role/permission change (or a permission that didn't exist
-    // yet at last login, e.g. after a deploy) shows up without forcing a re-login.
+    // The protected layout verifies the session on navigation and resume. Listen for its
+    // fresh permissions instead of issuing a duplicate session request on sidebar mount.
     useEffect(() => {
         const sync = () => setPermissions(apiClient.getCurrentPermissions());
         window.addEventListener('dayspring:permissions', sync);
-        apiClient.refreshCurrentUserPermissions()
-            .then(() => setPermissions(apiClient.getCurrentPermissions()))
-            .catch(() => {});
         return () => window.removeEventListener('dayspring:permissions', sync);
     }, []);
 
