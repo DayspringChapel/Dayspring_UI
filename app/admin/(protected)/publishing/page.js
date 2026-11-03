@@ -116,7 +116,7 @@ export default function PublishingPage() {
             const [sched, pub, ready, streamRes, albumsRes, eventsRes] = await Promise.allSettled([
                 apiClient.getAllScheduledPosts(),
                 apiClient.getAllPublishedPosts(),
-                apiClient.getMediaContentsByStatus(7),
+                apiClient.getUserData()?.role?.name === 'superAdmin' ? apiClient.getMediaContents().then((items) => items.filter((item) => [0,1,2,3,4,5,6,7,8,12].includes(item.workflowStatus))) : apiClient.getMediaContentsByStatus(7),
                 fetch('/api/livestream').then((r) => r.json()),
                 apiClient.getAlbums(),
                 apiClient.getAllEventsInternal(),
@@ -351,7 +351,7 @@ export default function PublishingPage() {
 
             {!loading && activeTab === 'ready' && (
                 readyContents.length === 0
-                    ? <div className={styles.empty}>No content is ready to publish yet — approve items in the Approval Queue first</div>
+                    ? <div className={styles.empty}>{apiClient.getUserData()?.role?.name === 'superAdmin' ? 'Upload media to publish directly. Superadmin does not require approval.' : 'No content is ready to publish yet — approve items in the Approval Queue first'}</div>
                     : <div className={styles.list}>
                         {readyContents.map((c) => (
                             <div key={c.id} className={styles.row}>
