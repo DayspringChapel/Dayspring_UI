@@ -9,7 +9,7 @@ export default function DashboardPage() {
     const user = apiClient.getUserData(); const role = user?.role?.name || user?.role || ''; const name = user?.userName || 'User';
     if (user?.access?.configured || !['superAdmin', 'churchAdmin', 'churchMedia'].includes(role)) return <ConfiguredDashboard />;
     if (user?.legacyChurch === false) return <OsOverview />;
-    if (role === 'superAdmin') return <><OsOverview /><SuperAdminDashboard userName={name} /></>;
-    if (role === 'churchAdmin') return <><OsOverview /><ChurchAdminDashboard userName={name} /></>;
+    if (role === 'superAdmin') return <><SuperAdminDashboard userName={name} /><OsOverview /></>;
+    if (role === 'churchAdmin') return <><ChurchAdminDashboard userName={name} /><OsOverview /></>;
     return <ChurchMediaDashboard userName={name} />;
 }
