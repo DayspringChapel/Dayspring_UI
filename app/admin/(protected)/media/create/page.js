@@ -21,6 +21,7 @@ const CONTENT_TYPE_LABELS = { '1': 'Image', '2': 'Video', '3': 'Audio', '4': 'PD
 
 export default function CreateMediaPage() {
     const router = useRouter();
+    const superadmin = apiClient.getUserData()?.role?.name === 'superAdmin';
     const searchParams = useSearchParams();
     // Event fliers are graphics work: the Graphics team starts them, and the media head (who can review content) may too.
     const { role: contentRole } = useContentRole();
@@ -130,7 +131,7 @@ export default function CreateMediaPage() {
         <div className={styles.page}>
             <button className={styles.backBtn} onClick={() => router.back()}>← Back</button>
             <h1 className={styles.pageTitle}>Upload Media</h1>
-            <p className={styles.pageSubtitle}>Upload a new media file — it starts in Draft status</p>
+            <p className={styles.pageSubtitle}>{superadmin ? 'Upload media and publish directly. Superadmin does not require approval.' : 'Upload a new media file — it starts in Draft status'}</p>
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>
