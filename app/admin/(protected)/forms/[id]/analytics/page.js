@@ -2,15 +2,26 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
-import styles from '../../forms.module.css';
-
-function Bars({ rows, label = 'value' }) {
-    const max = Math.max(1, ...rows.map((r) => r.count));
-    return <div>{rows.map((r) => <div key={r[label]} style={{ marginBlock: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><span>{r[label]}</span><strong>{r.count}</strong></div><div style={{ background: '#edf1f5', height: 12, borderRadius: 8 }}><div style={{ width: `${r.count / max * 100}%`, height: 12, background: '#d9752c', borderRadius: 8 }} /></div></div>)}</div>;
+import styles from './analytics.module.css';
+const number = (value) => value == null ? '—' : Number(value).toLocaleString(undefined, { maximumFractionDigits:2 });
+const answerLabel = (value, type) => ['checkbox','consent'].includes(type) ? value === 'true' ? type === 'consent' ? 'Agreed' : 'Checked' : value === 'false' ? type === 'consent' ? 'Did not agree' : 'Not checked' : value : value;
+function AnswerBars({ rows = [], basis, type }) {
+    return <ul className={styles.bars}>{rows.map((row) => { const percentage = row.percentage ?? (basis ? Math.round(row.count / basis * 1000) / 10 : 0); return <li key={row.value}><div className={styles.barLabel}><span>{answerLabel(row.value,type)}</span><strong>{row.count} <small>({number(percentage)}%)</small></strong></div><div className={styles.track} aria-hidden="true"><div style={{ width:`${Math.min(100,percentage)}%` }} /></div></li>; })}</ul>;
+}
+function QuestionResult({ question, index }) {
+    const matrix = ['grid','checkboxgrid'].includes(question.type); const rows = question.rows || [];
+    return <article className={styles.question} aria-labelledby={`question-${index}`}><header className={styles.questionHeader}><div><p className={styles.eyebrow}>QUESTION {index + 1}{question.historical ? ' · PREVIOUS DEFINITION' : ''}</p><h3 id={`question-${index}`}>{question.label}</h3></div><span className={styles.kind}>{({ yesno:'Yes / No', radio:'Single choice', select:'Dropdown', multiselect:'Multiple selections', grid:'Likert / choice grid', checkboxgrid:'Multiple-selection grid', rating:'Rating', scale:'Numeric scale' })[question.type] || 'Answer summary'}</span></header>
+        <p className={styles.answerMeta}><strong>{number(question.answered)}</strong> answered · <strong>{number(question.skipped)}</strong> skipped{question.notApplicable > 0 && <> · {question.notApplicable} not applicable / other revisions</>}</p>
+        {question.historical && <p className={styles.hint}>This saved question definition differs from the current form. Its answers are kept separate.</p>}
+        {question.numbers && <dl className={styles.numberStats}>{[['Average',question.numbers.average],['Median',question.numbers.median],['Lowest',question.numbers.minimum],['Highest',question.numbers.maximum]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{number(value)}</dd></div>)}</dl>}
+        {question.multipleSelections && <p className={styles.hint}>Respondents could select more than one answer. Percentages use people who answered {matrix ? 'each row' : 'this question'} and may total more than 100%.</p>}
+        {matrix ? rows.length ? rows.map((row) => <section className={styles.matrixRow} key={row.label}><h4>{row.label}</h4><p className={styles.hint}>{row.answered} answered · {row.skipped} skipped</p><AnswerBars rows={row.distribution} basis={row.answered} type={question.type} /></section>) : <p>No row summaries available yet.</p> : question.distribution?.length ? <AnswerBars rows={question.distribution} basis={question.answered} type={question.type} /> : <p className={styles.hint}>{question.answered ? 'Open-ended answers and uploads can be read in Responses.' : 'No answers to this question yet.'}</p>}
+        {question.distributionTruncated && <p className={styles.hint}>Showing the 50 most frequent numeric values. Summary statistics include every numeric answer.</p>}
+    </article>;
 }
 export default function AnalyticsPage({ embedded = false }) {
-    const { id } = useParams(); const [data, setData] = useState(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
-    useEffect(() => { const c = new AbortController(); apiClient.request(`/api/v1/forms/${id}/analytics`, { signal: c.signal }).then(setData).catch((e) => { if (!c.signal.aborted) setError(e.message); }); return () => c.abort(); }, [id]);
+    const { id } = useParams(); const [data,setData] = useState(null); const [error,setError] = useState(''); const [busy,setBusy] = useState(false); const [search,setSearch] = useState(''); const [reload,setReload] = useState(0);
+    useEffect(() => { const controller=new AbortController(); apiClient.request(`/api/v1/forms/${id}/analytics`,{signal:controller.signal}).then((value) => { setData(value); setError(''); }).catch((e) => { if (!controller.signal.aborted) setError(e.message); }); return () => controller.abort(); },[id,reload]);
     async function download(format) {
         setError(''); setBusy(true);
         try {
@@ -28,21 +39,15 @@ export default function AnalyticsPage({ embedded = false }) {
             }
         } catch (e) { setError(e.message); } finally { setBusy(false); }
     }
-    const max = data ? Math.max(1, ...data.daily.map((r) => r.count)) : 1;
-    return <section className={embedded ? styles.embedded : styles.page}><header className={styles.header}><div><h2>Form analytics</h2><p>Completed responses · UTC</p></div>{!embedded && <a href={`/admin/forms/${id}`}>Back to form</a>}</header>
-        {error && <p role="alert" className={styles.error}>{error}</p>}
-        {!data ? <p role="status">{error ? 'Analytics could not be loaded.' : 'Loading analytics…'}</p> : <>
-            <div className={styles.grid}><article className={styles.card}><h3>Total submissions</h3><strong style={{ fontSize: 36 }}>{data.total}</strong></article><article className={styles.card}><h3>Response review</h3><Bars rows={data.statuses} label="status" /></article></div>
-            <article className={styles.card}><h3>Daily submissions</h3><p>Last 366 days. Days without completed responses have zero submissions.</p>
-                {data.total === 0 ? <p>No submissions yet.</p> : <><svg viewBox="0 0 800 200" role="img" aria-label="Daily completed submissions" style={{ width: '100%', maxHeight: 240 }}><polyline fill="none" stroke="#d9752c" strokeWidth="3" points={data.daily.map((r) => `${(Date.parse(r.date) - Date.parse(new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10))) / 86400000 / 365 * 780 + 10},${190 - r.count / max * 175}`).join(' ')} /></svg><details><summary>Daily counts</summary><table><thead><tr><th>Date (UTC)</th><th>Submissions</th></tr></thead><tbody>{data.daily.map((r) => <tr key={r.date}><td>{r.date.slice(0, 10)}</td><td>{r.count}</td></tr>)}</tbody></table></details></>}
-            </article>
-            <article className={styles.card}><h3>Weekly submissions</h3><p>Most recent 12 weeks, starting Monday (UTC).</p><Bars rows={(data.weekly || []).slice(-12).map((r) => ({ value: r.date.slice(0, 10), count: r.count }))} /></article>
-            <article className={styles.card}><h3>Monthly submissions</h3><Bars rows={[...data.monthly].reverse().map((r) => ({ value: `${r.year}-${String(r.month).padStart(2, '0')}`, count: r.count }))} /></article>
-            <div className={styles.grid}>{data.fields.map((field) => <article key={field.key} className={styles.card}><h3>{field.label}</h3>
-                {field.numbers && <p>Count {field.numbers.count} · Min {field.numbers.minimum} · Max {field.numbers.maximum} · Average {Number(field.numbers.average).toFixed(2)}</p>}
-                <Bars rows={field.distribution} />{field.distribution.length === 0 && <p>No answers yet.</p>}</article>)}</div>
-            <article className={styles.card}><h3>Share this form</h3><p>The QR opens the form link. Publication, access and submission dates still apply.</p><div className={styles.actions}><button disabled={busy} onClick={() => download('svg')}>Download SVG</button><button disabled={busy} onClick={() => download('png')}>Download PNG</button></div></article>
-            <p>Generated {new Date(data.generatedAt).toLocaleString()}. This report counts saved responses; it does not estimate abandoned forms. Field charts show the 50 most frequent values.</p>
-        </>}
+
+    const questions = (data?.fields || []).filter((field) => field.label.toLowerCase().includes(search.toLowerCase()));
+    return <section className={`${styles.analysis} ${embedded ? styles.embedded : ''}`}><header className={styles.header}><div><p className={styles.eyebrow}>UNDERSTAND YOUR ANSWERS</p><h2>Question analysis</h2><p>{data?.title || 'Results for each question in your form'}</p></div><div className={styles.actions}><button onClick={() => setReload((value) => value + 1)}>Refresh results</button>{!embedded && <a href={`/admin/forms/${id}?view=Responses`}>Back to responses</a>}</div></header>
+        {error && <p role="alert" className={styles.error}>{error}</p>}{!data ? <p role="status">{error ? 'Results could not be loaded. Use Refresh results to try again.' : 'Analyzing saved answers…'}</p> : <>
+        <div className={styles.summary}><div><strong>{number(data.total)}</strong><span>saved responses</span></div><div><strong>{data.fields.filter((field) => !field.historical).length}</strong><span>current questions</span></div><p>Counts and percentages describe the answers people selected. Skipped and conditional questions are tracked separately.</p></div>
+        <label className={styles.search}>Find a question<input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search question text" /></label>
+        {questions.map((question,index) => <QuestionResult key={question.id || question.key} question={question} index={index} />)}{questions.length === 0 && <article className={styles.question}><h3>{search ? 'No matching questions' : 'No question results yet'}</h3><p>{search ? 'Try another question name.' : 'Question summaries will appear here when the form has questions.'}</p></article>}
+        <details className={styles.secondary}><summary>Response activity & review status</summary><p>Submission activity is separate from the question results above. Dates use UTC.</p><h3>Review status</h3><AnswerBars rows={(data.statuses || []).map((row) => ({ value:row.status,count:row.count }))} basis={data.total} /><h3>Recent weekly responses</h3><AnswerBars rows={(data.weekly || []).slice(-12).map((row) => ({ value:row.date.slice(0,10),count:row.count }))} basis={data.total} /></details>
+        <details className={styles.secondary}><summary>Share this form with a QR code</summary><p>The QR opens the respondent page. Access and collection dates still apply.</p><div className={styles.actions}><button disabled={busy} onClick={() => download('svg')}>Download SVG</button><button disabled={busy} onClick={() => download('png')}>Download PNG</button></div></details>
+        <p className={styles.footnote}>Updated {new Date(data.generatedAt).toLocaleString()}. Percentages exclude skipped answers. Different saved question definitions are reported separately.</p></>}
     </section>;
 }
