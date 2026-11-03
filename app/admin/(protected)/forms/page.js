@@ -97,7 +97,7 @@ export default function FormsAdminPage() {
                         <FormActionsMenu label={`More actions for ${form.title}`}>
                             {['forms.create', 'forms.edit', 'forms.approve', 'forms.responses.view', 'approvals.act'].some(can) && <a href={`/admin/forms/${form.id}/preview`}>Preview form <span>↗</span></a>}<button onClick={() => copyLink(form.id)}>Copy form link</button>
                             {form.isPublished && <a href={`/forms/${form.id}`} target="_blank" rel="noopener noreferrer">Open live form <span>↗</span></a>}
-                            {can('forms.responses.view') && <button disabled={busy} onClick={() => openResponses(form.id)}>View responses</button>}
+                            {can('forms.responses.view') && <button disabled={busy} onClick={() => openResponses(form.id)}>View responses{form.submissionCount != null && <span className={styles.responseBadge} aria-label={`${form.submissionCount} responses`}>{form.submissionCount}</span>}</button>}
                             {can('forms.publish') && !archived && <button disabled={busy} onClick={() => publication(form)}>{form.isPublished ? 'Stop collecting' : 'Publish form'}</button>}
                             {can('forms.analytics.view') && <a href={`/admin/forms/${form.id}/analytics`}>Analytics &amp; QR code</a>}
                             {can('forms.responses.export') && <button disabled={busy} onClick={() => mutate(() => apiClient.downloadFile(`/api/v1/forms/${form.id}/export`, 'form-responses.xlsx'), 'Excel export downloaded.')}>Export to Excel</button>}
