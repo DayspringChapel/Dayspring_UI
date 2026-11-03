@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './comments.module.css';
+import PublishingPage from '../publishing/page';
+import management from '@/components/admin/Management.module.css';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import AdminConfirm, { useConfirm } from '@/components/admin/AdminConfirm';
@@ -18,7 +20,11 @@ function formatWhen(iso) {
     return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-export default function CommentsModerationPage() {
+export default function SocialCommunityPage() {
+    const [tab, setTab] = useState('community');
+    return <><section className={management.page} style={{ minHeight: 0, paddingBottom: 0 }}><header className={management.header}><div><p className={management.eyebrow}>CONNECTION & OUTREACH</p><h1>Social & community</h1><p>Review audience conversations and manage approved social publishing.</p></div></header><nav className={management.tabs} aria-label="Social workspace"><button aria-pressed={tab === 'community'} onClick={() => setTab('community')}>Community inbox</button><button aria-pressed={tab === 'publishing'} onClick={() => setTab('publishing')}>Social publishing</button></nav></section>{tab === 'community' ? <CommentsModerationPage /> : <PublishingPage />}</>;
+}
+function CommentsModerationPage() {
     const [status, setStatus] = useState('Pending');
     const [source, setSource] = useState('');
     const [comments, setComments] = useState([]);
@@ -106,7 +112,7 @@ export default function CommentsModerationPage() {
             <AdminConfirm dialog={dialog} onClose={closeDialog} />
 
             <div className={styles.header}>
-                <h1>Comments</h1>
+                <h2>Community inbox</h2>
                 <p>Moderate comments from the website and YouTube. Comments with links wait here for review.</p>
             </div>
 
@@ -148,7 +154,7 @@ export default function CommentsModerationPage() {
                                     <span className={`${styles.badge} ${styles[c.status.toLowerCase()]}`}>{c.status}</span>
                                     <span>{formatWhen(c.postedAt)}</span>
                                     <a className={styles.link} href={`https://www.youtube.com/watch?v=${c.videoId}`} target="_blank" rel="noopener noreferrer">
-                                        View video ↗
+                                        View video â†—
                                     </a>
                                 </div>
                                 <p className={styles.text}>{c.text}</p>

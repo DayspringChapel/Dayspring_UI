@@ -2,20 +2,18 @@
 
 import { useState } from 'react';
 import apiClient from '@/lib/apiClient';
-import EventsPanel from '@/components/admin/panels/EventsPanel';
+import EventProgramsWorkspace from '@/components/admin/EventProgramsWorkspace';
 import SermonsPanel from '@/components/admin/panels/SermonsPanel';
 import BooksPanel from '@/components/admin/panels/BooksPanel';
 import AlbumsPanel from '@/components/admin/panels/AlbumsPanel';
 import CalendarYearsPanel from '@/components/admin/panels/CalendarYearsPanel';
-import ChurchProgramsPanel from '@/components/admin/panels/ChurchProgramsPanel';
 import { visibleItems } from '@/lib/permissionTiles';
 
 // Each tab is shown only to users who hold the permission its API needs.
 const ALL_TABS = [
-    { id: 'events',  label: 'Events',  icon: '🎉', permission: 'CanManageEvent' },
+    { id: 'events',  label: 'Events & programs',  icon: '🎉', permission: 'CanManageEvent' },
     { id: 'sermons', label: 'Sermons', icon: '🎤', permission: 'CanManageSermon' },
     { id: 'calendarYears', label: 'Calendar Years', icon: '🗓️', permission: 'CanManageCalendarYear' },
-    { id: 'programs', label: 'Programs', icon: '⛪', permission: 'CanManageEvent' },
     { id: 'books',   label: 'Books',   icon: '📚', permission: 'CanManageBooks' },
     { id: 'albums',  label: 'Images',  icon: '📸', anyPermission: ['CanManageAlbum', 'CanManageImage'] },
 ];
@@ -25,7 +23,7 @@ export default function ContentManagement() {
     const [activeTab, setActiveTab] = useState(tabs[0]?.id ?? 'sermons');
 
     return (
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto p-4 sm:p-6 text-slate-800 bg-slate-50 min-h-screen">
             <div className="mb-6">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                     Content Management
@@ -59,10 +57,9 @@ export default function ContentManagement() {
             </div>
 
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                {activeTab === 'events'  && <EventsPanel />}
+                {activeTab === 'events'  && <EventProgramsWorkspace />}
                 {activeTab === 'sermons' && <SermonsPanel />}
                 {activeTab === 'calendarYears' && <CalendarYearsPanel />}
-                {activeTab === 'programs' && <ChurchProgramsPanel />}
                 {activeTab === 'books'   && <BooksPanel />}
                 {activeTab === 'albums'  && <AlbumsPanel />}
             </div>

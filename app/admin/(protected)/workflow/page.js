@@ -54,6 +54,7 @@ export default function WorkflowPage() {
     const router = useRouter();
     const [contents, setContents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
     const [historyMap, setHistoryMap] = useState({});
     const [actionLoading, setActionLoading] = useState(null);
 
@@ -71,6 +72,7 @@ export default function WorkflowPage() {
             const data = await apiClient.getMediaContents();
             const items = data || [];
             setContents(items);
+            setLoadError('');
 
             const revisionItems = items.filter((c) => c.workflowStatus === 3);
             if (revisionItems.length > 0) {
@@ -89,8 +91,8 @@ export default function WorkflowPage() {
             } else {
                 setHistoryMap({});
             }
-        } catch {
-            setContents([]);
+        } catch (error) {
+            setLoadError(error.message);
         } finally {
             setLoading(false);
         }
@@ -118,6 +120,7 @@ export default function WorkflowPage() {
             inputLabel: 'Reason (optional)',
             inputPlaceholder: 'Describe what needs to change…',
         });
+        if (comment === false) return;
         setActionLoading(contentId);
         try {
             await apiClient.sendBackToDraft(contentId, comment || null);
@@ -143,6 +146,7 @@ export default function WorkflowPage() {
             inputLabel: 'Comment (optional)',
             inputPlaceholder: 'Add an approval comment…',
         });
+        if (comment === false) return;
         setActionLoading(contentId);
         try {
             await apiClient.approveContent(contentId, comment || null);
@@ -195,6 +199,8 @@ export default function WorkflowPage() {
             </div>
         );
     }
+
+    if (loadError) return <div className={styles.page}><p role="alert">{loadError}</p><button onClick={load}>Try again</button></div>;
 
     const published = contents.filter((c) => c.workflowStatus === 10);
     const inPipeline = contents.filter((c) => c.workflowStatus !== 0 && c.workflowStatus !== 10);

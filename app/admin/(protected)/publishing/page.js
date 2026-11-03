@@ -152,26 +152,26 @@ export default function PublishingPage() {
     const handlePublishToDestination = async (e) => {
         e.preventDefault();
         if (!destForm.contentId) { notify('warning', 'Select content to publish.'); return; }
-        if (destKind === 'event' && destEventMode === 'existing' && !destForm.eventId) {
+        if (destKind === 'event' && !selectedDestContent?.eventId && destEventMode === 'existing' && !destForm.eventId) {
             notify('warning', 'Select an event to attach this to.'); return;
         }
-        if (destKind === 'event' && destEventMode === 'new') {
+        if (destKind === 'event' && !selectedDestContent?.eventId && destEventMode === 'new') {
             if (!newEventForm.heading.trim()) { notify('warning', 'Enter a heading for the new event.'); return; }
             if (!newEventForm.datetime) { notify('warning', 'Pick a date for the new event.'); return; }
         }
         if (destKind === 'library' && !destForm.preacherName.trim()) { notify('warning', 'Enter a preacher name.'); return; }
         setDestSubmitting(true);
         try {
-            let eventId = destKind === 'event' ? destForm.eventId : null;
+            let eventId = destKind === 'event' ? selectedDestContent?.eventId || destForm.eventId : null;
 
             // No draft event to attach to yet — create one on the fly rather than
             // leaving an already-approved video with nowhere to go.
-            if (destKind === 'event' && destEventMode === 'new') {
+            if (destKind === 'event' && !selectedDestContent?.eventId && destEventMode === 'new') {
                 const formData = new FormData();
                 formData.append('heading', newEventForm.heading.trim());
                 formData.append('Description', newEventForm.description.trim() || newEventForm.heading.trim());
                 formData.append('Datetime', new Date(newEventForm.datetime).toISOString());
-                if (newEventImage) formData.append('EventImage', newEventImage);
+
                 const created = await apiClient.createEvent(formData);
                 eventId = created?.id || created?.Id;
                 if (!eventId) throw new Error('Failed to create the event');
@@ -686,7 +686,8 @@ export default function PublishingPage() {
                                 </div>
                             )}
 
-                            {destKind === 'event' && (
+                            {destKind === 'event' && selectedDestContent?.eventId && <p className={styles.formGroup}>Linked program: <strong>{events.find((item) => item.id === selectedDestContent.eventId)?.heading || selectedDestContent.title}</strong>. The approved flyer will publish to this program.</p>}
+                            {destKind === 'event' && !selectedDestContent?.eventId && (
                                 <div className={styles.formGroup}>
                                     <label>Attach to Event *</label>
                                     <div className={styles.platformChips} style={{ marginBottom: '0.5rem' }}>
@@ -745,10 +746,11 @@ export default function PublishingPage() {
                                             />
                                             <div>
                                                 <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '0.3rem' }}>
-                                                    Thumbnail image (optional)
+                                                    Program flyers are uploaded separately for approval
                                                 </label>
                                                 <input
                                                     type="file"
+                                                    disabled
                                                     accept="image/*"
                                                     onChange={(e) => setNewEventImage(e.target.files?.[0] || null)}
                                                 />

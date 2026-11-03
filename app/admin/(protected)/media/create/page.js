@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import { useContentRole, CONTENT_ROLE } from '@/lib/useContentRole';
 import styles from './create.module.css';
+import EventProgramsWorkspace from '@/components/admin/EventProgramsWorkspace';
 
 const CATEGORIES = [
     { value: '1', label: 'Gallery Image', contentType: '1' },
@@ -124,6 +125,7 @@ export default function CreateMediaPage() {
         }
     };
 
+    if (form.category === '4') return <><button className={styles.backBtn} onClick={() => { setForm((prev) => ({ ...prev, category: '1' })); }}>← Other media categories</button><EventProgramsWorkspace uploadMode /></>;
     return (
         <div className={styles.page}>
             <button className={styles.backBtn} onClick={() => router.back()}>← Back</button>

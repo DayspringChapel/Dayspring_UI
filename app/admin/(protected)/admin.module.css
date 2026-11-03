@@ -144,3 +144,9 @@
         padding: 1rem;
     }
 }
+
+@media(max-width:640px) {
+    .header { padding: 14px 12px; gap: 10px; }
+    .pageTitle { font-size: 1.05rem; min-width: 0; }
+    .header > div:last-child { min-width: 0; }
+}

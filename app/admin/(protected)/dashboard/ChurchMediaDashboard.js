@@ -68,8 +68,8 @@ export default function ChurchMediaDashboard({ userName }) {
             };
 
             const byType = {
-                images: mediaArr.filter(m => (m.contentType ?? 0) === 0).length,
-                videos: mediaArr.filter(m => (m.contentType ?? 0) === 1).length,
+                images: mediaArr.filter(m => (m.contentType ?? 0) === 1).length,
+                videos: mediaArr.filter(m => (m.contentType ?? 0) === 2).length,
             };
 
             const assignments = v(myAssignmentsRes);
