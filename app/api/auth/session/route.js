@@ -39,7 +39,7 @@ export async function POST(request) {
             body: JSON.stringify({ userNameOrEmail: body.userNameOrEmail, password: body.password, remember: body.remember === true }),
         });
         const data = await upstream.json().catch(() => ({}));
-        if (!upstream.ok) return NextResponse.json({ message: data.message || 'Sign-in failed.' }, { status: upstream.status, headers: privateHeaders });
+        if (!upstream.ok) return NextResponse.json({ message: data.message || (upstream.status === 429 ? 'Too many sign-in attempts. Please wait a minute and try again.' : 'Sign-in failed.') }, { status: upstream.status, headers: sessionCheckHeaders(upstream.headers) });
         if (!/^[a-f0-9]{64}$/i.test(data.sessionToken || '')) throw new Error('Invalid upstream session');
         const response = NextResponse.json({ success: true, user: data.user }, { headers: privateHeaders });
         response.cookies.set(SESSION_COOKIE, data.sessionToken, {

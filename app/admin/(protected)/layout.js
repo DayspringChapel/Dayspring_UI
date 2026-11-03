@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import { monitorIdleSession } from '@/lib/idleSession';
 import { accessRuleFor } from '@/lib/routePermissions';
 import { canAccessPath, landingPath } from '@/lib/access';
 import { canSeeItem } from '@/lib/permissionTiles';
@@ -45,14 +46,12 @@ export default function ProtectedAdminLayout({ children }) {
         const resume = () => { clearTimeout(resumeTimer); resumeTimer = setTimeout(check, 250); };
         const visible = () => { if (document.visibilityState === 'visible') resume(); };
         check();
-        const interval = setInterval(() => { if (document.visibilityState !== 'hidden') check(); }, 60000);
         window.addEventListener('focus', resume);
         window.addEventListener('online', resume);
         document.addEventListener('visibilitychange', visible);
         window.addEventListener('dayspring:permissions', sync);
         return () => {
             active = false;
-            clearInterval(interval);
             clearTimeout(resumeTimer);
             window.removeEventListener('focus', resume);
             window.removeEventListener('online', resume);
@@ -60,6 +59,24 @@ export default function ProtectedAdminLayout({ children }) {
             window.removeEventListener('dayspring:permissions', sync);
         };
     }, [pathname, router, retryVersion]);
+    const sessionUserId = apiClient.getUserData()?.id;
+    useEffect(() => {
+        if (!sessionUserId) return;
+        let active = true;
+        const expire = () => {
+            if (!active) return;
+            apiClient.removeToken();
+            router.replace('/admin/login?reason=idle');
+            // Revoke the server credential, too; the backend independently rejects
+            // idle credentials when the browser was asleep or offline.
+            fetch('/api/auth/session', { method:'DELETE', credentials:'same-origin' }).catch(() => {});
+        };
+        const stop = monitorIdleSession({ userId:sessionUserId, onIdle:expire, onActivity:() => {
+            fetch('/api/auth/session/activity', { method:'POST', credentials:'same-origin' })
+                .then(response => { if (response.status === 401) expire(); }).catch(() => {});
+        } });
+        return () => { active = false; stop(); };
+    }, [sessionUserId, router]);
     const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 1024);
 
     useEffect(() => {
