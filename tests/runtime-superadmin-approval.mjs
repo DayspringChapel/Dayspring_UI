@@ -10,6 +10,7 @@ try{
   const permissions=['CanViewMediaData','CanUploadContent','CanSubmitContent','CanReviewContent','CanPublishContent','CanApproveAsAdmin','CanApproveAsSuperAdmin','certificates.generate','certificates.records.view','certificates.issue'];
   await context.addInitScript(()=>{const get=Storage.prototype.getItem;Storage.prototype.getItem=function(key){return key.startsWith('dayspring_tour_seen_')?'1':get.call(this,key);};});
   await context.route('**/*',route=>{const url=new URL(route.request().url());const api=url.pathname.toLowerCase();const json=value=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
+   if(url.pathname==='/api/auth/session/activity') return route.fulfill({status:204});
    if(api==='/api/auth/session')return json({id:'synthetic',userName:role,role,permissions,legacyChurch:true});
    const batch={id:batchId,title:'Completed training certificates',status:issued?'Issued':'Generated',revision:1,createdAt:new Date().toISOString()};
    if(route.request().method()!=='GET'){writes.push(api);if(api.endsWith('/issue'))issued=true;return json({batch:{...batch,status:'Issued'},items:[],total:1});}
