@@ -15,7 +15,8 @@ try {
         await context.route('**/*',route => {
             const url=new URL(route.request().url());
             const json=value => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
-            if(url.pathname==='/api/auth/session') return json({id:'synthetic',userName:'Alex',role,permissions:[],legacyChurch:true});
+            if(url.pathname==='/api/auth/session/activity') return route.fulfill({status:204});
+   if(url.pathname==='/api/auth/session') return json({id:'synthetic',userName:'Alex',role,permissions:[],legacyChurch:true});
             if(url.pathname.endsWith('/notifications/overview')) return json({forms:0,responses:0,issuedCertificates:0,pendingApprovals:0});
             if(url.pathname.startsWith('/api/backend/')) return json([]);
             if(url.origin!==origin) return route.abort();
