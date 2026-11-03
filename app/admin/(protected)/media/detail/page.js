@@ -56,15 +56,18 @@ function MediaDetail() {
     }, [id]);
 
     const handleSubmitForReview = async () => {
-        const yes = await confirm({
-            title: 'Submit for Review',
+        const submissionComment = await confirm({
+            title: content.workflowStatus === 3 ? 'Resubmit corrected content' : 'Submit for Review',
             message: 'Submission automatically sends this content to the next reviewer. Corrections return to the review stage that requested them.',
             confirmLabel: 'Submit',
+            showInput: true,
+            inputLabel: 'Comment for the reviewer (optional)',
+            inputPlaceholder: 'Explain what you changed or add a note…',
         });
-        if (!yes) return;
+        if (submissionComment === false) return;
         setRouting(true);
         try {
-            await apiClient.submitForReview(id, null);
+            await apiClient.submitForReview(id, submissionComment?.trim() || null);
             const updated = await apiClient.getMediaContentById(id);
             setContent(updated);
             const stage = updated?.workflowStatus;

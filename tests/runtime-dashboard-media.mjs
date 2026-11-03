@@ -22,6 +22,7 @@ async function setup(role = 'superAdmin') {
     await context.route('**/*', async (route) => {
         const request = route.request(); const url = new URL(request.url());
         const json = (value,status=200) => route.fulfill({ status, contentType:'application/json', body:JSON.stringify(value) });
+        if (url.pathname === '/api/auth/session/activity') return route.fulfill({ status:204 });
         if (url.pathname === '/api/auth/session') return json(user);
         if (url.pathname.startsWith('/api/backend/')) {
             const api = url.pathname.replace('/api/backend/api/v1/','').toLowerCase(); const method = request.method();
@@ -41,10 +42,10 @@ async function setup(role = 'superAdmin') {
             if (api === 'operations') return json({ checkedAt:date,summary:[],jobs:[],workers:[],total:0,services:['api','database','reporting','certificates'].map(category => ({ category,status:'Healthy',lastCheckedAt:new Date().toISOString(),points:[1,2,3,4,5].map((value,index) => ({ at:new Date(Date.now()-(5-index)*60000).toISOString(),value,requests:2,errors:0 })) })) });
             if (api === 'comments/moderation/counts') return json({ pending:0,hidden:0 });
             if (api === 'mediacontent') return json([media()]);
-            if (api.startsWith('mediacontent/status')) return json(state.status===7 ? [media()] : []);
+            if (api.startsWith('mediacontent/status/')) return json(state.status===Number(api.split('/').at(-1)) ? [media()] : []);
             if (api === `mediacontent/${contentId}`) return json(media());
             if (api === 'events/all') return json(state.items.map(x => ({ ...x, heading:x.title,eventDate:x.date })));
-            if (api.startsWith('approvals/queue/')) return json([{ id:'approval',contentId,contentTitle:'Classic gathering flyer',levelName:'Admin',createdDate:date }]);
+            if (api.startsWith('approvals/queue/')) return json(state.status===(api.endsWith('/admin') ? 5 : 6) ? [{ id:contentId,contentId,contentTitle:'Classic gathering flyer',levelName:api.endsWith('/admin') ? 'Admin' : 'SuperAdmin',createdDate:date }] : []);
             if (api.includes('ready')) return json(state.status===7 ? [media()] : []);
             if (api.includes('livestream')) return json({ enabled:false });
             return json([]);
@@ -87,9 +88,17 @@ try {
     await page.goto(`${origin}/admin/operations`); await page.getByRole('heading',{name:'Application',exact:true}).waitFor(); assert.ok(await page.locator('article').filter({has:page.getByRole('heading',{name:'Certificates',exact:true})}).locator('svg rect').count()>0); await responsive(page,'operations');
     state.user.role='churchMedia'; await page.goto(`${origin}/admin/workflow`); await page.getByRole('heading',{name:'Classic gathering flyer'}).waitFor(); const before=state.writes.length; await page.getByRole('button',{name:'Send Back',exact:true}).click(); await page.getByRole('button',{name:'Cancel',exact:true}).click(); assert.equal(state.writes.length,before,'Cancel must not change workflow');
     await page.getByRole('button',{name:/forward to Church Admin/}).first().click(); assert.equal(state.status,5);
-    state.user.role='churchAdmin'; await page.goto(`${origin}/admin/approvals`); await page.getByRole('heading',{name:'Classic gathering flyer'}).waitFor(); await page.getByRole('button',{name:'Approve',exact:true}).first().click(); await page.getByRole('button',{name:'Confirm Approval',exact:true}).click(); await page.waitForTimeout(200); assert.equal(state.status,6);
-    state.user.role='superAdmin'; await page.goto(`${origin}/admin/approvals`); await page.getByRole('button',{name:'Super Admin Queue',exact:true}).click(); await page.getByRole('button',{name:'Approve',exact:true}).first().click(); await page.getByRole('button',{name:'Confirm Approval',exact:true}).click(); await page.waitForTimeout(200); assert.equal(state.status,7);
-    state.user.role='churchMedia'; await page.goto(`${origin}/admin/publishing`); await page.getByRole('heading',{name:'Classic gathering flyer'}).waitFor(); await page.getByRole('button',{name:'Publish',exact:true}).first().click(); await page.getByText('Linked program:',{exact:false}).waitFor(); await page.locator('form').getByRole('button',{name:'Publish',exact:true}).click(); await page.waitForTimeout(250); assert.equal(state.status,10); const publication=state.writes.find(x=>x.api==='publishing/publish-to-destination'); assert.equal(JSON.parse(publication.body).eventId,id); assert.deepEqual(test.errors,[]); await test.context.close();
+    state.user.role='churchAdmin'; await page.goto(`${origin}/admin/approvals`); await page.getByRole('heading',{name:'Classic gathering flyer'}).waitFor(); await page.getByRole('button',{name:'Approve & forward to Superadmin',exact:true}).first().click(); await page.getByRole('button',{name:'Approve & forward',exact:true}).click(); await page.waitForTimeout(200); assert.equal(state.status,6);
+    state.user.role='superAdmin'; await page.goto(`${origin}/admin/approvals`); await page.getByRole('button',{name:'Super Admin Queue',exact:true}).click(); await page.getByRole('button',{name:'Final approval',exact:true}).first().click(); await page.getByRole('button',{name:'Confirm final approval',exact:true}).click(); await page.waitForTimeout(200); assert.equal(state.status,7);
+    state.user.role='churchMedia'; await page.goto(`${origin}/admin/publishing`); await page.getByRole('heading',{name:'Classic gathering flyer'}).waitFor(); await page.getByRole('button',{name:'Publish',exact:true}).first().click(); await page.getByText('Linked program:',{exact:false}).waitFor(); await page.locator('form').getByRole('button',{name:'Publish',exact:true}).click(); await page.waitForTimeout(250); assert.equal(state.status,10); const publication=state.writes.find(x=>x.api==='publishing/publish-to-destination'); assert.equal(JSON.parse(publication.body).eventId,id);
+    state.user.role='contentSocialMedia'; await page.goto(`${origin}/admin/publishing`); await page.getByText('Published on website',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'Publish to social channels',exact:true}).click();
+    await page.locator('form').getByRole('button',{name:'Facebook',exact:true}).click();
+    await page.getByRole('button',{name:'Publish selected channels',exact:true}).click();
+    await page.waitForTimeout(300);
+    const socialWrite=state.writes.find(x=>x.api==='publishing/publish-now'); assert.ok(socialWrite,'Website-only publication must allow a later social post.');
+    assert.deepEqual(JSON.parse(socialWrite.body).platforms,[1]); assert.equal(state.writes.filter(x=>x.api==='publishing/publish-to-destination').length,1,'Later social sharing must not republish the website event.');
+    assert.deepEqual(test.errors,[]); await test.context.close();
     const social=await setup('churchMedia'); await social.page.goto(`${origin}/admin/comments`); await social.page.getByRole('heading',{name:'Social & community',exact:true}).waitFor(); await social.page.getByRole('heading',{name:'Community inbox',exact:true}).waitFor(); await responsive(social.page,'social'); await social.page.getByRole('button',{name:'Social publishing',exact:true}).click(); await social.page.getByRole('heading',{name:/Publishing/}).waitFor(); assert.deepEqual(social.errors,[]); await social.context.close();
     console.log('PASS: dashboard spacing, responsive calendar/programs/roles/operations/social, program creation, linked flyer submission, canceled review safety, media review, admin and superadmin approval, linked destination publishing and social workspace.');
 } catch(e) { if(latest && !latest.isClosed()) { if(output) await latest.screenshot({path:path.join(output,'failure.png'),fullPage:true}); console.error((await latest.locator('body').innerText()).slice(-2500)); } throw e; } finally { await browser.close(); }

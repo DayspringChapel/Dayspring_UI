@@ -34,6 +34,13 @@ export default function ApprovalsPage() {
         return () => { active = false; };
     }, [activeTab, reload]);
 
+    useEffect(() => {
+        const refresh = () => { if (document.visibilityState !== 'hidden') setReload(value => value + 1); };
+        const timer = setInterval(refresh, 30000);
+        window.addEventListener('focus', refresh);
+        return () => { clearInterval(timer); window.removeEventListener('focus', refresh); };
+    }, []);
+    const finalApproval = activeTab === 'superadmin' || apiClient.getUserData()?.role?.name === 'superAdmin';
     const openModal = (type, contentId) => {
         setComment('');
         setModal({ type, contentId });
@@ -68,7 +75,7 @@ export default function ApprovalsPage() {
             }
             setItems((prev) => prev.filter((i) => i.contentId !== modal.contentId));
             setModal(null);
-            notify('success', modal.type === 'approve' ? 'Content approved.' : 'Sent back to the uploader for correction.');
+            notify('success', modal.type === 'approve' ? finalApproval ? 'Final approval complete. Content is ready for publishing.' : 'Approved and forwarded to Superadmin.' : 'Sent back to the uploader for correction.');
         } catch (err) {
             notify('error', err.message || 'Something went wrong. Please try again.');
         } finally {
@@ -90,6 +97,7 @@ export default function ApprovalsPage() {
                 <p>Review pending content — approve to move it forward, or reject to send it back for correction</p>
             </div>
 
+            <button className={styles.btnGhost} disabled={loading} onClick={() => { setLoading(true); setReload(value => value + 1); }}>Refresh queue</button>
             <div className={styles.tabs}>
                 {TABS.filter((tab) => apiClient.hasPermission(tab.id === 'admin' ? 'CanApproveAsAdmin' : 'CanApproveAsSuperAdmin')).map((tab) => (
                     <button
@@ -135,7 +143,7 @@ export default function ApprovalsPage() {
                                     disabled={actionLoading === item.contentId}
                                     onClick={() => openModal('approve', item.contentId)}
                                 >
-                                    Approve
+                                    {finalApproval ? 'Final approval' : 'Approve & forward to Superadmin'}
                                 </button>
                             </div>
                         </div>
@@ -176,7 +184,7 @@ export default function ApprovalsPage() {
                                 {actionLoading !== null
                                     ? 'Processing…'
                                     : modal.type === 'approve'
-                                    ? 'Confirm Approval'
+                                    ? finalApproval ? 'Confirm final approval' : 'Approve & forward'
                                     : 'Send Back'}
                             </button>
                         </div>
