@@ -37,6 +37,7 @@ function MediaDetail() {
     const [loading, setLoading]     = useState(true);
     const [commentText, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [routing, setRouting] = useState(false);
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
@@ -57,17 +58,22 @@ function MediaDetail() {
     const handleSubmitForReview = async () => {
         const yes = await confirm({
             title: 'Submit for Review',
-            message: 'Submit this content for review?',
+            message: 'Submission automatically sends this content to the next reviewer. Corrections return to the review stage that requested them.',
             confirmLabel: 'Submit',
         });
         if (!yes) return;
+        setRouting(true);
         try {
             await apiClient.submitForReview(id, null);
             const updated = await apiClient.getMediaContentById(id);
             setContent(updated);
-            notify('success', 'Content submitted for review.');
+            const stage = updated?.workflowStatus;
+            notify('success', stage === 7 ? 'Ready to publish.' : stage === 6 ? 'Sent to Superadmin for approval.' : stage === 5 ? 'Sent to Church Admin for approval.' : 'Sent to Church Media for review.');
+            setHistory(await apiClient.getWorkflowHistory(id) || []);
         } catch (err) {
             notify('error', err.message || 'Failed to submit for review. Please try again.');
+        } finally {
+            setRouting(false);
         }
     };
 
@@ -139,8 +145,8 @@ function MediaDetail() {
                         {[0, 3].includes(content.workflowStatus) && apiClient.hasPermission('CanSubmitContent') && content.ownerId === apiClient.getUserData()?.id && (
                             <>
                                 <hr className={styles.divider} />
-                                <button className={styles.btnSubmit} onClick={handleSubmitForReview}>
-                                    Submit for Review
+                                <button className={styles.btnSubmit} disabled={routing} onClick={handleSubmitForReview}>
+                                    {routing ? 'Submitting…' : content.workflowStatus === 3 ? 'Resubmit to reviewer' : 'Submit for review'}
                                 </button>
                             </>
                         )}
