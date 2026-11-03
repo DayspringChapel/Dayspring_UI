@@ -20,7 +20,8 @@ function analytics(){const base={eligible:count,answered:4,skipped:count-4,notAp
 ]};}
 const context=await browser.newContext({viewport:{width:1280,height:900}});await context.addInitScript(()=>{const get=Storage.prototype.getItem;Storage.prototype.getItem=function(key){return key.startsWith('dayspring_tour_seen_')?'1':get.call(this,key);};});
 await context.route('**/*',route=>{const url=new URL(route.request().url());const json=value=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(value)});
- if(url.pathname==='/api/auth/session')return json(user);
+ if(url.pathname==='/api/auth/session/activity') return route.fulfill({status:204});
+   if(url.pathname==='/api/auth/session')return json(user);
  if(url.pathname.endsWith(`/forms/${id}/preview`))return json(form);
  if(url.pathname.endsWith(`/forms/${id}/stats`))return json({responses:count,confirmed:0,eligible:0,issued:0});
  if(url.pathname.endsWith(`/forms/${id}/analytics`))return json(analytics());

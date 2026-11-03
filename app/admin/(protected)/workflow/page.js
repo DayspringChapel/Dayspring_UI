@@ -102,8 +102,8 @@ export default function WorkflowPage() {
         setActionLoading(contentId);
         try {
             await apiClient.forwardForApproval(contentId, null);
-            setContents((prev) => prev.map((c) => c.id === contentId ? { ...c, workflowStatus: 5, workflowStatusName: 'AdminApproval' } : c));
-            notify('success', 'Content forwarded for approval.');
+            await load();
+            notify('success', role === 'superAdmin' ? 'Ready to publish without further approval.' : 'Reviewed and forwarded to Church Admin.');
         } catch (err) {
             notify('error', err.message || 'Failed to forward content. Please try again.');
         } finally {
@@ -113,8 +113,8 @@ export default function WorkflowPage() {
 
     const handleSendBack = async (contentId) => {
         const comment = await confirm({
-            title: 'Send Back to Draft',
-            message: 'This will return the content to Draft status.',
+            title: 'Request corrections',
+            message: 'The uploader can correct and resubmit this content directly to this review stage.',
             confirmLabel: 'Send Back',
             showInput: true,
             inputLabel: 'Reason (optional)',
@@ -125,7 +125,7 @@ export default function WorkflowPage() {
         try {
             await apiClient.sendBackToDraft(contentId, comment || null);
             await load();
-            notify('success', 'Content sent back to draft.');
+            notify('success', 'Content returned to the uploader for corrections.');
         } catch (err) {
             notify('error', err.message || 'Failed to send content back. Please try again.');
         } finally {
@@ -137,8 +137,8 @@ export default function WorkflowPage() {
     // opens the content up for churchMedia to publish.
     const handleApprove = async (contentId, atStage) => {
         const comment = await confirm({
-            title: atStage === 6 ? 'Approve for Publishing' : 'Approve & Forward to Super Admin',
-            message: atStage === 6
+            title: role === 'superAdmin' || atStage === 6 ? 'Approve for Publishing' : 'Approve & Forward to Super Admin',
+            message: role === 'superAdmin' || atStage === 6
                 ? 'This opens the content up for churchMedia to publish.'
                 : 'This forwards the content to Super Admin for final approval.',
             confirmLabel: 'Approve',
@@ -151,7 +151,7 @@ export default function WorkflowPage() {
         try {
             await apiClient.approveContent(contentId, comment || null);
             await load();
-            notify('success', atStage === 6 ? 'Approved — ready for churchMedia to publish.' : 'Approved and forwarded to Super Admin.');
+            notify('success', role === 'superAdmin' || atStage === 6 ? 'Approved — ready for churchMedia to publish.' : 'Approved and forwarded to Super Admin.');
         } catch (err) {
             notify('error', err.message || 'Failed to approve content. Please try again.');
         } finally {
@@ -219,7 +219,7 @@ export default function WorkflowPage() {
                     <button className={styles.btnGhost} onClick={() => router.push(`/admin/media/detail?id=${item.id}`)}>
                         View
                     </button>
-                    {showReviewActions && (item.workflowStatus === 1 || item.workflowStatus === 4) && (
+                    {showReviewActions && canReview && [1, 2, 4].includes(item.workflowStatus) && (
                         <>
                             <button
                                 className={styles.btnWarning}
@@ -233,7 +233,7 @@ export default function WorkflowPage() {
                                 disabled={actionLoading === item.id}
                                 onClick={() => handleForward(item.id)}
                             >
-                                Forward
+                                {role === 'superAdmin' ? 'Make ready to publish' : 'Approve & forward to Church Admin'}
                             </button>
                         </>
                     )}
@@ -327,11 +327,8 @@ export default function WorkflowPage() {
         );
     }
 
-    // ── Church Media: full pipeline visibility. Super Admin: only content already
-    // forwarded to Super Admin (or beyond) — earlier-stage items aren't theirs to see yet. ──
-    const visibleForCategorizedView = role === 'superAdmin'
-        ? inPipeline.filter((c) => c.workflowStatus >= 6)
-        : inPipeline;
+    // Superadmin can override any pending stage, including the media review queue.
+    const visibleForCategorizedView = inPipeline;
     const categories = [...new Set(visibleForCategorizedView.map((c) => c.categoryName))].sort();
 
     return (
@@ -341,13 +338,13 @@ export default function WorkflowPage() {
             <div className={styles.header}>
                 <h1>Media Workflow</h1>
                 <p>{role === 'superAdmin'
-                    ? 'Content forwarded to you for final approval, and published content'
+                    ? 'Review any pending stage or make content ready to publish directly'
                     : 'All content, grouped by category and current stage'}</p>
             </div>
 
             {categories.length === 0 && (
                 <div className={styles.empty}>
-                    {role === 'superAdmin' ? 'Nothing has been forwarded to you yet.' : 'No content is in the pipeline right now.'}
+                    {role === 'superAdmin' ? 'No content is awaiting review.' : 'No content is in the pipeline right now.'}
                 </div>
             )}
 

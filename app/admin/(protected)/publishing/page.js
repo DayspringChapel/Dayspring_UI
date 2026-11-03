@@ -93,6 +93,7 @@ export default function PublishingPage() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [socialMode, setSocialMode] = useState('schedule');
     const [form, setForm] = useState(EMPTY_FORM);
     const [submitting, setSubmitting] = useState(false);
     const [showDestForm, setShowDestForm] = useState(false);
@@ -116,7 +117,7 @@ export default function PublishingPage() {
             const [sched, pub, ready, streamRes, albumsRes, eventsRes] = await Promise.allSettled([
                 apiClient.getAllScheduledPosts(),
                 apiClient.getAllPublishedPosts(),
-                apiClient.getUserData()?.role?.name === 'superAdmin' ? apiClient.getMediaContents().then((items) => items.filter((item) => [0,1,2,3,4,5,6,7,8,12].includes(item.workflowStatus))) : apiClient.getMediaContentsByStatus(7),
+                apiClient.getUserData()?.role?.name === 'superAdmin' ? apiClient.getMediaContents().then((items) => items.filter((item) => [0,1,2,3,4,5,6,7,8,10,12].includes(item.workflowStatus))) : Promise.all([7,8,10].map(status => apiClient.getMediaContentsByStatus(status))).then(groups => [...new Map(groups.flat().map(item => [item.id,item])).values()]),
                 fetch('/api/livestream').then((r) => r.json()),
                 apiClient.getAlbums(),
                 apiClient.getAllEventsInternal(),
@@ -186,7 +187,7 @@ export default function PublishingPage() {
                 socialPlatforms: destForm.socialPlatforms.length ? destForm.socialPlatforms : null,
                 socialCaption: destForm.socialCaption.trim() || null,
             });
-            setReadyContents((prev) => prev.filter((c) => c.id !== destForm.contentId));
+            setReadyContents((prev) => prev.map((c) => c.id === destForm.contentId ? { ...c, workflowStatus:10 } : c));
             const pub = await apiClient.getAllPublishedPosts().catch(() => null);
             if (pub) setPublishedPosts(pub);
             if (destEventMode === 'new') {
@@ -249,13 +250,13 @@ export default function PublishingPage() {
 
     const handleSchedule = async (e) => {
         e.preventDefault();
-        if (!form.contentId || form.platforms.length === 0 || !form.scheduledAt) {
-            notify('warning', 'Select content, at least one platform, and a date/time.');
+        if (!form.contentId || form.platforms.length === 0 || socialMode === 'schedule' && !form.scheduledAt) {
+            notify('warning', 'Select content and at least one platform. Scheduled posts also need a date/time.');
             return;
         }
         setSubmitting(true);
         try {
-            const scheduled = await apiClient.schedulePublish(
+            const scheduled = socialMode === 'now' ? await apiClient.publishNow(form.contentId, form.platforms, form.caption) : await apiClient.schedulePublish(
                 form.contentId,
                 form.platforms,
                 new Date(form.scheduledAt).toISOString(),
@@ -263,10 +264,11 @@ export default function PublishingPage() {
             );
             const updated = await apiClient.getAllScheduledPosts();
             setScheduledPosts(updated || []);
+            setPublishedPosts(await apiClient.getAllPublishedPosts() || []);
             setShowForm(false);
             setForm(EMPTY_FORM);
             const outcome = describeSocialResults(scheduled?.results || scheduled?.Results);
-            notify(outcome.failed.length ? 'warning' : 'success', outcome.text || 'Post scheduled.');
+            notify(outcome.failed.length ? 'warning' : 'success', outcome.text || (socialMode === 'now' ? 'Selected social channels published.' : 'Post scheduled.'));
         } catch (err) {
             notify('error', err.message || 'Failed to schedule post. Please try again.');
         } finally {
@@ -324,11 +326,11 @@ export default function PublishingPage() {
                     <p>Publish approved content to its destination, and schedule/track social posts</p>
                 </div>
                 {activeTab === 'scheduled' && (
-                    <button className={styles.btnPrimary} onClick={() => setShowForm(true)}>
+                    <button className={styles.btnPrimary} onClick={() => { setSocialMode('schedule'); setShowForm(true); }}>
                         + Schedule Post
                     </button>
                 )}
-                {activeTab === 'ready' && readyContents.length > 0 && (
+                {activeTab === 'ready' && readyContents.some(c => c.workflowStatus !== 10) && (
                     <button className={styles.btnPrimary} onClick={() => setShowDestForm(true)}>
                         + Publish to Destination
                     </button>
@@ -360,12 +362,14 @@ export default function PublishingPage() {
                                     <p>{humanizeLabel(c.categoryName)} · {c.contentTypeName} · by {c.ownerName}</p>
                                 </div>
                                 <div className={styles.rowActions}>
-                                    <button
+                                    {c.workflowStatus !== 10 && <button
                                         className={styles.btnPrimary}
                                         onClick={() => { setDestForm({ ...EMPTY_DESTINATION_FORM, contentId: c.id }); setShowDestForm(true); }}
                                     >
                                         Publish
-                                    </button>
+                                    </button>}
+                                    {c.workflowStatus === 10 && <span>Published on website</span>}
+                                    {platforms.length > 0 && <button className={styles.btnGhost} onClick={() => { setForm({ ...EMPTY_FORM, contentId:c.id }); setSocialMode('now'); setShowForm(true); }}>Publish to social channels</button>}
                                 </div>
                             </div>
                         ))}
@@ -579,7 +583,8 @@ export default function PublishingPage() {
                 <Portal>
                 <div className={styles.modalOverlay} onClick={(e) => e.target === e.currentTarget && setShowForm(false)}>
                     <div className={styles.modal}>
-                        <h2>Schedule a Post</h2>
+                        <h2>{socialMode === 'now' ? 'Publish to social channels' : 'Schedule a Post'}</h2>
+                        <div className={styles.formGroup}><label>When to publish<select aria-label="When to publish" value={socialMode} onChange={event => setSocialMode(event.target.value)}><option value="now">Publish now</option><option value="schedule">Schedule for later</option></select></label></div>
                         <form onSubmit={handleSchedule}>
                             <div className={styles.formGroup}>
                                 <label>Content *</label>
@@ -610,12 +615,13 @@ export default function PublishingPage() {
                                 </div>
                             </div>
                             <div className={styles.formGroup}>
-                                <label>Date &amp; Time *</label>
+                                <label>Date &amp; Time {socialMode === 'schedule' ? '*' : '(scheduling only)'}</label>
                                 <input
                                     type="datetime-local"
                                     value={form.scheduledAt}
                                     onChange={(e) => setForm((p) => ({ ...p, scheduledAt: e.target.value }))}
-                                    required
+                                    disabled={socialMode === 'now'}
+                                    required={socialMode === 'schedule'}
                                 />
                             </div>
                             <div className={styles.formGroup}>
@@ -632,7 +638,7 @@ export default function PublishingPage() {
                                     Cancel
                                 </button>
                                 <button type="submit" className={styles.btnModalSubmit} disabled={submitting}>
-                                    {submitting ? 'Scheduling…' : 'Schedule Post'}
+                                    {submitting ? 'Processing…' : socialMode === 'now' ? 'Publish selected channels' : 'Schedule Post'}
                                 </button>
                             </div>
                         </form>
@@ -665,7 +671,7 @@ export default function PublishingPage() {
                                     required
                                 >
                                     <option value="">Select ready-to-publish content…</option>
-                                    {readyContents.map((c) => (
+                                    {readyContents.filter(c => c.workflowStatus !== 10).map((c) => (
                                         <option key={c.id} value={c.id}>{c.title} — {humanizeLabel(c.categoryName)}</option>
                                     ))}
                                 </select>
