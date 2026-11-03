@@ -25,6 +25,7 @@
     display: flex;
     flex-direction: column;
     line-height: 1.2;
+    min-width: 0;
 }
 
 .name {
@@ -47,8 +48,10 @@
 @media (max-width: 640px) {
     .info { display: flex; }
     .name { max-width: 95px; font-size: 11px; }
-    .role { font-size: 9px; max-width: 95px; overflow-wrap: anywhere; }
+    .role { font-size: 9px; max-width: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .profileBadge {
         padding: 0.3rem;
+        max-width: 125px;
+        gap: 6px;
     }
 }

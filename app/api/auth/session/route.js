@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { SESSION_COOKIE, sessionAuthorization, selectedChurchHeader, isTrustedOrigin, cookieSettings, privateHeaders, backendFetch } from '@/lib/session.server';
+import { SESSION_COOKIE, sessionAuthorization, selectedChurchHeader, isTrustedOrigin, cookieSettings, privateHeaders, backendFetch, sessionCheckHeaders } from '@/lib/session.server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,7 +15,8 @@ export async function GET(request) {
     try {
         const upstream = await backendFetch('/api/v1/Users/me', { headers: { Authorization: authorization, ...selectedChurchHeader(request) } });
         const data = await upstream.json().catch(() => ({}));
-        const response = NextResponse.json(data, { status: upstream.status, headers: privateHeaders });
+        const headers = sessionCheckHeaders(upstream.headers);
+        const response = NextResponse.json(data, { status: upstream.status, headers });
         return upstream.status === 401 ? clearSession(response) : response;
     } catch {
         return NextResponse.json({ message: 'Unable to check your session. Please try again.' }, { status: 503, headers: privateHeaders });

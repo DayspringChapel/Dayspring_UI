@@ -86,9 +86,9 @@ export default function MediaPage() {
                     <h1>Media Content</h1>
                     <p>Manage all media uploads and their workflow status</p>
                 </div>
-                <button className={styles.btnPrimary} onClick={() => router.push('/admin/media/create')}>
+                {apiClient.hasPermission('CanUploadContent') && <button className={styles.btnPrimary} onClick={() => router.push('/admin/media/create')}>
                     + Upload Media
-                </button>
+                </button>}
             </div>
 
             <div className={styles.filters}>
@@ -136,12 +136,12 @@ export default function MediaPage() {
                                         >
                                             View
                                         </button>
-                                        <button
+                                        {[0, 3, 12].includes(item.workflowStatus) && (apiClient.hasPermission('CanManageContent') || apiClient.hasPermission('CanUploadContent') && item.ownerId === apiClient.getUserData()?.id) && <button
                                             className={styles.btnDelete}
                                             onClick={() => handleDelete(item)}
                                         >
                                             Delete
-                                        </button>
+                                        </button>}
                                     </div>
                                 </div>
                             </div>

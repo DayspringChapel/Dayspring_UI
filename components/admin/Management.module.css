@@ -69,3 +69,14 @@
     .peopleTable td { border: 0; padding: 8px 12px; overflow-wrap: anywhere; }
     .peopleTable td::before { content: attr(data-label); display: block; color: #78889b; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 7px; }
 }
+
+.sessionRecovery { display: grid; place-items: center; min-height: 100vh; }
+.sessionRecovery > article { width: 100%; max-width: 520px; padding: 32px; }
+.sessionRecovery .actions { margin-top: 24px; }
+
+.accessList { list-style: none; padding: 0; margin: 12px 0 24px; border: 1px solid #dfe5ee; border-radius: 12px; overflow: hidden; }
+.accessList li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; border-bottom: 1px solid #e9edf2; font-size: 13px; }
+.accessList li:last-child { border: 0; }
+.selectionList { display: flex; flex-direction: column; gap: 10px; }
+.selectionList .check { padding: 16px; border: 1px solid #dfe5ee; border-radius: 10px; background: #fbfcfe; }
+.selectionList .check:has(input:checked) { border-color: #d9752c; background: #fff6ee; }

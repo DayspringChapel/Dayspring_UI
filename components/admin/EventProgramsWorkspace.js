@@ -1,0 +1,55 @@
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import apiClient from '@/lib/apiClient';
+import styles from './Management.module.css';
+const statuses = { 0:'Draft', 1:'In review', 2:'Media review', 3:'Needs correction', 4:'Resubmitted', 5:'Admin approval', 6:'Superadmin approval', 7:'Ready to publish', 8:'Scheduled', 9:'Publishing', 10:'Published', 11:'Archived', 12:'Rejected' };
+const dateInput = (value) => { if (!value) return ''; const date = new Date(value); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+export default function EventProgramsWorkspace({ uploadMode = false }) {
+    const [data, setData] = useState(null); const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [reload, setReload] = useState(0);
+    const [search, setSearch] = useState(''); const [filter, setFilter] = useState('upcoming'); const [editor, setEditor] = useState(uploadMode ? { mode:'flyer', id:'' } : null);
+    const [draft, setDraft] = useState({ title:'', description:'', date:'', calendarYearId:'' });
+    const [years, setYears] = useState([]);
+    useEffect(() => { let active = true; apiClient.getCalendarYears().then((value) => { if (active) setYears(value); }).catch(() => {}); return () => { active = false; }; }, []); const [file, setFile] = useState(null); const [busy, setBusy] = useState(false); const pending = useRef(false);
+    const canManage = apiClient.hasPermission('CanManageEvent'); const canUpload = apiClient.hasPermission('CanUploadContent') && apiClient.hasPermission('CanSubmitContent');
+    useEffect(() => { const controller = new AbortController(); apiClient.request('/api/v1/event-programs', { signal:controller.signal }).then((value) => { setData(value); setError(''); }).catch((e) => { if (!controller.signal.aborted) setError(e.message); }); return () => controller.abort(); }, [reload]);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const items = (data?.items || []).filter((item) => (!search || `${item.title} ${item.description}`.toLowerCase().includes(search.toLowerCase())) && (filter !== 'upcoming' || new Date(item.date) >= today) && (filter !== 'published' || item.isPublished));
+    function open(mode, item) { setEditor({ mode, id:item?.id || '' }); setDraft({ title:item?.title || '', description:item?.description || '', date:dateInput(item?.date), calendarYearId:item?.calendarYearId || '' }); setFile(null); setError(''); setNotice(''); }
+    async function save(event) {
+        event.preventDefault(); if (pending.current) return;
+        if (editor.mode === 'flyer' && !file) { setError('Choose a flyer to submit.'); return; }
+        if (file && (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024)) { setError('Choose a JPG, PNG or WebP flyer up to 10 MB.'); return; }
+        pending.current = true; setBusy(true); setError(''); setNotice('');
+        try {
+            const body = new FormData();
+            if (editor.mode === 'edit') {
+                body.append('Heading', draft.title); body.append('Description', draft.description); body.append('DateTime', new Date(draft.date).toISOString()); if (draft.calendarYearId) body.append('CalendarYearId', draft.calendarYearId);
+                await apiClient.updateEvent(editor.id, body); setNotice('Program updated. Upload a new flyer for approval before republishing.');
+            } else if (editor.mode === 'flyer' && editor.id) {
+                body.append('flyer', file); await apiClient.upload(`/api/v1/event-programs/${editor.id}/flyer`, body, 'POST'); setNotice('Flyer and program submitted for approval. Track them in Media → Workflow.');
+            } else {
+                body.append('Title', draft.title); body.append('Description', draft.description); body.append('Date', new Date(draft.date).toISOString()); if (file) body.append('Flyer', file); if (draft.calendarYearId) body.append('CalendarYearId', draft.calendarYearId);
+                await apiClient.upload('/api/v1/event-programs', body, 'POST'); setNotice(file ? 'Program created and flyer submitted for approval.' : 'Program saved. You can add its flyer later.');
+            }
+            setEditor(null); setFile(null); setReload((v) => v + 1);
+        } catch(e) { setError(e.message); } finally { pending.current = false; setBusy(false); }
+    }
+    async function remove(item) {
+        if (!window.confirm(`Delete “${item.title}”? This removes the program from the calendar and website.`) || pending.current) return;
+        pending.current = true; setBusy(true); setError(''); try { await apiClient.deleteEvent(item.id); setNotice('Program deleted.'); setReload((v) => v + 1); } catch(e) { setError(e.message); } finally { pending.current = false; setBusy(false); }
+    }
+    return <section className={styles.page}><header className={styles.header}><div><p className={styles.eyebrow}>PLAN · REVIEW · PUBLISH</p><h1>Events & programs</h1><p>One calendar for every gathering. Add a flyer to an existing program or create both together.</p></div><div className={styles.actions}>{canUpload && <button onClick={() => open('flyer')}>Upload flyer</button>}{(canManage || canUpload) && <button className={styles.primary} onClick={() => open('new')}>＋ New event / program</button>}</div></header>
+        <div className={styles.notice}>The website shows published programs with flyers from today through the next two months. Every new flyer goes through media review and approval.</div>
+        {error && <p className={styles.error} role="alert">{error}</p>}{notice && <p className={styles.notice} role="status">{notice}</p>}
+        {editor && <form className={styles.card} onSubmit={save}><header className={styles.cardHeader}><div><h2>{editor.mode === 'edit' ? 'Edit program details' : editor.mode === 'flyer' ? 'Upload a program flyer' : 'Plan a gathering'}</h2><p>{editor.mode === 'edit' ? 'Changes unpublish the program and require a newly approved flyer.' : 'Choose an existing program or enter the details of a new one.'}</p></div><button type="button" disabled={busy} onClick={() => setEditor(null)}>Close</button></header><fieldset disabled={busy}>
+            {editor.mode === 'flyer' && <label>Program<select value={editor.id} onChange={(e) => setEditor({ ...editor, id:e.target.value })}><option value="">Create a new program with this flyer</option>{data?.items.filter((item) => !item.isArchived && new Date(item.date) >= today).map((item) => <option key={item.id} value={item.id}>{item.title} · {new Date(item.date).toLocaleDateString()}</option>)}</select></label>}
+            {(!editor.id || editor.mode === 'edit') && <><label>Program title<input required maxLength={100} value={draft.title} onChange={(e) => setDraft({ ...draft, title:e.target.value })} /></label><label>Date & time<input type="datetime-local" required min={editor.mode === 'edit' ? undefined : dateInput(new Date().toISOString()).slice(0, 10) + 'T00:00'} value={draft.date} onChange={(e) => setDraft({ ...draft, date:e.target.value })} /></label><label>Description<textarea required rows={4} value={draft.description} onChange={(e) => setDraft({ ...draft, description:e.target.value })} /></label></>}
+            {(!editor.id || editor.mode === 'edit') && years.length > 0 && <label>Calendar year (optional)<select value={draft.calendarYearId} onChange={(e) => setDraft({ ...draft, calendarYearId:e.target.value })}><option value="" disabled={editor.mode === 'edit' && !!data?.items.find((item) => item.id === editor.id)?.calendarYearId}>No calendar year</option>{years.map((year) => <option key={year.id} value={year.id}>{year.year}{year.label ? ` · ${year.label}` : ''}</option>)}</select></label>}
+            {canUpload && editor.mode !== 'edit' && <label>{editor.mode === 'flyer' ? 'Flyer' : 'Flyer (optional)'}<input key={`${editor.mode}-${editor.id}`} type="file" accept="image/jpeg,image/png,image/webp" required={editor.mode === 'flyer'} onChange={(e) => setFile(e.target.files?.[0] || null)} /><small>JPG, PNG or WebP · up to 10 MB. Uploaded flyers are submitted for approval immediately.</small></label>}
+        </fieldset><div className={styles.actions}><button className={styles.primary} disabled={busy}>{busy ? 'Saving…' : file ? 'Save & submit for approval' : 'Save program'}</button><button type="button" disabled={busy} onClick={() => setEditor(null)}>Cancel</button></div></form>}
+        <div className={styles.header} style={{ marginTop:24 }}><label>Search programs<input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Title or description" /></label><div className={styles.actions}><label>Show<select value={filter} onChange={(e) => setFilter(e.target.value)}><option value="upcoming">Upcoming</option><option value="published">Published</option><option value="all">All programs</option></select></label><button onClick={() => setReload((v) => v + 1)}>Refresh</button></div></div>
+        {!data ? <p>{error ? 'Use Refresh to load programs again.' : 'Loading events & programs…'}</p> : items.length ? <div className={styles.grid}>{items.map((item) => { const flyers = data.flyers.filter((flyer) => flyer.eventId === item.id).sort((a,b) => new Date(b.modifiedAt || b.createdDate) - new Date(a.modifiedAt || a.createdDate)); const latest = flyers[0]; return <article key={item.id} className={styles.card}><div className={styles.cardHeader}><span className={styles.badge}>{new Date(item.date).toLocaleDateString([], { day:'numeric', month:'short', year:'numeric' })}</span><span className={`${styles.badge} ${item.isPublished ? styles.healthy : styles.attention}`}>{item.isArchived ? 'Archived' : item.isPublished ? 'Published' : 'Planning'}</span></div><h2>{item.title}</h2>{(latest?.cloudinaryUrl || item.flyer) && <Image src={latest?.cloudinaryUrl || item.flyer} alt={`${item.title} flyer`} width={640} height={360} unoptimized style={{ width:'100%', height:180, objectFit:'contain', background:'#f4f5f8', borderRadius:8, marginTop:12 }} />}<p style={{ whiteSpace:'pre-line', overflowWrap:'anywhere' }}>{item.description}</p>{latest && <p>Latest flyer: <strong>{latest.eventRevision !== item.revision ? 'Details changed — upload again' : statuses[latest.workflowStatus] || 'Processing'}</strong></p>}<div className={styles.actions}>{canUpload && !item.isArchived && <button disabled={busy} onClick={() => open('flyer', item)}>Add / replace flyer</button>}{canManage && <><button disabled={busy} onClick={() => open('edit', item)}>Edit details</button><button className={styles.danger} disabled={busy} onClick={() => remove(item)}>Delete</button></>}{latest && <Link className={styles.button} href={`/admin/media/detail?id=${latest.id}`}>View flyer & workflow →</Link>}</div></article>; })}</div> : <article className={styles.card}><h2>No programs in this view</h2><p>Create a gathering or change the filters to find an existing one.</p></article>}
+    </section>;
+}

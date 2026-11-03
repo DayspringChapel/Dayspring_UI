@@ -15,6 +15,12 @@ const STATUS_BADGES = {
     1:  { label: 'Submitted',      cls: 'bg-blue-100 text-blue-700' },
     2:  { label: 'Media Review',   cls: 'bg-yellow-100 text-yellow-700' },
     3:  { label: 'Revision Req.',  cls: 'bg-orange-100 text-orange-700' },
+    4: { label: 'Resubmitted', cls: 'bg-purple-100 text-purple-700' },
+    5: { label: 'Admin Approval', cls: 'bg-indigo-100 text-indigo-700' },
+    6: { label: 'Superadmin Approval', cls: 'bg-pink-100 text-pink-700' },
+    8: { label: 'Scheduled', cls: 'bg-cyan-100 text-cyan-700' },
+    9: { label: 'Publishing', cls: 'bg-lime-100 text-lime-700' },
+    11: { label: 'Archived', cls: 'bg-slate-100 text-slate-600' },
     7:  { label: 'Ready',          cls: 'bg-teal-100 text-teal-700' },
     10: { label: 'Published',      cls: 'bg-green-100 text-green-700' },
     12: { label: 'Rejected',       cls: 'bg-red-100 text-red-700' },
@@ -36,7 +42,7 @@ function MediaDetail() {
     const { dialog, confirm, closeDialog } = useConfirm();
 
     useEffect(() => {
-        if (!id) return;
+        if (!id) { Promise.resolve().then(() => setLoading(false)); return; }
         Promise.allSettled([
             apiClient.getMediaContentById(id),
             apiClient.getWorkflowHistory(id),
@@ -105,7 +111,7 @@ function MediaDetail() {
                             <h1>{content.title}</h1>
                             <span className={`${styles.badge} ${badge.cls}`}>{badge.label}</span>
                         </div>
-                        <p className={styles.description}>{content.description}</p>
+                        <p className={styles.description}>{content.description}</p>{content.eventId && <p>This flyer is linked to its program. Change details or replace the flyer in Events & programs; replacement flyers need approval.</p>}
                         <ul className={styles.metaList}>
                             <li>Type: {content.contentTypeName} · Category: {humanizeLabel(content.categoryName)}</li>
                             <li>Tags: {content.tags || 'none'}</li>
@@ -130,7 +136,7 @@ function MediaDetail() {
                                 Open media file →
                             </a>
                         )}
-                        {content.workflowStatus === 0 && (
+                        {[0, 3].includes(content.workflowStatus) && apiClient.hasPermission('CanSubmitContent') && content.ownerId === apiClient.getUserData()?.id && (
                             <>
                                 <hr className={styles.divider} />
                                 <button className={styles.btnSubmit} onClick={handleSubmitForReview}>

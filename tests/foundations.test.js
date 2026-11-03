@@ -2,7 +2,7 @@ import test, { afterEach, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchWithReadRetry } from '../lib/httpTransport.js';
 import { ApiClient } from '../lib/apiClient.js';
-import { isTrustedOrigin, sessionAuthorization, cookieSettings } from '../lib/session.server.js';
+import { isTrustedOrigin, sessionAuthorization, cookieSettings, sessionCheckHeaders } from '../lib/session.server.js';
 
 const originalOrigin = process.env.APP_ORIGIN;
 const originalEnvironment = process.env.NODE_ENV;
@@ -121,4 +121,78 @@ test('login receives user state but does not expose or store a bearer token', as
     assert.equal(result.refreshToken, undefined);
     assert.equal(client.hasSession(), true);
     assert.deepEqual(client.getCurrentPermissions(), ['example']);
+});
+
+
+test('read retries recover from temporary gateway and service failures', async () => {
+    const statuses = [502, 503, 504, 200]; const delays = []; let calls = 0;
+    mock.method(globalThis, 'fetch', async () => new Response('{}', { status: statuses[calls++] }));
+    const response = await fetchWithReadRetry('/api/auth/session', {}, { random: () => 0, wait: async (ms) => delays.push(ms) });
+    assert.equal(response.status, 200); assert.equal(calls, 4); assert.deepEqual(delays, [1000, 2000, 4000]);
+});
+
+test('temporary read failures remain bounded and writes are never retried', async () => {
+    let calls = 0;
+    mock.method(globalThis, 'fetch', async () => { calls++; return new Response('{}', { status: 503 }); });
+    const response = await fetchWithReadRetry('/api/auth/session', {}, { maxRetries: 2, wait: async () => {} });
+    assert.equal(response.status, 503); assert.equal(calls, 3);
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+        calls = 0;
+        assert.equal((await fetchWithReadRetry('/write', { method }, { wait: async () => {} })).status, 503);
+        assert.equal(calls, 1);
+    }
+});
+
+test('returning sessions recover from a transient outage without signing out', async () => {
+    const client = new ApiClient(); let calls = 0;
+    const fetchRead = client.fetchWith429Retry.bind(client);
+    mock.method(client, 'fetchWith429Retry', (url, options) => fetchRead(url, options, { wait: async () => {} }));
+    mock.method(globalThis, 'fetch', async () => {
+        if (++calls < 3) return Response.json({ message: 'Service temporarily unavailable' }, { status: 503 });
+        return Response.json({ id: 'returning-user', roleId: 'role', role: 'Coordinator', permissions: ['forms.create'] });
+    });
+    const user = await client.restoreSession();
+    assert.equal(calls, 3); assert.equal(user.id, 'returning-user'); assert.equal(client.hasSession(), true);
+    assert.deepEqual(client.getCurrentPermissions(), ['forms.create']);
+});
+
+test('expired sessions clear cached identity immediately and are not retried', async () => {
+    const client = new ApiClient(); client.setUserData({ id: 'old-user' }); let calls = 0;
+    mock.method(globalThis, 'fetch', async () => { calls++; return new Response('{}', { status: 401 }); });
+    assert.equal(await client.restoreSession(), null); assert.equal(calls, 1); assert.equal(client.hasSession(), false);
+});
+
+test('a persistent outage keeps session failure distinct from expiration', async () => {
+    const client = new ApiClient(); client.setUserData({ id: 'old-user' }); client.maxRetries = 1; let calls = 0;
+    const fetchRead = client.fetchWith429Retry.bind(client);
+    mock.method(client, 'fetchWith429Retry', (url, options) => fetchRead(url, options, { wait: async () => {} }));
+    mock.method(globalThis, 'fetch', async () => { calls++; return Response.json({ message: 'Server unavailable' }, { status: 503 }); });
+    await assert.rejects(client.restoreSession(), (error) => error.status === 503);
+    assert.equal(calls, 2); assert.equal(client.getUserData().id, 'old-user');
+});
+
+
+test('session checks honor rate-limit cooldown without replaying requests', async () => {
+    const client = new ApiClient(); client.setUserData({ id: 'returning-user' }); let calls = 0; let now = 100000;
+    mock.method(Date, 'now', () => now);
+    mock.method(globalThis, 'fetch', async () => { calls++; return calls === 1 ? new Response('{}', { status: 429, headers: { 'retry-after': '60' } }) : Response.json({ id: 'returning-user', role: 'Coordinator', permissions: [] }); });
+    await assert.rejects(client.restoreSession(), (error) => error.status === 429 && error.retryAt === 160000);
+    for (let i = 0; i < 5; i++) await assert.rejects(client.restoreSession(), (error) => error.status === 429);
+    assert.equal(calls, 1); assert.equal(client.getUserData().id, 'returning-user');
+    now = 160001; assert.equal((await client.restoreSession()).id, 'returning-user'); assert.equal(calls, 2);
+});
+
+test('session rate limits without retry guidance pause checks for a bounded local cooldown', async () => {
+    const client = new ApiClient(); let calls = 0;
+    mock.method(Date, 'now', () => 100000);
+    mock.method(globalThis, 'fetch', async () => { calls++; return new Response('{}', { status: 429 }); });
+    await assert.rejects(client.restoreSession(), (error) => error.status === 429 && error.retryAt === 130000);
+    await assert.rejects(client.restoreSession(), (error) => error.status === 429); assert.equal(calls, 1);
+});
+
+test('session proxy forwards retry guidance and trace headers without upstream credentials', () => {
+    const headers = sessionCheckHeaders(new Headers({ 'retry-after': '60', 'x-correlation-id': 'synthetic-trace', 'set-cookie': 'private-cookie', authorization: 'private-authorization' }));
+    assert.equal(headers.get('retry-after'), '60'); assert.equal(headers.get('x-correlation-id'), 'synthetic-trace');
+    assert.equal(headers.get('x-dayspring-session-source'), 'backend'); assert.equal(headers.get('cache-control'), 'no-store');
+    assert.equal(headers.get('set-cookie'), null); assert.equal(headers.get('authorization'), null);
 });

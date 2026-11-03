@@ -32,14 +32,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     const [expandedGroups, setExpandedGroups] = useState({});
     const [permissions, setPermissions] = useState(() => apiClient.getCurrentPermissions());
 
-    // Refreshed on every mount so a role/permission change (or a permission that didn't exist
-    // yet at last login, e.g. after a deploy) shows up without forcing a re-login.
+    // The protected layout verifies the session on navigation and resume. Listen for its
+    // fresh permissions instead of issuing a duplicate session request on sidebar mount.
     useEffect(() => {
         const sync = () => setPermissions(apiClient.getCurrentPermissions());
         window.addEventListener('dayspring:permissions', sync);
-        apiClient.refreshCurrentUserPermissions()
-            .then(() => setPermissions(apiClient.getCurrentPermissions()))
-            .catch(() => {});
         return () => window.removeEventListener('dayspring:permissions', sync);
     }, []);
 
@@ -194,6 +191,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
             children: [
                 { title: 'Media library', path: '/admin/media', anyPermission: PERMISSION_GROUPS.media },
+                { title: 'Events & programs', path: '/admin/events', anyPermission: ['CanManageEvent', 'CanUploadContent'] },
                 {
                     title: 'Workflow',
                     path: '/admin/workflow',
@@ -230,9 +228,10 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ],
         },
         {
-            title: 'Comments',
+            title: 'Social & community',
             path: '/admin/comments',
-            permission: 'CanModerateComments',
+            anyPermission: ['CanModerateComments', ...PERMISSION_GROUPS.publish],
+            socialOnly: true,
             badgeKey: 'comments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -251,18 +250,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             ),
         },
         {
-            title: 'Reports',
-            path: '/admin/reports',
-            permission: 'CanViewReports',
-            icon: (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M4 17V10M10 17V4M16 17V13" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-            ),
-        },
-        {
-            title: 'Audit log', path: '/admin/audit', permission: 'audit.view',
-            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M7 3h10v18H7zM10 8h4M10 12h4M10 16h4" /></svg>,
+            title: 'Insights & accountability', path: '/admin/insights',
+            icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 17V10M10 17V4M16 17V13" /></svg>,
+            children: [
+                { title: 'Reports & analytics', path: '/admin/reports', permission: 'CanViewReports' },
+                { title: 'Audit trail', path: '/admin/audit', permission: 'audit.view' },
+            ],
         },
         {
             title: 'Forms & certificates', path: '/admin/forms',
@@ -292,6 +285,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
     // for items not yet tied to a specific permission.
     const canSee = (item) => {
+        if (item.socialOnly && ['superAdmin', 'churchAdmin'].includes(apiClient.getUserData()?.role?.name)) return false;
         if (!canAccessPath(apiClient.getUserData(), item.path)) return false;
         if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].some((path) => item.path === path || item.path.startsWith(`${path}/`))) return false;
 
