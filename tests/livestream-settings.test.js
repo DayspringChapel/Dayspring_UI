@@ -16,3 +16,10 @@ test('cleared platform settings keep stable defaults and exclude unrelated serve
     assert.equal(result.social.youTubeChannelId, '');
     assert.equal('unrelated' in result, false);
 });
+
+test('automatic/manual choice and provider playback restrictions survive normalization', () => {
+    const result = normalizeLivestreamSettings({ youTube: { active: true, embedAllowed: false }, youTubeAutoDetect: false, youTubeDetectionState: 'Manual' });
+    assert.equal(result.youTubeAutoDetect, false);
+    assert.equal(result.youTubeDetectionState, 'Manual');
+    assert.equal(result.youtube.embedAllowed, false);
+});

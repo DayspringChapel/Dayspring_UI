@@ -9,7 +9,7 @@ const browser = await chromium.launch({ headless: true, ...(process.env.DAYSPRIN
 try {
     for (const [key, width] of [['youTube', 390], ['youtube', 1280]]) {
         const context = await browser.newContext({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
-        let active = false, hidden = false, reads = 0;
+        let active = false, hidden = false, reads = 0, embedAllowed = true;
         const page = await context.newPage();
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
@@ -19,7 +19,7 @@ try {
             if (url.origin !== origin) return route.abort();
             if (url.pathname === '/api/livestream') {
                 reads++;
-                return json({ [key]: { active, url: 'https://www.youtube.com/watch?v=AqLocal12345' }, facebook: { active: false }, instagram: { active: false }, hideWatchOnline: hidden });
+                return json({ [key]: { active, embedAllowed, url: 'https://www.youtube.com/watch?v=AqLocal12345' }, facebook: { active: false }, instagram: { active: false }, hideWatchOnline: hidden, youTubeAutoDetect: true, youTubeDetectionState: active ? 'Live' : 'Offline' });
             }
             if (url.pathname.endsWith('/site-settings/hero')) return json({ mode: 0, items: [] });
             if (url.pathname === '/api/youtube-feed') return json({ videos: [] });
@@ -38,7 +38,17 @@ try {
         const player = page.getByTitle('YouTube Live Stream', { exact: true });
         await player.waitFor();
         assert.match(await player.getAttribute('src'), /^https:\/\/www\.youtube\.com\/embed\/AqLocal12345\?/);
+        assert.equal(new URL(await player.getAttribute('src')).searchParams.get('origin'), origin);
+        assert.equal(await player.getAttribute('referrerpolicy'), 'strict-origin-when-cross-origin');
         assert.equal(await page.getByRole('link', { name: 'Open in YouTube →' }).getAttribute('href'), 'https://www.youtube.com/watch?v=AqLocal12345');
+        await page.getByRole('button', { name: 'Close', exact: true }).click();
+        embedAllowed = false;
+        const received = page.waitForResponse(response => new URL(response.url()).pathname === '/api/livestream');
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+        await received; await page.waitForTimeout(100);
+        await button.click();
+        await page.getByRole('link', { name: 'Watch live on YouTube', exact: true }).waitFor();
+        assert.equal(await player.count(), 0, 'A provider-disabled embed uses a direct watch link.');
         await page.getByRole('button', { name: 'Close', exact: true }).click();
         hidden = true;
         await page.evaluate(() => window.dispatchEvent(new Event('online')));

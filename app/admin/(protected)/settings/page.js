@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import Image from 'next/image';
 import HeroSettings from '@/components/admin/HeroSettings';
+import YouTubeLiveSource from '@/components/admin/YouTubeLiveSource';
 
 const PLATFORMS = [
     {
@@ -69,6 +70,7 @@ export default function SettingsPage() {
     const canManageHero = apiClient.hasPermission('CanManageHero');
 
     const [config, setConfig] = useState({
+        youTubeAutoDetect: true,
         youtube:   { active: false, url: '', description: '' },
         facebook:  { active: false, url: '', description: '' },
         instagram: { active: false, url: '', description: '' },
@@ -100,6 +102,7 @@ export default function SettingsPage() {
         apiClient.getLivestreamSettings()
             .then((d) => {
                 setConfig({
+                    youTubeAutoDetect: d.youTubeAutoDetect ?? true,
                     youtube:   { active: false, url: '', description: '', ...d.youtube },
                     facebook:  { active: false, url: '', description: '', ...d.facebook },
                     instagram: { active: false, url: '', description: '', ...d.instagram },
@@ -125,10 +128,8 @@ export default function SettingsPage() {
         setConfig((prev) => ({ ...prev, social: { ...prev.social, [field]: value } }));
 
     // Core computed values
-    const anySocialSet = Object.values(config.social || {}).some((v) => v?.trim());
     const anyUrlSet = PLATFORMS.some((p) => config[p.id]?.url?.trim());
-    const canSave = anyUrlSet || anySocialSet;
-    const anyLive   = PLATFORMS.some((p) => config[p.id]?.active && config[p.id]?.url?.trim());
+    const anyLive   = PLATFORMS.some((p) => !(p.id === 'youtube' && config.youTubeAutoDetect) && config[p.id]?.active && config[p.id]?.url?.trim());
     const anyTarget = Object.values(targets).some(Boolean);
     const anyDescriptionSet = PLATFORMS.some((p) => config[p.id]?.url?.trim() && config[p.id]?.description?.trim());
 
@@ -245,13 +246,14 @@ export default function SettingsPage() {
                 border: '1px solid rgba(255,255,255,0.90)', borderRadius: '1.25rem',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.20)', padding: '1.75rem', marginBottom: '1.5rem',
             }}>
+                <YouTubeLiveSource automatic={config.youTubeAutoDetect} onChange={(value) => setConfig(previous => ({ ...previous, youTubeAutoDetect: value }))} />
                 {/* Card header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     <span style={{ fontSize: '1.3rem' }}>📡</span>
                     <div>
                         <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>Live Stream</h2>
                         <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
-                            Toggle a platform live, paste the stream URL, then add a description.
+                            Automatically detect YouTube Live, or publish a live link manually.
                         </p>
                     </div>
                     {anyLive && (
@@ -284,6 +286,7 @@ export default function SettingsPage() {
                                     {/* Toggle — requires URL */}
                                     <button
                                         onClick={() => hasUrl && update(p.id, 'active', !val.active)}
+                                        disabled={p.id === 'youtube' && config.youTubeAutoDetect}
                                         title={!hasUrl ? 'Paste a stream URL below to enable the live toggle' : val.active ? 'Click to stop this stream' : 'Click to go live'}
                                         style={{
                                             width: 44, height: 24, borderRadius: 999, border: 'none',
@@ -306,6 +309,8 @@ export default function SettingsPage() {
                                 {/* URL input — always visible */}
                                 <input
                                     type="url"
+                                    aria-label={`${p.label} manual livestream URL`}
+                                    disabled={p.id === 'youtube' && config.youTubeAutoDetect}
                                     value={val.url}
                                     onChange={(e) => update(p.id, 'url', e.target.value)}
                                     placeholder={p.placeholder}
@@ -345,7 +350,7 @@ export default function SettingsPage() {
                                                     cursor: ytBusy ? 'not-allowed' : 'pointer',
                                                 }}
                                             >
-                                                {ytBusy ? 'Starting…' : '📡 Start via YouTube API'}
+                                                {ytBusy ? 'Creating…' : 'Create a YouTube broadcast'}
                                             </button>
                                         ) : (
                                             <button
@@ -370,8 +375,9 @@ export default function SettingsPage() {
                                         {ytStream && (
                                             <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '0.6rem', background: '#0f172a' }}>
                                                 <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                    Paste into OBS / your encoder
+                                                    Encoder details for YouTube only
                                                 </p>
+                                                <p style={{ color: '#e2e8f0', fontSize: '0.78rem' }}>These details send video to YouTube. They are not a separate website streaming service. Automatic mode shows the broadcast once YouTube reports it is live.</p>
                                                 <p style={{ margin: '0 0 0.3rem', fontSize: '0.78rem', color: '#e2e8f0', fontFamily: 'monospace', wordBreak: 'break-all' }}>
                                                     Server: {ytStream.ingestionUrl}
                                                 </p>
@@ -589,26 +595,22 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: '1.25rem' }}>
                     <button
                         onClick={save}
-                        disabled={saving || !canSave}
-                        title={!canSave ? 'Add a stream URL or a social/contact link before saving' : undefined}
+                        disabled={saving}
+                        title="Save stream, visibility and contact settings"
                         style={{
                             padding: '0.68rem 1.75rem', borderRadius: '0.75rem', border: 'none',
-                            background: (!saving && canSave) ? 'linear-gradient(135deg,#d9752c,#c26622)' : '#e2e8f0',
-                            color: (!saving && canSave) ? '#fff' : '#94a3b8',
+                            background: !saving ? 'linear-gradient(135deg,#d9752c,#c26622)' : '#e2e8f0',
+                            color: !saving ? '#fff' : '#94a3b8',
                             fontWeight: 800, fontSize: '0.9rem',
-                            cursor: (saving || !canSave) ? 'not-allowed' : 'pointer',
-                            boxShadow: (!saving && canSave) ? '0 4px 16px rgba(217,117,44,0.32)' : 'none',
+                            cursor: saving ? 'not-allowed' : 'pointer',
+                            boxShadow: !saving ? '0 4px 16px rgba(217,117,44,0.32)' : 'none',
                             fontFamily: 'inherit', transition: 'all 0.18s',
                         }}
                     >
                         {saving ? 'Saving…' : 'Save Settings'}
                     </button>
 
-                    {!canSave && (
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                            Add a stream URL or a social/contact link to save
-                        </span>
-                    )}
+
                     {status === 'saved' && <span style={{ color: '#059669', fontSize: '0.85rem', fontWeight: 700 }}>✓ Saved</span>}
                     {status === 'error' && <span style={{ color: '#dc2626', fontSize: '0.85rem', fontWeight: 700 }}>✗ Failed to save</span>}
                 </div>

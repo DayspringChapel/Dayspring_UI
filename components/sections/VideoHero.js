@@ -13,7 +13,11 @@ function getYouTubeEmbedUrl(url) {
     const m = url.match(
         /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/
     );
-    if (m) return `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0`;
+    if (m) {
+        const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+        if (typeof window !== 'undefined') params.set('origin', window.location.origin);
+        return `https://www.youtube.com/embed/${m[1]}?${params}`;
+    }
     return null;
 }
 
@@ -33,7 +37,7 @@ const PLATFORM_META = {
 // ── Modal ──────────────────────────────────────────────────────────────────────
 
 function LiveStreamModal({ streams, onClose }) {
-    const activePlatforms = Object.entries(streams).filter(([, v]) => v.active && v.url);
+    const activePlatforms = Object.entries(streams).filter(([key, v]) => PLATFORM_META[key] && v?.active && v.url);
     const [platform, setPlatform] = useState(
         activePlatforms.length === 1 ? activePlatforms[0][0] : null
     );
@@ -151,9 +155,15 @@ function LiveStreamModal({ streams, onClose }) {
                                     Watch on Instagram →
                                 </a>
                             </div>
+                        ) : platform === 'youtube' && streams.youtube.embedAllowed === false ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-4 px-6 text-center text-white">
+                                <p>This broadcast is available on YouTube. Its settings do not allow playback inside other websites.</p>
+                                <a href={streams.youtube.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-red-600 px-6 py-3 font-bold">Watch live on YouTube</a>
+                            </div>
                         ) : embedUrl ? (
                             <iframe
                                 src={embedUrl}
+                                referrerPolicy="strict-origin-when-cross-origin"
                                 className="w-full h-full"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
