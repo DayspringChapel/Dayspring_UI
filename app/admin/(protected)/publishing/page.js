@@ -310,7 +310,7 @@ export default function PublishingPage() {
     };
 
     const TABS = [
-        { id: 'ready',        label: `Ready to Publish (${readyContents.length})` },
+        { id: 'ready',        label: `Publishing library (${readyContents.length})` },
         { id: 'scheduled',    label: `Scheduled (${scheduledPosts.length})` },
         { id: 'published',    label: `Published (${publishedPosts.length})` },
         { id: 'live-streams', label: `Live Streams${liveStreamItems.length ? ` (${liveStreamItems.length})` : ''}` },

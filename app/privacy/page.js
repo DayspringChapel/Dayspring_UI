@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 const CONTACT_EMAIL = 'dayspringchapelmedia@gmail.com';
-const LAST_UPDATED = '23 October 2026';
+const LAST_UPDATED = '5 November 2026';
 
 function Section({ title, children }) {
     return (
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                     This policy explains what information the DaySpring Chapel website and its supporting services
                     (together, &ldquo;DaySpring Chapel&rdquo;, &ldquo;we&rdquo; or &ldquo;the app&rdquo;) collect, why we collect it,
                     and the choices you have. DaySpring Chapel is an arm of Victory Life Bible Church. The website is
-                    available at <a className="text-primary underline" href="https://dayspring-ui.vercel.app/">https://dayspring-ui.vercel.app/</a>.
+                    available at <a className="text-primary underline" href="https://www.dayspring-vlbc.org/">www.dayspring-vlbc.org</a>.
                 </p>
 
                 <Section title="Information we collect and why">

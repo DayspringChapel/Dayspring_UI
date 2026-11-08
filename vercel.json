@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "env": {
-    "APP_ORIGIN": "https://dayspring-ui.vercel.app"
+    "APP_ORIGIN": "https://www.dayspring-vlbc.org",
+    "APP_ORIGINS": "https://dayspring-vlbc.org,https://dayspring-ui.vercel.app"
   }
 }
