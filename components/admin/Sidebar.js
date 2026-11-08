@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }, []);
 
     const role = resolveRole();
-    const counts = useSidebarCounts(role, permissions.includes('CanModerateComments'));
+    const counts = useSidebarCounts(permissions);
 
     const handleLogout = () => setShowLogoutConfirm(true);
 

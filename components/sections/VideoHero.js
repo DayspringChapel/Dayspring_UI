@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import apiClient from '@/lib/apiClient';
+import { normalizeLivestreamSettings } from '@/lib/livestreamSettings';
 
 // ── URL helpers ────────────────────────────────────────────────────────────────
 
@@ -12,7 +13,11 @@ function getYouTubeEmbedUrl(url) {
     const m = url.match(
         /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([^&?/\s]+)/
     );
-    if (m) return `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0`;
+    if (m) {
+        const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+        if (typeof window !== 'undefined') params.set('origin', window.location.origin);
+        return `https://www.youtube.com/embed/${m[1]}?${params}`;
+    }
     return null;
 }
 
@@ -32,7 +37,7 @@ const PLATFORM_META = {
 // ── Modal ──────────────────────────────────────────────────────────────────────
 
 function LiveStreamModal({ streams, onClose }) {
-    const activePlatforms = Object.entries(streams).filter(([, v]) => v.active && v.url);
+    const activePlatforms = Object.entries(streams).filter(([key, v]) => PLATFORM_META[key] && v?.active && v.url);
     const [platform, setPlatform] = useState(
         activePlatforms.length === 1 ? activePlatforms[0][0] : null
     );
@@ -150,9 +155,15 @@ function LiveStreamModal({ streams, onClose }) {
                                     Watch on Instagram →
                                 </a>
                             </div>
+                        ) : platform === 'youtube' && streams.youtube.embedAllowed === false ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-4 px-6 text-center text-white">
+                                <p>This broadcast is available on YouTube. Its settings do not allow playback inside other websites.</p>
+                                <a href={streams.youtube.url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-red-600 px-6 py-3 font-bold">Watch live on YouTube</a>
+                            </div>
                         ) : embedUrl ? (
                             <iframe
                                 src={embedUrl}
+                                referrerPolicy="strict-origin-when-cross-origin"
                                 className="w-full h-full"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
@@ -207,9 +218,9 @@ export default function VideoHero() {
     const fetchStreams = useCallback(async () => {
         if (modalOpen) return;
         try {
-            const res = await fetch('/api/livestream');
+            const res = await fetch('/api/livestream', { cache: 'no-store' });
             if (!res.ok) return;
-            const data = await res.json();
+            const data = normalizeLivestreamSettings(await res.json());
             setStreams(data);
             setIsLive(!data.hideWatchOnline && Object.entries(data).some(([key, p]) => (
                 ['youtube', 'facebook', 'instagram'].includes(key) && p.active && p.url
@@ -223,7 +234,18 @@ export default function VideoHero() {
         if (modalOpen) return undefined;
         Promise.resolve().then(fetchStreams);
         const id = setInterval(fetchStreams, 60_000);
-        return () => clearInterval(id);
+        const refreshWhenVisible = () => {
+            if (document.visibilityState !== 'hidden') fetchStreams();
+        };
+        window.addEventListener('focus', refreshWhenVisible);
+        window.addEventListener('online', refreshWhenVisible);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            clearInterval(id);
+            window.removeEventListener('focus', refreshWhenVisible);
+            window.removeEventListener('online', refreshWhenVisible);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
     }, [fetchStreams, modalOpen]);
 
     useEffect(() => {

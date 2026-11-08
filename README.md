@@ -3,6 +3,15 @@
 Next.js App Router application. The public website retains church branding; the
 administrative application uses Dayspring OS branding from `lib/branding.js`.
 
+## Complete manual
+
+See [the complete manual](docs/DAYSPRING_OS_COMPLETE_MANUAL.md),
+[the PDF edition](docs/Dayspring_OS_Complete_Manual.pdf),
+[the current route reference](docs/DAYSPRING_OS_ROUTE_REFERENCE.md) and
+[the verification report](docs/DAYSPRING_OS_AUDIT_REPORT.md).
+The manual covers all 67 registered permissions, role defaults, forms, response
+analysis, reports, account/password administration and 24 illustrated workflows.
+
 ## Local development
 
 Use Node 22+, run `npm ci`, copy `.env.example` to `.env.local`, then `npm run dev`.
@@ -28,8 +37,9 @@ Required server environment:
 * `BACKEND_API_URL`: API origin, preferably HTTPS in production. Takes precedence
   over the older `NEXT_PUBLIC_BACKEND_API_URL` fallback.
 * `APP_ORIGIN`: trusted HTTPS browser origin. For this deployment use
-  `https://dayspring-ui.vercel.app` (not the `/admin/login` URL). The repository's
-  `vercel.json` sets that public origin. Dashboard environment values must match it.
+  `https://www.dayspring-vlbc.org` (not the `/admin/login` URL). The repository's
+  `vercel.json` sets that public origin and additional exact apex/Vercel origins.
+  Dashboard environment values must match the actual browser address.
   `APP_ORIGINS` may list additional exact origins separated by commas.
   With neither setting, Vercel deployments use only Vercel's server-supplied project,
   deployment and branch hostnames. Other production hosts fail closed without an origin.
@@ -48,7 +58,8 @@ remain supported. Do not roll back to the old browser-token frontend for session
 The browser uses `/api/auth/session` and `/api/backend/api/v1/...`. Next sends the
 opaque HttpOnly session cookie as an authorization header to a fixed upstream;
 no JWT or refresh token is returned to browser JavaScript. Sessions are stored as
-hashes in PostgreSQL, expire after 12 hours (7 days when remembered), and are
+hashes in PostgreSQL, expire after 30 minutes without user activity, have a
+12-hour absolute limit (7 days when remembered), and are
 revoked by confirmed logout or password change. Re-authentication is required at
 absolute expiry. Only non-secret user/permission state is held in browser memory.
 
@@ -57,7 +68,7 @@ API access. Forward requests to Next preserving public Host/HTTPS scheme and set
 APP_ORIGIN to the public address. Do not cache session/proxy responses in a CDN.
 
 If login returns `Invalid request origin.`, open the Vercel project → Settings →
-Environment Variables and set `APP_ORIGIN=https://dayspring-ui.vercel.app` for
+Environment Variables and set `APP_ORIGIN=https://www.dayspring-vlbc.org` for
 Production, then redeploy. Environment changes do not update an existing deployment.
 Custom domains must be explicitly listed; do not disable the origin guard.
 Public pages, static assets and anonymous public content retain service-worker caching.
