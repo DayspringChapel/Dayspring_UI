@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import apiClient from '@/lib/apiClient';
+import { normalizeLivestreamSettings } from '@/lib/livestreamSettings';
 
 // ── URL helpers ────────────────────────────────────────────────────────────────
 
@@ -207,9 +208,9 @@ export default function VideoHero() {
     const fetchStreams = useCallback(async () => {
         if (modalOpen) return;
         try {
-            const res = await fetch('/api/livestream');
+            const res = await fetch('/api/livestream', { cache: 'no-store' });
             if (!res.ok) return;
-            const data = await res.json();
+            const data = normalizeLivestreamSettings(await res.json());
             setStreams(data);
             setIsLive(!data.hideWatchOnline && Object.entries(data).some(([key, p]) => (
                 ['youtube', 'facebook', 'instagram'].includes(key) && p.active && p.url
@@ -223,7 +224,18 @@ export default function VideoHero() {
         if (modalOpen) return undefined;
         Promise.resolve().then(fetchStreams);
         const id = setInterval(fetchStreams, 60_000);
-        return () => clearInterval(id);
+        const refreshWhenVisible = () => {
+            if (document.visibilityState !== 'hidden') fetchStreams();
+        };
+        window.addEventListener('focus', refreshWhenVisible);
+        window.addEventListener('online', refreshWhenVisible);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            clearInterval(id);
+            window.removeEventListener('focus', refreshWhenVisible);
+            window.removeEventListener('online', refreshWhenVisible);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
     }, [fetchStreams, modalOpen]);
 
     useEffect(() => {
