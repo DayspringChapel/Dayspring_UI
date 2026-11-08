@@ -4,12 +4,24 @@
 
 In Settings > Live Stream, choose a YouTube source, then save settings.
 
+The workspace has separate **YouTube**, **OBS · direct website**, and **Other live links** sections. OBS is clearly marked not configured until an independent host is provided. The other-links section manages Facebook and Instagram separately.
+
 - **Automatically detect YouTube Live**: the API uses the existing server-side church-channel OAuth authorization to list current broadcasts. Only public broadcasts whose actual lifecycle state is `live` are advertised. Starting a public broadcast in YouTube Studio or the YouTube app is sufficient; staff do not paste a new link or create it through Dayspring. An upstream check is cached for 30 seconds per API instance; the homepage checks every minute and when the visitor returns or reconnects. Visibility is therefore periodic, not instantaneous.
 - **Add a YouTube live link**: enter the watch URL, activate its manual toggle and save. This explicitly uses the saved link without automatic discovery. Staff are responsible for deactivating it when the broadcast ends. Facebook and Instagram remain manually configured links.
 
 Automatic mode reports Live, Offline, NotConfigured or Unavailable. An unavailable check does not falsely confirm an old broadcast as live. When OAuth is absent or invalid, configure the existing authorized channel or explicitly use manual mode. Detection reads the channel attached to the existing authorization; a social-footer channel ID does not authorize a different account.
 
 The existing “Create a YouTube broadcast” action provisions a YouTube event and returns encoder details for **YouTube only**. Creating an event does not itself send camera video or prove the event has gone live. Automatic mode waits for YouTube to report actual live state. This action remains optional; automatic discovery does not create or stop broadcasts.
+
+### Fresh refresh and broadcast controls
+
+**Refresh live status** now performs an authorized fresh provider check rather than reusing the public 30-second cache. It shows a checking state, prevents duplicate clicks while pending, updates the last-refreshed time and displays failures clearly. A fresh result may still say Live if YouTube still reports the broadcast as live. Automatic public polling remains cached to control API usage. Concurrent overlapping staff checks share one fresh provider operation.
+
+The fresh route is POST `/api/v1/site-settings/livestream/status/refresh`, protected by `CanManageLivestream`. The browser uses POST `/api/livestream/refresh`, which requires its HttpOnly session and an exact trusted origin. Anonymous or untrusted-origin requests cannot bypass the public cache. If the new backend route is absent, staff see a deployment message rather than a fake successful refresh. No extra database migration was added for this refresh correction.
+
+**Stop / cancel YouTube broadcast** requires confirmation. It ends the connected account's current live broadcast; a managed event that has not started is cancelled instead. Already-ended events are handled without repeating a transition, and changing provider states return a retry message. Provider failure preserves the managed event so staff can retry. A separate scheduled event is not cleared when a different automatically discovered live event is stopped. Manually linking someone else's video does not grant permission to stop it.
+
+Stop results now serialize explicit `success` and `errorMessage` properties. After success, a fresh provider check updates the public status cache. The encoder connection is collapsed by default, and the key remains masked until an authorized operator explicitly reveals or copies it. Switching sections masks it again. No real broadcast was stopped or cancelled during development; lifecycle and failure handling were tested through synthetic provider controls.
 
 ## Embedded playback
 

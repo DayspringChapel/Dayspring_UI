@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import styles from './LivestreamWorkspace.module.css';
 
 const STATES = {
     Live: 'YouTube is live. The website will show the detected broadcast.',
@@ -10,29 +11,49 @@ const STATES = {
     NotChecked: 'Automatic detection requires the updated backend. Saved manual settings are currently being used.',
 };
 
-export default function YouTubeLiveSource({ automatic, onChange }) {
+export default function YouTubeLiveSource({ automatic, onChange, onStatus, refreshKey = 0 }) {
     const [result, setResult] = useState(null);
     const [revision, setRevision] = useState(0);
+    const [checking, setChecking] = useState(false);
+    const [refreshedAt, setRefreshedAt] = useState(null);
     useEffect(() => {
         const controller = new AbortController();
-        const check = async () => {
+        let inFlight = false;
+        const check = async (fresh = false) => {
+            if (inFlight) return;
+            inFlight = true;
+            setChecking(true);
             try {
-                const response = await fetch('/api/livestream', { cache: 'no-store', signal: controller.signal });
-                if (!response.ok) throw new Error('Unavailable');
+                const response = await fetch(fresh ? '/api/livestream/refresh' : '/api/livestream', { method: fresh ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', signal: controller.signal });
+                if (!response.ok) {
+                    const failure = await response.json().catch(() => ({}));
+                    throw new Error(failure.message || 'Unable to refresh live status. Please try again.');
+                }
                 const value = await response.json();
-                setResult({ automatic: value.youTubeAutoDetect ?? true, state: value.youTubeDetectionState ?? 'NotChecked' });
-            } catch { if (!controller.signal.aborted) setResult({ state: 'Unavailable' }); }
+                if (!controller.signal.aborted) {
+                    const next = { automatic: value.youTubeAutoDetect ?? true, state: value.youTubeDetectionState ?? 'NotChecked' };
+                    setResult(next);
+                    onStatus?.(next);
+                    setRefreshedAt(new Date());
+                }
+            } catch (error) { if (!controller.signal.aborted) { const next = { state: 'Unavailable', error: error.message }; setResult(next); onStatus?.(next); } }
+            finally { inFlight = false; if (!controller.signal.aborted) setChecking(false); }
         };
-        check();
+        check(revision > 0 || refreshKey > 0);
         const timer = setInterval(() => { if (document.visibilityState !== 'hidden') check(); }, 60000);
         return () => { clearInterval(timer); controller.abort(); };
-    }, [revision]);
-    return <fieldset style={{ color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: 12, padding: 16, margin: '0 0 20px', minWidth: 0 }}>
-        <legend style={{ fontWeight: 800, padding: '0 6px' }}>YouTube source</legend>
-        <label style={{ display: 'flex', gap: 8, alignItems: 'start', marginBottom: 10 }}><input type="radio" name="youtube-source" checked={automatic} onChange={() => onChange(true)} />Automatically detect YouTube Live</label>
-        <label style={{ display: 'flex', gap: 8, alignItems: 'start' }}><input type="radio" name="youtube-source" checked={!automatic} onChange={() => onChange(false)} />Add a YouTube live link</label>
-        <p style={{ fontSize: 13, lineHeight: 1.6 }}>Automatic mode checks the connected church channel. Start your public broadcast normally in YouTube; no new link is needed here. Save Settings to apply your source choice.</p>
-        <p role="status" style={{ fontSize: 13, lineHeight: 1.6 }}>{result ? result.automatic !== undefined && result.automatic !== automatic ? 'Your source choice has not been saved. Select Save Settings to apply it.' : STATES[result.state] || STATES.Unavailable : 'Checking live status…'}</p>
-        <button type="button" onClick={() => setRevision(value => value + 1)} style={{ padding: '8px 12px', border: '1px solid #94a3b8', borderRadius: 8 }}>Refresh live status</button>
+    }, [revision, refreshKey, onStatus]);
+    return <fieldset className={styles.source}>
+        <legend>YouTube source</legend>
+        <div className={styles.choices}>
+            <label className={styles.choice}><input type="radio" name="youtube-source" checked={automatic} onChange={() => onChange(true)} aria-label="Automatically detect YouTube Live" /><span><strong>Automatic detection</strong><small>Follow the connected church channel. No new link is needed for each service.</small></span></label>
+            <label className={styles.choice}><input type="radio" name="youtube-source" checked={!automatic} onChange={() => onChange(false)} aria-label="Add a YouTube live link" /><span><strong>Manual live link</strong><small>Choose a specific video and control when its link appears.</small></span></label>
+        </div>
+        <p>Save Settings to apply your source choice.</p>
+        <div className={styles.status}>
+            <p role="status" aria-live="polite">{checking ? 'Checking live status…' : result ? result.error || (result.automatic !== undefined && result.automatic !== automatic ? 'Your source choice has not been saved. Select Save Settings to apply it.' : STATES[result.state] || STATES.Unavailable) : 'Live status has not been checked.'}</p>
+            {refreshedAt && !checking && !result?.error && <p className={styles.timestamp}>Last refreshed: <time dateTime={refreshedAt.toISOString()}>{refreshedAt.toLocaleTimeString()}</time></p>}
+        </div>
+        <button type="button" disabled={checking} aria-busy={checking} onClick={() => setRevision(value => value + 1)}>{checking ? 'Checking…' : 'Refresh live status'}</button>
     </fieldset>;
 }
