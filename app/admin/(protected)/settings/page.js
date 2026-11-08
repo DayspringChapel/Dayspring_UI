@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '@/lib/apiClient';
 import Image from 'next/image';
 import HeroSettings from '@/components/admin/HeroSettings';
-import YouTubeLiveSource from '@/components/admin/YouTubeLiveSource';
+import LivestreamWorkspace from '@/components/admin/LivestreamWorkspace';
 
 const PLATFORMS = [
     {
@@ -71,6 +71,7 @@ export default function SettingsPage() {
 
     const [config, setConfig] = useState({
         youTubeAutoDetect: true,
+        youTubeBroadcastCreated: false,
         youtube:   { active: false, url: '', description: '' },
         facebook:  { active: false, url: '', description: '' },
         instagram: { active: false, url: '', description: '' },
@@ -103,6 +104,7 @@ export default function SettingsPage() {
             .then((d) => {
                 setConfig({
                     youTubeAutoDetect: d.youTubeAutoDetect ?? true,
+                    youTubeBroadcastCreated: d.youTubeBroadcastCreated ?? false,
                     youtube:   { active: false, url: '', description: '', ...d.youtube },
                     facebook:  { active: false, url: '', description: '', ...d.facebook },
                     instagram: { active: false, url: '', description: '', ...d.instagram },
@@ -129,7 +131,6 @@ export default function SettingsPage() {
 
     // Core computed values
     const anyUrlSet = PLATFORMS.some((p) => config[p.id]?.url?.trim());
-    const anyLive   = PLATFORMS.some((p) => !(p.id === 'youtube' && config.youTubeAutoDetect) && config[p.id]?.active && config[p.id]?.url?.trim());
     const anyTarget = Object.values(targets).some(Boolean);
     const anyDescriptionSet = PLATFORMS.some((p) => config[p.id]?.url?.trim() && config[p.id]?.description?.trim());
 
@@ -170,11 +171,13 @@ export default function SettingsPage() {
         setYtError(null);
         try {
             const result = await apiClient.stopYouTubeLive();
-            if (!result.success) { setYtError(result.errorMessage || 'Failed to stop broadcast'); return; }
+            if (!result.success) { setYtError(result.errorMessage || 'Failed to stop broadcast'); return false; }
             setYtStream(null);
             await reloadLivestream();
+            return true;
         } catch {
             setYtError('Failed to stop broadcast');
+            return false;
         } finally {
             setYtBusy(false);
         }
@@ -226,7 +229,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div style={{ maxWidth: 760, margin: '0 auto', padding: '2rem' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem)' }}>
             {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.65rem', fontWeight: 900, color: '#f1f5f9', margin: '0 0 0.3rem', letterSpacing: '-0.03em' }}>
@@ -244,155 +247,14 @@ export default function SettingsPage() {
             <div style={{
                 background: 'rgba(255,255,255,0.86)', backdropFilter: 'blur(22px)',
                 border: '1px solid rgba(255,255,255,0.90)', borderRadius: '1.25rem',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.20)', padding: '1.75rem', marginBottom: '1.5rem',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.20)', padding: 'clamp(1rem, 2.5vw, 1.75rem)', marginBottom: '1.5rem',
             }}>
-                <YouTubeLiveSource automatic={config.youTubeAutoDetect} onChange={(value) => setConfig(previous => ({ ...previous, youTubeAutoDetect: value }))} />
-                {/* Card header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                    <span style={{ fontSize: '1.3rem' }}>📡</span>
-                    <div>
-                        <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>Live Stream</h2>
-                        <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
-                            Automatically detect YouTube Live, or publish a live link manually.
-                        </p>
-                    </div>
-                    {anyLive && (
-                        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem',
-                            background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.30)',
-                            borderRadius: '999px', padding: '0.25rem 0.75rem' }}>
-                            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444',
-                                boxShadow: '0 0 6px #ef4444', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Live</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Platform rows */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {PLATFORMS.map((p) => {
-                        const val = config[p.id] || { active: false, url: '', description: '' };
-                        const hasUrl = !!val.url?.trim();
-                        return (
-                            <div key={p.id} style={{
-                                border: `1px solid ${val.active ? p.color + '44' : hasUrl ? p.color + '22' : 'rgba(15,23,42,0.10)'}`,
-                                borderRadius: '0.875rem', padding: '1rem 1.25rem',
-                                background: val.active ? p.color + '08' : hasUrl ? p.color + '04' : 'rgba(255,255,255,0.5)',
-                                transition: 'all 0.2s ease',
-                            }}>
-                                {/* Header row — icon, label, toggle */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.85rem' }}>
-                                    <span style={{ color: p.color, display: 'flex', flexShrink: 0 }}>{p.icon}</span>
-                                    <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a', flex: 1 }}>{p.label}</span>
-                                    {/* Toggle — requires URL */}
-                                    <button
-                                        onClick={() => hasUrl && update(p.id, 'active', !val.active)}
-                                        disabled={p.id === 'youtube' && config.youTubeAutoDetect}
-                                        title={!hasUrl ? 'Paste a stream URL below to enable the live toggle' : val.active ? 'Click to stop this stream' : 'Click to go live'}
-                                        style={{
-                                            width: 44, height: 24, borderRadius: 999, border: 'none',
-                                            cursor: hasUrl ? 'pointer' : 'not-allowed',
-                                            background: val.active ? p.color : hasUrl ? '#94a3b8' : '#e2e8f0',
-                                            position: 'relative', transition: 'background 0.2s',
-                                            flexShrink: 0, opacity: hasUrl ? 1 : 0.45,
-                                        }}
-                                        aria-label={val.active ? `Stop ${p.label} stream` : `Go live on ${p.label}`}
-                                    >
-                                        <span style={{
-                                            position: 'absolute', top: 3,
-                                            left: val.active ? 23 : 3, width: 18, height: 18,
-                                            borderRadius: '50%', background: '#fff',
-                                            boxShadow: '0 1px 4px rgba(0,0,0,0.25)', transition: 'left 0.2s',
-                                        }} />
-                                    </button>
-                                </div>
-
-                                {/* URL input — always visible */}
-                                <input
-                                    type="url"
-                                    aria-label={`${p.label} manual livestream URL`}
-                                    disabled={p.id === 'youtube' && config.youTubeAutoDetect}
-                                    value={val.url}
-                                    onChange={(e) => update(p.id, 'url', e.target.value)}
-                                    placeholder={p.placeholder}
-                                    style={{ ...fieldStyle(focused[`${p.id}_url`], p.color), marginBottom: hasUrl ? '0.6rem' : 0 }}
-                                    onFocus={() => onFocus(`${p.id}_url`)}
-                                    onBlur={() => onBlur(`${p.id}_url`)}
-                                />
-
-                                {/* Description — appears once URL is set */}
-                                {hasUrl && (
-                                    <textarea
-                                        rows={2}
-                                        value={val.description}
-                                        onChange={(e) => update(p.id, 'description', e.target.value)}
-                                        placeholder={p.descPlaceholder}
-                                        style={{
-                                            ...fieldStyle(focused[`${p.id}_desc`], p.color),
-                                            resize: 'vertical', lineHeight: 1.55,
-                                        }}
-                                        onFocus={() => onFocus(`${p.id}_desc`)}
-                                        onBlur={() => onBlur(`${p.id}_desc`)}
-                                    />
-                                )}
-
-                                {/* YouTube-only: create/end a real broadcast via the Live Streaming API */}
-                                {p.id === 'youtube' && (
-                                    <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px dashed rgba(15,23,42,0.12)' }}>
-                                        {!val.active ? (
-                                            <button
-                                                onClick={startYouTube}
-                                                disabled={ytBusy}
-                                                style={{
-                                                    padding: '0.5rem 1rem', borderRadius: '0.6rem', border: 'none',
-                                                    background: ytBusy ? '#e2e8f0' : p.color,
-                                                    color: ytBusy ? '#94a3b8' : '#fff',
-                                                    fontWeight: 700, fontSize: '0.8rem', fontFamily: 'inherit',
-                                                    cursor: ytBusy ? 'not-allowed' : 'pointer',
-                                                }}
-                                            >
-                                                {ytBusy ? 'Creating…' : 'Create a YouTube broadcast'}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={stopYouTube}
-                                                disabled={ytBusy}
-                                                style={{
-                                                    padding: '0.5rem 1rem', borderRadius: '0.6rem', border: 'none',
-                                                    background: ytBusy ? '#e2e8f0' : '#dc2626',
-                                                    color: ytBusy ? '#94a3b8' : '#fff',
-                                                    fontWeight: 700, fontSize: '0.8rem', fontFamily: 'inherit',
-                                                    cursor: ytBusy ? 'not-allowed' : 'pointer',
-                                                }}
-                                            >
-                                                {ytBusy ? 'Stopping…' : '⏹ Stop Broadcast'}
-                                            </button>
-                                        )}
-
-                                        {ytError && (
-                                            <p style={{ margin: '0.5rem 0 0', fontSize: '0.76rem', color: '#dc2626' }}>{ytError}</p>
-                                        )}
-
-                                        {ytStream && (
-                                            <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '0.6rem', background: '#0f172a' }}>
-                                                <p style={{ margin: '0 0 0.4rem', fontSize: '0.72rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>
-                                                    Encoder details for YouTube only
-                                                </p>
-                                                <p style={{ color: '#e2e8f0', fontSize: '0.78rem' }}>These details send video to YouTube. They are not a separate website streaming service. Automatic mode shows the broadcast once YouTube reports it is live.</p>
-                                                <p style={{ margin: '0 0 0.3rem', fontSize: '0.78rem', color: '#e2e8f0', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                                                    Server: {ytStream.ingestionUrl}
-                                                </p>
-                                                <p style={{ margin: 0, fontSize: '0.78rem', color: '#e2e8f0', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                                                    Stream key: {ytStream.streamKey}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-
+                <LivestreamWorkspace
+                    config={config}
+                    setAutomatic={(value) => setConfig(previous => ({ ...previous, youTubeAutoDetect: value }))}
+                    update={update} createYouTube={startYouTube} stopYouTube={stopYouTube}
+                    busy={ytBusy} error={ytError} encoder={ytStream} platforms={PLATFORMS}
+                />
                 {/* ── Social & Contact Links ── */}
                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(15,23,42,0.08)', paddingTop: '1.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
