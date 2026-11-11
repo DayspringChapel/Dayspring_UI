@@ -692,7 +692,7 @@ export default function PublishingPage() {
                                 </div>
                             )}
 
-                            {destKind === 'event' && selectedDestContent?.eventId && <p className={styles.formGroup}>Linked program: <strong>{events.find((item) => item.id === selectedDestContent.eventId)?.heading || selectedDestContent.title}</strong>. The approved flyer will publish to this program.</p>}
+                            {destKind === 'event' && selectedDestContent?.eventId && <p className={styles.formGroup}>Linked program: <strong>{events.find((item) => item.id === selectedDestContent.eventId)?.heading || selectedDestContent.title}</strong>. The approved media will publish to this program.</p>}
                             {destKind === 'event' && !selectedDestContent?.eventId && (
                                 <div className={styles.formGroup}>
                                     <label>Attach to Event *</label>

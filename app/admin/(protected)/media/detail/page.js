@@ -120,7 +120,7 @@ function MediaDetail() {
                             <h1>{content.title}</h1>
                             <span className={`${styles.badge} ${badge.cls}`}>{badge.label}</span>
                         </div>
-                        <p className={styles.description}>{content.description}</p>{content.eventId && <p>This flyer is linked to its program. Change details or replace the flyer in Events & programs; replacement flyers need approval.</p>}
+                        <p className={styles.description}>{content.description}</p>{content.eventId && <p>This media is linked to its program. Edit details or manage its flyer and optional video in Events & programs. Changes follow the approval workflow.</p>}
                         <ul className={styles.metaList}>
                             <li>Type: {content.contentTypeName} · Category: {humanizeLabel(content.categoryName)}</li>
                             <li>Tags: {content.tags || 'none'}</li>

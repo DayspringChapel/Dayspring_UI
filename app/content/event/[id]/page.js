@@ -48,7 +48,7 @@ export default async function EventDetailPage({ params }) {
                         <VideoEmbed
                             youtubeUrl={event.highlightYoutubeUrl}
                             videoUrl={event.highlightVideoUrl}
-                            title={`${title} highlight video`}
+                            title={`${title} ${(event.videoPurpose || 'Highlight').toLowerCase()} video`}
                             fill
                             autoplay
                         />
@@ -153,6 +153,7 @@ export default async function EventDetailPage({ params }) {
             </section>
 
             <NewsletterSection />
+            {hasHighlightVideo && <section style={{ maxWidth: '64rem', margin: '2rem auto', padding: '0 1.5rem' }}><h2 style={{ marginBottom: '1rem' }}>{event.videoPurpose || 'Highlight'} video</h2><VideoEmbed youtubeUrl={event.highlightYoutubeUrl} videoUrl={event.highlightVideoUrl} title={`${title} ${event.videoPurpose || 'Highlight'} video`} /></section>}
         </main>
     );
 }

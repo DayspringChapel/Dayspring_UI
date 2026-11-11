@@ -13,6 +13,7 @@ import Sidebar from '@/components/admin/Sidebar';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ProfileBadge from '@/components/admin/ProfileBadge';
 import PageGuide from '@/components/admin/PageGuide';
+import UploadProgress from '@/components/admin/UploadProgress';
 import styles from './admin.module.css';
 import { PLATFORM_BRANDING } from '@/lib/branding';
 
@@ -134,6 +135,7 @@ export default function ProtectedAdminLayout({ children }) {
                     {access === 'denied' ? <NoAccess /> : access === 'checking' ? <LoadingSpinner message="Checking access" /> : children}
                 </main>
                 <PageGuide />
+                <UploadProgress />
             </div>
         </div>
     );
