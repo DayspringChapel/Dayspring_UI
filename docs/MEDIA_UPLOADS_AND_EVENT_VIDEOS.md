@@ -25,19 +25,25 @@ Open **Events & programs**, find a program and select **Edit details**. Drafts, 
 
 For ordinary roles, edits remove the program from the public listing until the new details are approved and published. The latest linked flyer and video are resubmitted automatically using their existing files. Their workflow histories retain the previous actions. Earlier revisions cannot be published accidentally. Superadmin edits do not require approval and keep already-published programs live. If another editor saved first, refresh before retrying.
 
-## Optional video
+## Optional event video attachments
 
-Save a program, then select **Add / manage video**. Choose **Highlight**, **Trailer** or **Promotional video**, then select a source:
+Open **Events & programs → Event videos** on any active program, whether draft, pending approval or published. Each event holds its own optional collection of up to 20 videos. Choose a title and purpose (Highlight, Trailer or Promotional), then:
 
-1. A YouTube video link.
-2. An existing event-video item from the Cloudinary media library that your account can access.
-3. A new MP4, WebM or MOV upload, up to 100 MiB.
+1. Attach a YouTube link directly to the event.
+2. Tag an existing video you can access from the media library, including videos used by another event. The original media record, category and workflow stay unchanged.
+3. Upload a new video directly to the event. This does not create a normal MediaContent item or a separate media approval job.
 
-Save and tag the video. Upload/tagging requires content-upload and submission permissions. Library reuse is restricted to the owner or media reviewers/full-access personnel; a video already tagged to another event cannot be retagged to a different event. Library items use the **Event highlight video** media category.
+Videos stay with the event through draft, review and publication. Adding/removing videos on a program already in review or published revises the parent event and resubmits its existing flyer for review. A draft stays a draft. Superadmin changes do not require approval. The public event page shows the event's collection when the parent event is published. Normal video uploads continue to work independently.
 
-Tagging submits the video through the normal role hierarchy. Superadmin's video is ready to publish immediately. Select its workflow link to track review or corrections, then publish the approved video through **Media → Publishing**. The linked event is selected automatically by the API. Tagging is optional and does not publish unapproved event details.
+Remove a video using **Remove from event**. Tagging or untagging never deletes the original library item. Removing the original library entry preserves an asset still held by an event. Archived events remain read-only.
 
-Publishing a replacement video changes the single featured video for that event. The public event page includes a playable video section labelled with its purpose. The website retains the existing listing rule: published flyer events from today through the next two calendar months.
+Apply the additional main-context migration `20261111132046_EventVideoAttachments`. It preserves legacy featured event videos as attachments. No reporting migration is needed.
+
+## Cloudinary signature correction
+
+The direct-upload signer must pass parameters to the .NET SDK in ordinal alphabetical order. An ordinary insertion-ordered dictionary produces an invalid signature for these requests. The fixed code signs a SortedDictionary; regression tests independently hash Cloudinary's canonical string. A provider 401 also invalidates the cached upload authorization so retrying gets a fresh grant.
+
+Deploy the corrected API, then the corrected UI. Refresh the upload page and select the file again after deployment. Keep all existing account credentials; no key rotation or secret overwrite is required by this fix. If the live browser still sends binary video data to `/api/backend/...`, its deployed frontend is outdated. The updated client uploads the binary to Cloudinary and sends only receipts to this proxy; it also blocks oversized proxy requests before fetch.
 
 ## Verification
 

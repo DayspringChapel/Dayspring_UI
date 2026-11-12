@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { supportsDirectUploads, uploadToCloudinary, prepareDirectUploads } from '../lib/directUploads.js';
+import { assertSafeProxyUpload, supportsDirectUploads, uploadToCloudinary, prepareDirectUploads } from '../lib/directUploads.js';
 
 function grant() {
     const id = crypto.randomUUID();
@@ -62,4 +62,18 @@ test('owner or source-setting changes cannot reuse a previous upload authorizati
 test('unsigned or arbitrary upload destinations and incomplete provider responses are rejected', async () => {
     await assert.rejects(() => uploadToCloudinary(file(1), { ...grant(), uploadUrl: 'https://untrusted.test/upload' }, () => {}), /Invalid upload destination/);
     await assert.rejects(() => uploadToCloudinary(file(1), grant(), () => {}, async () => ({ done: false })), /did not finish/);
+});
+
+test('unsupported large proxy uploads fail locally instead of sending a Vercel 413 request', () => {
+    assert.throws(() => assertSafeProxyUpload(form(file(7))), /website proxy/);
+    const metadata = new FormData(); metadata.append('File', 'dsupload:synthetic'); assert.doesNotThrow(() => assertSafeProxyUpload(metadata));
+    assert.equal(supportsDirectUploads('/api/v1/event-programs/11111111-1111-1111-1111-111111111111/videos', 'POST'), true);
+});
+
+test('an invalid signature discards the cached grant so a retry gets a fresh authorization', async () => {
+    const body = form(file(1)); let current, signatures = 0;
+    const sign = async () => { signatures++; current = grant(); return current; };
+    await assert.rejects(() => prepareDirectUploads(body, '/api/v1/MediaContent/uploads', 'POST', sign, 'owner', async () => { const error = new Error('Invalid Signature'); error.status = 401; throw error; }), /Invalid Signature/);
+    await prepareDirectUploads(body, '/api/v1/MediaContent/uploads', 'POST', sign, 'owner', async () => ({ public_id: current.publicId }));
+    assert.equal(signatures, 2);
 });

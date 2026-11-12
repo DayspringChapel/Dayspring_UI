@@ -153,7 +153,8 @@ export default async function EventDetailPage({ params }) {
             </section>
 
             <NewsletterSection />
-            {hasHighlightVideo && <section style={{ maxWidth: '64rem', margin: '2rem auto', padding: '0 1.5rem' }}><h2 style={{ marginBottom: '1rem' }}>{event.videoPurpose || 'Highlight'} video</h2><VideoEmbed youtubeUrl={event.highlightYoutubeUrl} videoUrl={event.highlightVideoUrl} title={`${title} ${event.videoPurpose || 'Highlight'} video`} /></section>}
+            {(event.videos?.length > 0 || hasHighlightVideo) && <section style={{ maxWidth: '64rem', margin: '2rem auto', padding: '0 1.5rem' }}><h2 style={{ marginBottom: '1.5rem' }}>Event videos</h2><div style={{ display: 'grid', gap: '2rem' }}>{(event.videos?.length ? event.videos : [{ id: 'featured', title, purpose: event.videoPurpose || 'Highlight', youtubeUrl: event.highlightYoutubeUrl, videoUrl: event.highlightVideoUrl }]).map(video => <article key={video.id}><p style={{ color: '#a35a28', fontWeight: 700 }}>{video.purpose}</p><h3 style={{ marginBottom: '0.75rem' }}>{video.title}</h3><VideoEmbed youtubeUrl={video.youtubeUrl} videoUrl={video.videoUrl} title={video.title || title} /></article>)}</div></section>}
+
         </main>
     );
 }
