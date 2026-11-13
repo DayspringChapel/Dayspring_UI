@@ -11,6 +11,7 @@ const links = [
     { href: '/certificates/download', label: 'Certificate downloads' },
     { href: '/about', label: 'About' },
     { href: '/library', label: 'Library' },
+    { href: '/live', label: 'Watch live' },
     { href: '/events', label: 'Events' },
     { href: '/gallery', label: 'Gallery' },
     { href: '/donate', label: 'Giving' },

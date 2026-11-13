@@ -88,6 +88,7 @@ function LiveStreamModal({ streams, onClose }) {
                     </button>
                 </div>
 
+                <div className="px-5 py-3 border-b border-white/10 text-sm"><Link href="/live" onClick={onClose} className="text-[#F58634] font-semibold">Open the shareable livestream page →</Link></div>
                 {/* ── Platform selector ── */}
                 {activePlatforms.length > 1 && (
                     <div className="flex gap-2 px-5 py-3 border-b border-white/10 shrink-0 flex-wrap">

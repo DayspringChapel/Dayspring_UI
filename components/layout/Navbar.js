@@ -11,6 +11,7 @@ const navigation = [
     { href: '/library', label: 'Library' },
     { href: '/donate', label: 'Giving' },
     { href: '/events', label: 'Events' },
+    { href: '/live', label: 'Watch live' },
     { href: '/gallery', label: 'Gallery' },
     { href: '/appointment', label: 'Appointment' },
 ];
@@ -35,7 +36,7 @@ export default function Navbar() {
                 <Image src="/logo.png" alt="DaySpring Chapel" width={92} height={50} className="h-[50px] w-[92px]" priority />
             </Link>
 
-            <ul className="hidden items-center gap-8 md:flex">
+            <ul className="hidden items-center gap-6 md:flex">
                 {navigation.map((item) => (
                     <li key={item.href}>
                         <Link

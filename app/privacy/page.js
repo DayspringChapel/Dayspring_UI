@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
                         <li>
                             <strong>Technical information.</strong> Our hosting providers keep standard server logs (such as the page requested and
                             the time). Signed-in staff have a sign-in token stored in their browser. The site also keeps copies of public pages and
-                            images in your browser so they load faster and work offline. We do not use advertising or tracking cookies.
+                            images in your browser so they load faster and work offline. Livestream reactions use an essential browser cookie to remember your likes and emoji choices. We do not use advertising or tracking cookies.
                         </li>
                     </ul>
                 </Section>

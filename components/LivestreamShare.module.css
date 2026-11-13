@@ -1,0 +1,8 @@
+.share { margin-block: 20px; min-width: 0; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.actions a,.actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid #d9752c; border-radius: 8px; font: inherit; font-size: 14px; color: inherit; text-decoration: none; background: transparent; cursor: pointer; }
+.actions button { background: #d9752c; color: #fff; font-weight: 700; }
+.share label { display: grid; gap: 8px; margin-top: 14px; font-size: 13px; }
+.share input { width: 100%; min-width: 0; padding: 12px; border: 1px solid #c9d1df; border-radius: 8px; background: #fff; color: #172b43; font: inherit; font-size: 16px; box-sizing: border-box; }
+.share span { display: block; min-height: 24px; padding-top: 6px; font-size: 13px; }
+.share :is(a,button,input):focus-visible { outline: 3px solid #f4b373; outline-offset: 3px; }

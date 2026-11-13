@@ -82,6 +82,7 @@ export default function MobileNav({ isOpen, onClose }) {
                             Giving
                         </Link>
                     </li>
+                    <li className="w-full"><Link href="/live" onClick={onClose} className="block w-full bg-white text-dark text-center font-semibold text-base rounded-lg p-4">Watch live</Link></li>
                     <li className="w-full">
                         <Link
                             href="/events"

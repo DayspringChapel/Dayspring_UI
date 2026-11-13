@@ -1,0 +1,29 @@
+.page { color: #f6f4fc; background: radial-gradient(ellipse at 15% 0%,#30204b 0%,transparent 55%),#0b0c14; padding: 64px 24px 80px; min-height: 75vh; }
+.inner { max-width: 1120px; margin: auto; min-width: 0; }
+.heading { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 28px; }
+.heading h1 { margin: 10px 0; font-size: clamp(32px,5vw,54px); font-weight: 800; line-height: 1.1; }
+.heading p,.below p,.shareCard p,.empty p,.caption p { color: #c1bdce; line-height: 1.7; }
+.eyebrow { font-size: 11px; color: #f0b17c !important; letter-spacing: .15em; font-weight: 750; }
+.live,.badge { border: 1px solid #ffffff25; border-radius: 24px; padding: 10px 16px; font-size: 12px; font-weight: 750; }
+.live { background: #ef334020; color: #ff929b; border-color: #ef334040; }
+.card { overflow: hidden; border: 1px solid #ffffff25; border-radius: 18px; background: #11131e; box-shadow: 0 24px 80px #0004; }
+.player { position: relative; aspect-ratio: 16/9; background: #000; }
+.player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.platforms { display: flex; flex-wrap: wrap; gap: 10px; padding: 16px 20px; border-bottom: 1px solid #ffffff15; }
+.page button,.primary { min-height: 44px; padding: 11px 18px; border: 1px solid #ffffff35; border-radius: 8px; color: inherit; background: transparent; font: inherit; font-size: 14px; cursor: pointer; }
+.page button[aria-pressed=true],.primary { background: #d9752c; border-color: #d9752c; color: #fff; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; }
+.page button:disabled { opacity: .6; cursor: wait; }
+.empty { min-height: 350px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+.empty h2 { font-size: clamp(22px,3vw,30px); font-weight: 750; }
+.empty p { max-width: 540px; }
+.symbol { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #d9752c20; color: #f0b17c; }
+.caption { padding: 24px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: center; }
+.caption h2,.shareCard h2 { font-size: 20px; font-weight: 750; margin-bottom: 8px; }
+.caption p { white-space: pre-line; overflow-wrap: anywhere; }
+.caption a { color: #f0b17c; }
+.below { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 22px 0; }
+.below p { flex: 1; min-width: 200px; font-size: 13px; }
+.shareCard { margin-top: 16px; padding: 28px; background: #ffffff05; border: 1px solid #ffffff20; border-radius: 16px; }
+.error { background: #583529; color: #ffdcc5; padding: 16px; border-radius: 10px; margin-bottom: 20px; }
+.page :is(a,button,input):focus-visible { outline: 3px solid #f0b17c; outline-offset: 3px; }
+@media(max-width:600px) { .page { padding: 32px 14px 48px; } .empty { min-height: 290px; padding: 30px 18px; } .caption,.shareCard { padding: 20px; } .heading { gap: 16px; } .platforms { padding: 14px; } }

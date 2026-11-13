@@ -7,7 +7,7 @@ export function proxy(request) {
         "default-src 'self'", `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ''}`,
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' data: https://fonts.gstatic.com",
         "img-src 'self' data: blob: https:", "media-src 'self' blob: https:",
-        `connect-src 'self' https:${development ? ' ws: wss:' : ''}`, "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com",
+        `connect-src 'self' https:${development ? ' ws: wss:' : ''}`, "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://www.facebook.com https://www.google.com",
         "worker-src 'self' blob:", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
     ].join('; ');
     const headers = new Headers(request.headers); headers.set('x-nonce', nonce); headers.set('Content-Security-Policy', policy);

@@ -18,10 +18,10 @@ export async function GET() {
         let response = await backendFetch('/api/v1/site-settings/livestream/status');
         // Rollout compatibility until the corresponding backend endpoint is deployed.
         if (response.status === 404) response = await backendFetch('/api/v1/site-settings/livestream');
-        if (!response.ok) return Response.json(EMPTY_SETTINGS, { headers: privateHeaders });
+        if (!response.ok) return Response.json(EMPTY_SETTINGS, { status: 503, headers: privateHeaders });
         return Response.json(normalizeLivestreamSettings(await response.json()), { headers: privateHeaders });
     } catch {
-        return Response.json(EMPTY_SETTINGS, { headers: privateHeaders });
+        return Response.json(EMPTY_SETTINGS, { status: 503, headers: privateHeaders });
     }
 }
 

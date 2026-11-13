@@ -1,0 +1,22 @@
+.community { margin-top: 20px; min-width: 0; }
+.reactionCard,.chat { border: 1px solid #ffffff25; border-radius: 16px; background: #11131e; overflow: hidden; }
+.reactionCard { padding: 24px; margin-bottom: 24px; }
+.reactionHeader { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.community h2 { font-size: 20px; font-weight: 750; margin-bottom: 8px; }
+.reactionHeader p,.chat p { font-size: 13px; line-height: 1.7; color: #c1bdce; }
+.reactionHeader a,.chat a { color: #f0b17c; font-size: 13px; }
+.reactions { display: flex; flex-wrap: wrap; gap: 10px; }
+.reactions button { display: inline-flex; align-items: center; gap: 9px; min-height: 46px; border-radius: 24px; }
+.reactions button span:first-child { font-size: 23px; }
+.reactions button[aria-pressed=true] { background: #d9752c30; border-color: #f0b17c; color: #fff; }
+.reactions strong { font-variant-numeric: tabular-nums; }
+.columns { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(280px,1fr); align-items: start; gap: 24px; }
+.columns > * { min-width: 0; }
+.community .comments button { background: #d9752c; color: #fff; border-color: #d9752c; }
+.chat header { padding: 22px; border-bottom: 1px solid #ffffff20; }
+.chat header a { display: inline-flex; margin-top: 12px; }
+.chat iframe { display: block; width: 100%; height: 580px; border: 0; background: #111; }
+.mobileNote { padding: 22px; }
+.error { font-size: 13px; color: #ffb49e; margin-top: 16px; }
+.error button { margin-left: 8px; }
+@media(max-width:899px) { .columns { grid-template-columns: minmax(0,1fr); } .reactionCard { padding: 20px; } .reactions { gap: 8px; } .reactions button { padding: 10px 14px; } }

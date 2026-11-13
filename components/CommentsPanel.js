@@ -39,7 +39,7 @@ function Avatar({ comment }) {
  * One comment feed for a YouTube video: comments written here and comments made on YouTube,
  * newest first. Website comments can be posted without an account; the team moderates them.
  */
-export default function CommentsPanel({ videoId }) {
+export default function CommentsPanel({ videoId, live = false }) {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState(false);
@@ -52,19 +52,22 @@ export default function CommentsPanel({ videoId }) {
     const [notice, setNotice] = useState('');
     const [posting, setPosting] = useState(false);
     const mounted = useRef(true);
+    const textInput = useRef(null);
 
     const load = useCallback(async () => {
         try {
-            const data = await apiClient.getVideoComments(videoId);
+            let data;
+            if (live) { const response = await fetch(`/api/live-engagement/${videoId}/comments`, { cache: 'no-store', signal: AbortSignal.timeout(15000) }); if (!response.ok) throw new Error('Comments are unavailable.'); data = await response.json(); }
+            else data = await apiClient.getVideoComments(videoId);
             if (!mounted.current) return;
-            setComments(data);
+            setComments(live ? data.filter(comment => comment.source !== 'YouTube') : data);
             setLoadError(false);
         } catch {
             if (mounted.current) setLoadError(true);
         } finally {
             if (mounted.current) setLoading(false);
         }
-    }, [videoId]);
+    }, [videoId, live]);
 
     useEffect(() => {
         mounted.current = true;
@@ -87,7 +90,11 @@ export default function CommentsPanel({ videoId }) {
         setFieldErrors({});
         setPosting(true);
         try {
-            const result = await apiClient.postVideoComment({ videoId, name: name.trim(), text: text.trim() });
+            let result;
+            if (live) {
+                const response = await fetch(`/api/live-engagement/${videoId}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), text: text.trim() }), signal: AbortSignal.timeout(15000) });
+                result = await response.json(); if (!response.ok) throw new Error(result.message || 'Your comment could not be posted.');
+            } else result = await apiClient.postVideoComment({ videoId, name: name.trim(), text: text.trim() });
             try { localStorage.setItem(NAME_KEY, name.trim()); } catch { /* ignore */ }
             setText('');
             setNotice(result?.message || 'Comment posted.');
@@ -111,6 +118,14 @@ export default function CommentsPanel({ videoId }) {
     }
 
     const shown = comments.slice(0, visibleCount);
+    function addEmoji(emoji) {
+        const start = textInput.current?.selectionStart ?? text.length;
+        const end = textInput.current?.selectionEnd ?? text.length;
+        const next = text.slice(0, start) + emoji + text.slice(end);
+        if (next.length > MAX_TEXT) return;
+        setText(next);
+        requestAnimationFrame(() => { textInput.current?.focus(); textInput.current?.setSelectionRange(start + emoji.length, start + emoji.length); });
+    }
     const inputClass = (hasError) =>
         `w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-black placeholder-gray-500 ${hasError ? 'border-red-500' : 'border-gray-300'}`;
 
@@ -118,7 +133,7 @@ export default function CommentsPanel({ videoId }) {
         <section className="bg-white rounded-2xl shadow-sm p-5 md:p-7" aria-labelledby="comments-heading">
             <div className="flex items-center justify-between gap-3 mb-5">
                 <h2 id="comments-heading" className="text-lg font-black text-gray-900">
-                    Comments{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
+                    {live ? 'Dayspring comments' : 'Comments'}{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
                 </h2>
                 <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer"
                     className="text-sm font-semibold text-primary hover:underline">
@@ -126,6 +141,7 @@ export default function CommentsPanel({ videoId }) {
                 </a>
             </div>
 
+            {live && <p className="text-sm text-gray-600 mb-4">Comments here are shared on Dayspring and moderated by the media team. Use the YouTube chat to post on YouTube.</p>}
             <form onSubmit={handleSubmit} noValidate className="space-y-3 mb-6">
                 <div>
                     <label htmlFor="comment-name" className="block text-sm font-semibold text-gray-700 mb-1">Your name</label>
@@ -139,9 +155,10 @@ export default function CommentsPanel({ videoId }) {
                         <label htmlFor="comment-text" className="block text-sm font-semibold text-gray-700">Add a comment</label>
                         <span className="text-xs font-medium text-gray-400">{text.length}/{MAX_TEXT}</span>
                     </div>
-                    <textarea id="comment-text" rows={3} value={text} maxLength={MAX_TEXT}
+                    <textarea ref={textInput} id="comment-text" rows={3} value={text} maxLength={MAX_TEXT}
                         onChange={(e) => { setText(e.target.value); setFieldErrors((p) => ({ ...p, text: '' })); }}
                         className={inputClass(fieldErrors.text)} placeholder="Share a thought or a blessing…" />
+                    {live && <div className="flex flex-wrap gap-2 mt-2" aria-label="Comment emojis">{[['🙏', 'Prayer'], ['❤️', 'Heart'], ['👏', 'Applause'], ['🙌', 'Praise'], ['😊', 'Smile']].map(([emoji, label]) => <button type="button" key={label} aria-label={`Add ${label.toLowerCase()} emoji`} onMouseDown={event => event.preventDefault()} onClick={() => addEmoji(emoji)} style={{ background: '#f8f8fc', color: '#172b43', borderColor: '#d6dce8', padding: '8px 12px' }}>{emoji}</button>)}</div>}
                     {fieldErrors.text && <p className="text-red-500 text-sm mt-1">{fieldErrors.text}</p>}
                 </div>
 
