@@ -11,7 +11,7 @@ export default function MobileNav({ isOpen, onClose }) {
     const socialItems = [
         { href: social.facebookPageUrl, label: 'Facebook', icon: <FacebookIcon width={24} height={24} /> },
         { href: social.instagramPageUrl, label: 'Instagram', icon: <InstagramIcon width={24} height={24} /> },
-        { href: social.youTubeChannelId ? `https://www.youtube.com/channel/${social.youTubeChannelId}` : '', label: 'YouTube', icon: <YouTubeIcon width={24} height={24} /> },
+        { href: social.youTubeChannelUrl, label: 'YouTube', icon: <YouTubeIcon width={24} height={24} /> },
         { href: wa, label: 'WhatsApp', icon: <WhatsAppIcon width={24} height={24} /> },
     ].filter((item) => item.href);
 

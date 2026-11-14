@@ -23,7 +23,7 @@ function SocialLinks({ social }) {
     const items = [
         { href: social.facebookPageUrl, label: 'Facebook', icon: <FacebookIcon /> },
         { href: social.instagramPageUrl, label: 'Instagram', icon: <InstagramIcon /> },
-        { href: social.youTubeChannelId ? `https://www.youtube.com/channel/${social.youTubeChannelId}` : '', label: 'YouTube', icon: <YouTubeIcon /> },
+        { href: social.youTubeChannelUrl, label: 'YouTube', icon: <YouTubeIcon /> },
         { href: wa, label: 'WhatsApp', icon: <WhatsAppIcon /> },
     ].filter((item) => item.href);
 
