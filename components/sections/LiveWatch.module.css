@@ -1,4 +1,4 @@
-.page { color: #f6f4fc; background: radial-gradient(ellipse at 15% 0%,#30204b 0%,transparent 55%),#0b0c14; padding: 64px 24px 80px; min-height: 75vh; }
+.page { color: #f6f4fc; background: radial-gradient(ellipse at 15% 0%,#172c49 0%,transparent 55%),#0b0c14; padding: 64px 24px 80px; min-height: 75vh; }
 .inner { max-width: 1120px; margin: auto; min-width: 0; }
 .heading { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 28px; }
 .heading h1 { margin: 10px 0; font-size: clamp(32px,5vw,54px); font-weight: 800; line-height: 1.1; }

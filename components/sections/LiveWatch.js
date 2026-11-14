@@ -19,7 +19,7 @@ export default function LiveWatch() {
             const response = await fetch('/api/livestream', { cache: 'no-store', signal: controller.signal });
             if (!response.ok) throw new Error('Live status is temporarily unavailable.');
             const value = await response.json();
-            if (mounted.current && request.current === controller) { setSettings(value); setError(''); }
+            if (mounted.current && request.current === controller) { setSettings(value); setError(''); window.dispatchEvent(new CustomEvent('dayspring:live-status', { detail: activeLiveStreams(value).length > 0 })); }
         } catch {
             if (mounted.current && request.current === controller) setError('We could not refresh the broadcast. Check your connection and try again.');
         } finally {
@@ -49,7 +49,7 @@ export default function LiveWatch() {
             </article>
             <div className={styles.below}><p>The page updates automatically. If playback is restricted by the platform, use its direct watch link.</p><button type="button" disabled={busy} onClick={refresh}>{busy ? 'Checking…' : 'Refresh live status'}</button></div>
             {videoId && <LiveCommunity key={videoId} videoId={videoId} watchUrl={stream.url} />}
-            <div className={styles.shareCard}><h2>Invite someone to watch</h2><p>Share this permanent link before or during the service. No Dayspring sign-in is needed to open this page.</p><LivestreamShare /></div>
+            <div className={styles.shareCard}><h2>Invite someone to watch</h2><p>Share the watch link while the service is live. No Dayspring sign-in is needed to open this page.</p><LivestreamShare active={!!stream && !error} /></div>
         </div>
     </section>;
 }

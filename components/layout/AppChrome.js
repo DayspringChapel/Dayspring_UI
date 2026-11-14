@@ -9,5 +9,5 @@ export default function AppChrome({ children }) {
     const pathname = usePathname();
     if (pathname?.startsWith('/admin')) return children;
     if (/^\/forms\/[^/]+\/?$/.test(pathname || '') || pathname?.startsWith('/certificates/')) return <main>{children}</main>;
-    return <><Navigation /><main>{children}</main><Footer /><WhatsAppButton /><ChatWidget /></>;
+    return <div className="public-site"><Navigation /><main>{children}</main><Footer /><WhatsAppButton /><ChatWidget /></div>;
 }

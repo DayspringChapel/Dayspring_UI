@@ -50,6 +50,30 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Public website palette. Staff dashboards and standalone forms retain their themes. */
+.public-site {
+  --dark-color: #0b0c14;
+  --bg-light-gray: #131827;
+  background: radial-gradient(ellipse at 15% 0%, #172c49 0%, transparent 55%), #0b0c14;
+  color: #f6f4fc;
+  min-height: 100vh;
+  color-scheme: dark;
+}
+.public-site :is(.bg-white, .bg-gray-50, .bg-gray-100, .bg-bg-light) {
+  background: linear-gradient(135deg, #172338, #101521) !important;
+}
+.public-site :is(.text-dark, .text-black, .text-gray-900, .text-gray-800, .text-gray-700) { color: #f0f3fa !important; }
+.public-site :is(.text-gray-600, .text-gray-500, .text-gray-400) { color: #b8c4d8 !important; }
+.public-site :is(input, select, textarea) { background-color: #111b2b; color: #f0f3fa; border-color: #42516a; }
+.public-site :is(input,textarea)::placeholder { color: #9cabc1; }
+.public-site :is(.border-gray-100,.border-gray-200,.border-gray-300) { border-color: #35435a; }
+.public-site footer,.public-site nav.bg-dark { background: #0b1020; }
+.public-site [style*="background: white"],.public-site [style*="background: rgb(255, 255, 255)"] { background: #131d2e !important; color: #f0f3fa; }
+.watch-live-active { color: #ff505e !important; font-weight: 800; animation: watch-live-pulse 1.5s ease-in-out infinite; }
+.watch-live-active::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #ff3347; }
+@keyframes watch-live-pulse { 0%,100% { text-shadow: 0 0 3px #ff334744; } 50% { text-shadow: 0 0 14px #ff3347bb; } }
+@media (prefers-reduced-motion: reduce) { .watch-live-active { animation: none; } }
+
 h1,
 h2,
 h3,

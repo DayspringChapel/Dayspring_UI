@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import useLiveStatus from '@/lib/useLiveStatus';
 
 const navigation = [
     { href: '/', label: 'Home' },
@@ -18,6 +19,7 @@ const navigation = [
 
 export default function Navbar() {
     const pathname = usePathname();
+    const live = useLiveStatus();
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
@@ -41,7 +43,7 @@ export default function Navbar() {
                     <li key={item.href}>
                         <Link
                             href={item.href}
-                            className={`transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : ''}`}
+                            className={`${item.href === '/live' && live ? 'watch-live-active' : ''} transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : ''}`}
                             aria-current={pathname === item.href ? 'page' : undefined}
                         >
                             {item.label}

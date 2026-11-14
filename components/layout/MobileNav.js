@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import useLiveStatus from '@/lib/useLiveStatus';
 import Image from 'next/image';
 import { useSocialLinks, whatsAppLink } from '@/lib/useSocialLinks';
 import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/components/icons/SocialIcons';
 
 export default function MobileNav({ isOpen, onClose }) {
     const social = useSocialLinks();
+    const live = useLiveStatus();
     const wa = whatsAppLink(social.whatsAppNumber, "Hi DaySpring Chapel, I'd like to chat.");
     const socialItems = [
         { href: social.facebookPageUrl, label: 'Facebook', icon: <FacebookIcon width={24} height={24} /> },
@@ -82,7 +84,7 @@ export default function MobileNav({ isOpen, onClose }) {
                             Giving
                         </Link>
                     </li>
-                    <li className="w-full"><Link href="/live" onClick={onClose} className="block w-full bg-white text-dark text-center font-semibold text-base rounded-lg p-4">Watch live</Link></li>
+                    <li className="w-full"><Link href="/live" onClick={onClose} className={`block w-full bg-white text-dark text-center font-semibold text-base rounded-lg p-4 ${live ? 'watch-live-active' : ''}`}>Watch live</Link></li>
                     <li className="w-full">
                         <Link
                             href="/events"

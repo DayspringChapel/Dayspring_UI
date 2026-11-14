@@ -32,6 +32,12 @@ try {
         await page.getByRole('heading', { name: 'Watch live', exact: true }).waitFor();
         await page.getByRole('heading', { name: 'We’re not broadcasting right now' }).waitFor();
         assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://www.dayspring-vlbc.org/live');
+        assert.equal(await page.getByRole('button', { name: 'Share livestream', exact: true }).isDisabled(), true);
+        assert.equal(await page.getByLabel('Shareable watch link').inputValue(), '');
+        active = true;
+        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.getByTitle('YouTube Live Stream', { exact: true }).waitFor();
+        await page.waitForFunction(() => document.querySelector('nav a[href="/live"]')?.classList.contains('watch-live-active'));
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
         await page.getByText('Livestream link copied.', { exact: true }).waitFor();
         assert.equal(await page.evaluate(() => window.__sharedLink), 'https://www.dayspring-vlbc.org/live');
@@ -39,6 +45,12 @@ try {
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
         await page.getByText('Livestream link shared.', { exact: true }).waitFor();
         assert.equal(await page.evaluate(() => window.__nativeShare), 'https://www.dayspring-vlbc.org/live');
+        await page.evaluate(() => { window.__nativeShare = null; });
+        active = false;
+        await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
+        await page.waitForFunction(() => document.querySelector('input[placeholder="Available during a live broadcast"]')?.disabled);
+        assert.equal(await page.evaluate(() => window.__nativeShare), null);
+
         active = true;
         await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
         const player = page.getByTitle('YouTube Live Stream', { exact: true }); await player.waitFor();
@@ -58,6 +70,8 @@ try {
         hidden = true;
         await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByRole('heading', { name: 'We’re not broadcasting right now' }).waitFor();
+        assert.equal(await page.getByRole('button', { name: 'Share livestream', exact: true }).isDisabled(), true);
+        assert.equal(await page.getByLabel('Shareable watch link').inputValue(), '');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Overflow at ${width}px`);
         assert.equal(authReads, 0); assert.deepEqual(errors, []);
         await context.close();

@@ -25,3 +25,7 @@ The Dayspring like, love, amen, praise and joy buttons store per-browser choices
 Provider limitation: https://support.google.com/youtube/answer/2524549 documents that embedded live chat is unavailable on mobile web.
 
 Validation: pure helper tests cover trusted stream URLs and embed handling. The disposable local browser check in `tests/runtime-live-page.mjs` covers desktop/mobile viewing, offline/live changes, sharing, errors, platform switching and restricted embeds without using a real broadcast.
+
+## Live-only sharing and public styling
+
+Watch-live navigation pulses red while a public stream is active, with a steady indicator for reduced-motion preferences. Copy/share controls are disabled and the URL field is empty while offline. Sharing rechecks public status before proceeding. The public website uses the shared blue-black palette; staff dashboards and creator-themed standalone forms keep their existing themes.
