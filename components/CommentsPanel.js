@@ -46,6 +46,9 @@ export default function CommentsPanel({ videoId, live = false }) {
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
     const [name, setName] = useState('');
+    const [anonymousName, setAnonymousName] = useState('');
+    const [sharingState, setSharingState] = useState('');
+    const maxText = live ? 140 : MAX_TEXT;
     const [text, setText] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
     const [formError, setFormError] = useState('');
@@ -57,10 +60,10 @@ export default function CommentsPanel({ videoId, live = false }) {
     const load = useCallback(async () => {
         try {
             let data;
-            if (live) { const response = await fetch(`/api/live-engagement/${videoId}/comments`, { cache: 'no-store', signal: AbortSignal.timeout(15000) }); if (!response.ok) throw new Error('Comments are unavailable.'); data = await response.json(); }
+            if (live) { const response = await fetch(`/api/live-engagement/${videoId}/comments`, { cache: 'no-store', signal: AbortSignal.timeout(15000) }); if (!response.ok) throw new Error('Comments are unavailable.'); const value = await response.json(); data = Array.isArray(value) ? value : value.comments; if (mounted.current) { setAnonymousName(value.anonymousName || ''); setSharingState(value.sharingWarning ? 'Uncertain' : value.sharingState || ''); } }
             else data = await apiClient.getVideoComments(videoId);
             if (!mounted.current) return;
-            setComments(live ? data.filter(comment => comment.source !== 'YouTube') : data);
+            setComments(data);
             setLoadError(false);
         } catch {
             if (mounted.current) setLoadError(true);
@@ -83,7 +86,6 @@ export default function CommentsPanel({ videoId, live = false }) {
         setNotice('');
 
         const errors = {};
-        if (!name.trim()) errors.name = 'Please enter your name.';
         if (!text.trim()) errors.text = 'Please write a comment.';
         if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
@@ -122,7 +124,7 @@ export default function CommentsPanel({ videoId, live = false }) {
         const start = textInput.current?.selectionStart ?? text.length;
         const end = textInput.current?.selectionEnd ?? text.length;
         const next = text.slice(0, start) + emoji + text.slice(end);
-        if (next.length > MAX_TEXT) return;
+        if (next.length > maxText) return;
         setText(next);
         requestAnimationFrame(() => { textInput.current?.focus(); textInput.current?.setSelectionRange(start + emoji.length, start + emoji.length); });
     }
@@ -133,7 +135,7 @@ export default function CommentsPanel({ videoId, live = false }) {
         <section className="bg-white rounded-2xl shadow-sm p-5 md:p-7" aria-labelledby="comments-heading">
             <div className="flex items-center justify-between gap-3 mb-5">
                 <h2 id="comments-heading" className="text-lg font-black text-gray-900">
-                    {live ? 'Dayspring comments' : 'Comments'}{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
+                    {live ? 'Live conversation' : 'Comments'}{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
                 </h2>
                 <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer"
                     className="text-sm font-semibold text-primary hover:underline">
@@ -141,21 +143,23 @@ export default function CommentsPanel({ videoId, live = false }) {
                 </a>
             </div>
 
-            {live && <p className="text-sm text-gray-600 mb-4">Comments here are shared on Dayspring and moderated by the media team. Use the YouTube chat to post on YouTube.</p>}
+            {live && <p className="text-sm text-gray-600 mb-4">Messages are public and moderated. By posting, you agree that Dayspring may share your message in YouTube live chat through the church account, with your display name in the message.</p>}
+            {live && anonymousName && !name.trim() && <p className="text-sm text-gray-600 mb-3">You are {anonymousName} for this broadcast.</p>}
+            {live && ['Unavailable', 'Uncertain'].includes(sharingState) && <p role="status" className="text-sm text-amber-700 mb-3">{sharingState === 'Uncertain' ? 'Your comment is saved here, but its delivery to YouTube could not be confirmed.' : 'Live chat sharing is temporarily unavailable. Comments are still saved here.'}</p>}
             <form onSubmit={handleSubmit} noValidate className="space-y-3 mb-6">
                 <div>
-                    <label htmlFor="comment-name" className="block text-sm font-semibold text-gray-700 mb-1">Your name</label>
+                    <label htmlFor="comment-name" className="block text-sm font-semibold text-gray-700 mb-1">Your name (optional)</label>
                     <input id="comment-name" type="text" value={name} maxLength={MAX_NAME}
                         onChange={(e) => { setName(e.target.value); setFieldErrors((p) => ({ ...p, name: '' })); }}
-                        className={inputClass(fieldErrors.name)} placeholder="Your name" autoComplete="name" />
+                        className={inputClass(fieldErrors.name)} placeholder={live ? anonymousName || "Leave blank to join anonymously" : "Your name"} autoComplete="name" />
                     {fieldErrors.name && <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>}
                 </div>
                 <div>
                     <div className="flex items-center justify-between mb-1">
                         <label htmlFor="comment-text" className="block text-sm font-semibold text-gray-700">Add a comment</label>
-                        <span className="text-xs font-medium text-gray-400">{text.length}/{MAX_TEXT}</span>
+                        <span className="text-xs font-medium text-gray-400">{text.length}/{maxText}</span>
                     </div>
-                    <textarea ref={textInput} id="comment-text" rows={3} value={text} maxLength={MAX_TEXT}
+                    <textarea ref={textInput} id="comment-text" rows={3} value={text} maxLength={maxText}
                         onChange={(e) => { setText(e.target.value); setFieldErrors((p) => ({ ...p, text: '' })); }}
                         className={inputClass(fieldErrors.text)} placeholder="Share a thought or a blessing…" />
                     {live && <div className="flex flex-wrap gap-2 mt-2" aria-label="Comment emojis">{[['🙏', 'Prayer'], ['❤️', 'Heart'], ['👏', 'Applause'], ['🙌', 'Praise'], ['😊', 'Smile']].map(([emoji, label]) => <button type="button" key={label} aria-label={`Add ${label.toLowerCase()} emoji`} onMouseDown={event => event.preventDefault()} onClick={() => addEmoji(emoji)} style={{ background: '#f8f8fc', color: '#172b43', borderColor: '#d6dce8', padding: '8px 12px' }}>{emoji}</button>)}</div>}
@@ -193,12 +197,12 @@ export default function CommentsPanel({ videoId, live = false }) {
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                     <span className="font-bold text-gray-900 text-sm">{c.authorName}</span>
                                     <span className="text-xs text-gray-400">{timeAgo(c.postedAt)}</span>
-                                    <span className="text-[0.65rem] font-bold uppercase tracking-wide rounded-full px-2 py-0.5"
+                                    {!live && <span className="text-[0.65rem] font-bold uppercase tracking-wide rounded-full px-2 py-0.5"
                                         style={c.source === 'YouTube'
                                             ? { background: '#fee2e2', color: '#b91c1c' }
                                             : { background: '#fff1e6', color: '#c2570c' }}>
                                         {c.source === 'YouTube' ? 'YouTube' : 'Website'}
-                                    </span>
+                                    </span>}
                                 </div>
                                 <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap break-words">{c.text}</p>
                             </div>

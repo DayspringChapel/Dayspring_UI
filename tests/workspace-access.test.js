@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canAccessPath } from '../lib/access.js';
-test('admin and superadmin cannot open the community workspace directly', () => {
-    for (const name of ['churchAdmin','superAdmin']) assert.equal(canAccessPath({ role:{ name } }, '/admin/comments'),false);
-    for (const name of ['churchMedia','contentSocialMedia']) assert.equal(canAccessPath({ role:{ name } }, '/admin/comments'),true);
+test('admin, superadmin and media can open the community workspace within their resource access', () => {
+    for (const name of ['churchAdmin','superAdmin','churchMedia','contentSocialMedia']) {
+        assert.equal(canAccessPath({ role:{ name } }, '/admin/comments'),true);
+        assert.equal(canAccessPath({ role:{ name }, access:{ configured:true,resources:['comments'] } }, '/admin/comments'),true);
+        assert.equal(canAccessPath({ role:{ name }, access:{ configured:true,resources:['forms'] } }, '/admin/comments'),false);
+    }
 });
 test('the shared events workspace respects content or media resource visibility', () => {
     for (const resource of ['content','media']) assert.equal(canAccessPath({ access:{ configured:true,resources:[resource] } }, '/admin/events'),true);

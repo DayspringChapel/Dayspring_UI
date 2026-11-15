@@ -35,7 +35,7 @@ function snooze() {
  */
 export default function InstallPrompt() {
     const pathname = usePathname();
-    const { canInstall, canPrompt, promptInstall } = useInstallApp();
+    const { canInstall, canPrompt, promptInstall, markInstalled } = useInstallApp();
     const [visible, setVisible] = useState(false);
 
     const eligible = canInstall && !pathname?.startsWith('/admin');
@@ -62,7 +62,7 @@ export default function InstallPrompt() {
 
     return (
         <div role="dialog" aria-label="Install the DaySpring Chapel app"
-            className="fixed bottom-4 left-4 right-4 z-[60] mx-auto max-w-md rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/10 md:left-auto md:right-6">
+            className="fixed bottom-4 left-4 right-4 z-[10020] mx-auto max-w-md rounded-2xl bg-white p-4 shadow-2xl ring-1 ring-black/10 md:left-auto md:right-6">
             <div className="flex items-start gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/icons/icon-192.png" alt="" width={48} height={48} className="h-12 w-12 flex-shrink-0 rounded-xl border border-gray-200" />
@@ -76,6 +76,7 @@ export default function InstallPrompt() {
                 </div>
             </div>
             <div className="mt-3 flex justify-end gap-2">
+                <button type="button" onClick={markInstalled} className="rounded-lg px-3 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">Already installed</button>
                 <button type="button" onClick={dismiss}
                     className="rounded-lg px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">
                     {canPrompt ? 'Not now' : 'Got it'}

@@ -231,7 +231,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             title: 'Social & community',
             path: '/admin/comments',
             anyPermission: ['CanModerateComments', ...PERMISSION_GROUPS.publish],
-            socialOnly: true,
             badgeKey: 'comments',
             icon: (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -285,7 +284,6 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     // custom role sees exactly what it's actually allowed to do; `roles` is the legacy fallback
     // for items not yet tied to a specific permission.
     const canSee = (item) => {
-        if (item.socialOnly && ['superAdmin', 'churchAdmin'].includes(apiClient.getUserData()?.role?.name)) return false;
         if (!canAccessPath(apiClient.getUserData(), item.path)) return false;
         if (apiClient.getUserData()?.legacyChurch === false && !['/admin/dashboard', '/admin/forms', '/admin/certificates', '/admin/administrative-approvals', '/admin/workflow-configuration', '/admin/operations', '/admin/churches', '/admin/audit'].some((path) => item.path === path || item.path.startsWith(`${path}/`))) return false;
 

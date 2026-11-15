@@ -9,7 +9,7 @@ const browser = await chromium.launch({ headless: true, ...(process.env.DAYSPRIN
 try {
     for (const width of [390, 1280]) {
         const context = await browser.newContext({ viewport: { width, height: 1000 } });
-        let mine = [], comments = [], fail = false, authReads = 0, posted = '';
+        let mine = [], comments = [{id:'youtube-fixture',videoId:'abcdefghijk',authorName:'Grace',text:'A message from another viewer',source:'YouTube',postedAt:new Date().toISOString()}], fail = false, authReads = 0, posted = '';
         const errors = []; const id = 'abcdefghijk';
         await context.route('**/*', async route => {
             const request = route.request(), url = new URL(request.url());
@@ -20,10 +20,10 @@ try {
             if (url.pathname === `/api/live-engagement/${id}/comments`) {
                 if (request.method() === 'POST') {
                     const value = request.postDataJSON(); posted = value.text;
-                    comments.push({ id: crypto.randomUUID(), videoId: id, authorName: value.name, text: value.text, source: 'Website', postedAt: new Date().toISOString() });
+                    comments.push({ id: crypto.randomUUID(), videoId: id, authorName: value.name || 'Anonymous1', text: value.text, source: 'Website', postedAt: new Date().toISOString() });
                     return json({ message: 'Comment posted.', held: false });
                 }
-                return json(comments);
+                return json({comments,anonymousName:comments.some(c=>c.authorName === 'Anonymous1') ? 'Anonymous1' : null,sharingState:'Connected'});
             }
             if (url.pathname === `/api/live-engagement/${id}`) {
                 if (request.method() === 'PUT') {
@@ -37,27 +37,27 @@ try {
         });
         const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
         await page.goto(`${origin}/live`);
-        await page.getByRole('heading', { name: 'Dayspring comments', exact: true }).waitFor();
-        const chat = page.getByTitle('YouTube live chat', { exact: true });
-        if (width >= 900) {
-            await chat.waitFor(); const url = new URL(await chat.getAttribute('src')); assert.equal(url.searchParams.get('v'), id); assert.equal(url.searchParams.get('embed_domain'), '127.0.0.1');
-        } else { assert.equal(await chat.count(), 0); await page.getByText(/YouTube’s embedded chat is available on desktop/).waitFor(); }
-        await page.getByRole('link', { name: /123 YouTube likes/ }).waitFor();
+        await page.getByRole('heading', { name: /^Live conversation/ }).waitFor();
+        await page.getByText('A message from another viewer', {exact:true}).waitFor();
+        assert.equal(await page.getByTitle('YouTube live chat', {exact:true}).count(),0);
+        assert.equal(await page.getByText('Website', {exact:true}).count(),0);
         const like = page.getByRole('button', { name: /^Like/ }); await like.click();
-        await page.waitForFunction(() => document.querySelector('[aria-label="Dayspring reactions"] button')?.getAttribute('aria-pressed') === 'true');
-        await page.reload(); await page.getByRole('heading', { name: 'React with Dayspring' }).waitFor();
-        await page.waitForFunction(() => document.querySelector('[aria-label="Dayspring reactions"] button')?.getAttribute('aria-pressed') === 'true');
-        await like.click(); await page.waitForFunction(() => document.querySelector('[aria-label="Dayspring reactions"] button')?.getAttribute('aria-pressed') === 'false');
+        await page.waitForFunction(() => document.querySelector('[aria-label="Live reactions"] button')?.getAttribute('aria-pressed') === 'true');
+        await page.reload(); await page.getByRole('heading', { name: 'Join the conversation' }).waitFor();
+        await page.waitForFunction(() => document.querySelector('[aria-label="Live reactions"] button')?.getAttribute('aria-pressed') === 'true');
+        await like.click(); await page.waitForFunction(() => document.querySelector('[aria-label="Live reactions"] button')?.getAttribute('aria-pressed') === 'false');
         fail = true; await page.getByRole('button', { name: /^Amen/ }).click();
         await page.getByRole('alert').filter({ hasText: 'Synthetic reaction outage' }).waitFor(); assert.deepEqual(mine, []);
         await page.getByRole('button', { name: 'Refresh reactions' }).click();
         await page.getByRole('alert').filter({ hasText: 'Synthetic reaction outage' }).waitFor({ state: 'hidden' });
-        await page.getByLabel('Your name', { exact: true }).fill('A viewer'); await page.getByLabel('Add a comment', { exact: true }).fill('Amen ');
+        await page.getByLabel('Your name (optional)', { exact: true }).fill(''); await page.getByLabel('Add a comment', { exact: true }).fill('Amen ');
         await page.getByRole('button', { name: 'Add prayer emoji' }).click(); await page.getByRole('button', { name: 'Post comment', exact: true }).click();
         await page.getByText('Comment posted.', { exact: true }).waitFor(); assert.equal(posted, 'Amen 🙏');
         await page.getByText('Amen 🙏', { exact: true }).waitFor();
+        await page.getByText('Anonymous1', {exact:true}).waitFor();
+        await page.getByText('You are Anonymous1 for this broadcast.', {exact:true}).waitFor();
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Overflow at ${width}px`);
         assert.equal(authReads, 0); assert.deepEqual(errors, []); await context.close();
     }
-    console.log('PASS: desktop YouTube chat, mobile fallback, separately labelled YouTube likes, saved/toggled website reactions, failure recovery and emoji comments on mobile/desktop.');
+    console.log('PASS: unified live conversation, imported comments without source badges, saved reactions, failure recovery and optional-name emoji comments on mobile/desktop.');
 } finally { await browser.close(); }

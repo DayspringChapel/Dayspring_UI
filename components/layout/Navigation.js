@@ -16,7 +16,7 @@ export default function Navigation() {
             <div className="relative">
                 <Navbar />
                 <div className="absolute top-2 right-4 md:hidden">
-                    <HamburgerButton onClick={openMobileNav} />
+                    <HamburgerButton expanded={isMobileNavOpen} onClick={isMobileNavOpen ? closeMobileNav : openMobileNav} />
                 </div>
             </div>
             <MobileNav isOpen={isMobileNavOpen} onClose={closeMobileNav} />

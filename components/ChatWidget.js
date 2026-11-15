@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import useMovableAssistant from '@/lib/useMovableAssistant';
 
 const BRAND = '#F58634';
 const BRAND_DARK = '#d9752c';
@@ -100,6 +101,7 @@ function TypingDots() {
 }
 
 export default function ChatWidget() {
+    const movable = useMovableAssistant();
     const [open, setOpen]           = useState(false);
     const [messages, setMessages]   = useState([WELCOME]);
     const [input, setInput]         = useState('');
@@ -194,8 +196,7 @@ export default function ChatWidget() {
                 <div
                     style={{
                         position: 'fixed',
-                        bottom: 88,
-                        right: 24,
+                        ...movable.panelPosition,
                         width: 360,
                         maxWidth: 'calc(100vw - 32px)',
                         height: 500,
@@ -416,11 +417,13 @@ export default function ChatWidget() {
 
             {/* Floating toggle button */}
             <button
-                onClick={() => setOpen((v) => !v)}
+                {...movable.handlers}
+                onClick={() => { if (movable.shouldToggle()) setOpen((v) => !v); }}
+                title="Drag to move. You can also use the arrow keys."
                 style={{
                     position: 'fixed',
-                    bottom: 24,
-                    right: 24,
+                    ...movable.position,
+                    touchAction: 'none',
                     width: 56,
                     height: 56,
                     borderRadius: '50%',

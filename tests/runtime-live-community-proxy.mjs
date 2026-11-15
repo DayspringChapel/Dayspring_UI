@@ -35,8 +35,11 @@ try {
     const before = calls;
     assert.equal((await fetch(endpoint, { method: 'PUT', headers: { ...headers, Origin: 'https://untrusted.example' }, body: '{}' })).status, 403);
     assert.equal((await fetch(endpoint, { method: 'PUT', headers, body: JSON.stringify({ kind: 'fake', active: true }) })).status, 400); assert.equal(calls, before);
-    const text = '🙏'.repeat(200);
+    const text = '🙏'.repeat(60);
     const posted = await fetch(`${endpoint}/comments`, { method: 'POST', headers, body: JSON.stringify({ name: 'Viewer', text, videoId: 'otherstream' }) });
     assert.equal(posted.status, 200); assert.equal((await posted.json()).held, true); assert.equal(lastComment.videoId, id); assert.equal(lastComment.text, text);
+    const anonymous = await fetch(`${endpoint}/comments`, { method: 'POST', headers, body: JSON.stringify({ text:'Anonymous 🙏' }) });
+    assert.equal(anonymous.status, 200); assert.equal(lastComment.name, null);
+    assert.equal((await fetch(`${endpoint}/comments`, {method:'POST',headers,body:JSON.stringify({text:'x'.repeat(141)})})).status,400);
     console.log('PASS: private per-browser cookie, no-store responses, persistent choices, duplicate PUTs, origin/input validation and Unicode comments through the real Next proxy.');
 } finally { await new Promise(resolve => backend.close(resolve)); }

@@ -2,10 +2,12 @@
 
 import Image from 'next/image';
 
-export default function HamburgerButton({ onClick }) {
+export default function HamburgerButton({ onClick, expanded }) {
     return (
         <button
             onClick={onClick}
+            aria-expanded={expanded}
+            aria-controls="mobile-menu"
             className="md:hidden bg-transparent p-2"
             aria-label="Open mobile menu"
         >

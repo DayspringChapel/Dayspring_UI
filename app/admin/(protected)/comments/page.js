@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import apiClient from '@/lib/apiClient';
 import styles from './comments.module.css';
 import PublishingPage from '../publishing/page';
@@ -25,38 +25,56 @@ export default function SocialCommunityPage() {
     return <><section className={management.page} style={{ minHeight: 0, paddingBottom: 0 }}><header className={management.header}><div><p className={management.eyebrow}>CONNECTION & OUTREACH</p><h1>Social & community</h1><p>Review audience conversations and manage approved social publishing.</p></div></header><nav className={management.tabs} aria-label="Social workspace"><button aria-pressed={tab === 'community'} onClick={() => setTab('community')}>Community inbox</button><button aria-pressed={tab === 'publishing'} onClick={() => setTab('publishing')}>Social publishing</button></nav></section>{tab === 'community' ? <CommentsModerationPage /> : <PublishingPage />}</>;
 }
 function CommentsModerationPage() {
-    const [status, setStatus] = useState('Pending');
+    const [status, setStatus] = useState('');
     const [source, setSource] = useState('');
     const [comments, setComments] = useState([]);
     const [counts, setCounts] = useState({ pending: 0, hidden: 0 });
     const [loading, setLoading] = useState(true);
     const [busyId, setBusyId] = useState(null);
     const [loadError, setLoadError] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const requestVersion = useRef(0);
+    const invalidateRequests = useCallback(() => { ++requestVersion.current; }, []);
 
     const { toast, notify, clearToast } = useToast();
     const { dialog, confirm, closeDialog } = useConfirm();
 
     const load = useCallback(async () => {
+        const version = ++requestVersion.current;
+        setRefreshing(true);
         try {
             const [list, summary] = await Promise.all([
                 apiClient.getCommentsForModeration({ status, source }),
                 apiClient.getCommentCounts(),
             ]);
+            if (version !== requestVersion.current) return;
             setComments(list);
             setCounts(summary);
             setLoadError(false);
         } catch (error) {
+            if (version !== requestVersion.current) return;
             console.error('Failed to load comments:', error);
             setLoadError(true);
         } finally {
-            setLoading(false);
+            if (version === requestVersion.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     }, [status, source]);
 
     useEffect(() => {
         setLoading(true);
         load();
-    }, [load]);
+        const refreshVisible = () => { if (document.visibilityState === 'visible') load(); };
+        const timer = window.setInterval(refreshVisible, 60000);
+        window.addEventListener('focus', refreshVisible);
+        return () => {
+            invalidateRequests();
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refreshVisible);
+        };
+    }, [load, invalidateRequests]);
 
     async function changeStatus(comment, nextStatus, removeFromYouTube = false) {
         setBusyId(comment.id);
@@ -113,9 +131,10 @@ function CommentsModerationPage() {
 
             <div className={styles.header}>
                 <h2>Community inbox</h2>
-                <p>Moderate comments from the website and YouTube. Comments with links wait here for review.</p>
+                <p>View the latest 200 website and imported YouTube comments. All comments are shown first; use Needs review for comments awaiting approval.</p>
             </div>
 
+            <p className={styles.sourceNote}>Facebook and Instagram comments are managed in <a className={styles.link} href="https://business.facebook.com/latest/inbox/all" target="_blank" rel="noopener noreferrer">Meta Business Suite</a>; they are not imported into this inbox. Connected YouTube live chat messages also appear here during the broadcast.</p>
             <div className={styles.toolbar}>
                 <div className={styles.tabs} role="tablist" aria-label="Comment status">
                     {TABS.map((tab) => (
@@ -132,6 +151,7 @@ function CommentsModerationPage() {
                     <option value="Website">Website</option>
                     <option value="YouTube">YouTube</option>
                 </select>
+                <button type="button" className={styles.btn} disabled={refreshing} onClick={load}>{refreshing ? 'Refreshing…' : 'Refresh comments'}</button>
             </div>
 
             {loadError ? (
@@ -154,7 +174,7 @@ function CommentsModerationPage() {
                                     <span className={`${styles.badge} ${styles[c.status.toLowerCase()]}`}>{c.status}</span>
                                     <span>{formatWhen(c.postedAt)}</span>
                                     <a className={styles.link} href={`https://www.youtube.com/watch?v=${c.videoId}`} target="_blank" rel="noopener noreferrer">
-                                        View video â†—
+                                        View video ↗
                                     </a>
                                 </div>
                                 <p className={styles.text}>{c.text}</p>
