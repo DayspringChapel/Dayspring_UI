@@ -254,6 +254,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             children: [
                 { title: 'Reports & analytics', path: '/admin/reports', permission: 'CanViewReports' },
                 { title: 'Livestream analytics', path: '/admin/live-analytics', permission: 'CanViewReports' },
+                { title: 'Social analytics', path: '/admin/social-analytics', permission: 'CanViewReports' },
                 { title: 'Audit trail', path: '/admin/audit', permission: 'audit.view' },
             ],
         },

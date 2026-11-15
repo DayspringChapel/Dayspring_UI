@@ -71,6 +71,9 @@ try{
         page.on('pageerror',e=>errors.push(e.message));await page.goto(`${origin}/admin/live-analytics`);
         await page.getByRole('heading',{name:'Livestream analytics',exact:true}).waitFor();await page.getByRole('heading',{name:'Audience over time'}).waitFor();
         assert.equal(await page.getByRole('img',{name:'Concurrent website viewers',exact:true}).count(),1);
+        assert.equal(await page.getByRole('img',{name:'Concurrent website viewers',exact:true}).locator('polyline').count(),1);
+        await page.getByRole('button',{name:'Time watched',exact:true}).click();await page.getByRole('img',{name:'Website viewing minutes',exact:true}).waitFor();
+        if(role==='superAdmin'){const chart=page.getByRole('img',{name:'Concurrent website viewers',exact:true});await chart.scrollIntoViewIfNeeded();await chart.screenshot({path:'../.tmp/live-audience-chart.png'});}
         const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export CSV',exact:true}).click();const download=await downloadPromise;assert.match(download.suggestedFilename(),/^dayspring-live-youtube-/);
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Admin overflow: ${role}`);assert.deepEqual(errors,[]);await context.close();
     }

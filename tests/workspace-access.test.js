@@ -17,3 +17,10 @@ test('livestream analytics respects the reports resource', () => {
     assert.equal(canAccessPath({access:{configured:true,resources:['reports']}},'/admin/live-analytics'),true);
     assert.equal(canAccessPath({access:{configured:true,resources:['forms']}},'/admin/live-analytics'),false);
 });
+
+test('social analytics respects the reports resource for staff', () => {
+    for (const name of ['churchAdmin','superAdmin','churchMedia']) {
+        assert.equal(canAccessPath({role:{name},access:{configured:true,resources:['reports']}},'/admin/social-analytics'),true);
+        assert.equal(canAccessPath({role:{name},access:{configured:true,resources:['forms']}},'/admin/social-analytics'),false);
+    }
+});

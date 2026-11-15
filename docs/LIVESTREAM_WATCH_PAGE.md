@@ -67,3 +67,11 @@ Do Not Track and Global Privacy Control disable audience heartbeat collection. T
 `commentsDisabled` from `commentThreads.list` refers to ordinary video comments. It does not determine whether live chat is enabled. This expected response is logged once at information level and video-comment import backs off for 15 minutes, avoiding repeated exception traces and unnecessary calls. Authentication, quota and other provider failures remain distinguishable warnings. Reading saved website chat is protected by a four-second provider-sync budget, so a slow YouTube connection does not block the entire feed. The background worker imports ordinary video comments separately from the live-chat path.
 
 Website messages are relayed into **YouTube live chat** through the church account after moderation approval. Live chat must be enabled on YouTube and the existing account must have posting permission. This does not bypass disabled comments or YouTube's own restrictions. Enable the relevant feature in YouTube Studio if the channel owner wants it available.
+
+## Reading the improved reports
+
+Choose a broadcast from the selector. Date filters select broadcasts; each selected report still covers that broadcast's complete tracked lifetime. Browse broadcast history opens the comparison table.
+
+The summary shows how many page visits started the video. The six main cards distinguish current watching, video starts, distinct viewing browsers, total/average watch time and peak watching. **Audience over time** uses a straight line for each period's peak concurrent viewers. **Viewing activity** uses columns for new video starts or viewing minutes per period. Device and referral bars compare categories. Hover, tap or focus a chart and use arrow keys for exact measurements. Gaps stay blank; a single measurement appears as a point until more history exists.
+
+The **Social accounts** tab opens the new [Social analytics workspace](SOCIAL_ANALYTICS.md), which uses platform-reported measurements rather than website heartbeat data.

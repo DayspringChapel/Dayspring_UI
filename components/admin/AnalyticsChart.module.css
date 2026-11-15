@@ -1,0 +1,14 @@
+.frame { min-width:0; margin-top:16px; }
+.chart { display:block; width:100%; height:240px; overflow:visible; color:inherit; touch-action:pan-y; border-radius:8px; }
+.chart text { fill:currentColor; opacity:.7; font-size:11px; font-family:inherit; }
+.chart:focus-visible { outline:2px solid #d9752c; outline-offset:5px; }
+.grid { stroke:currentColor; opacity:.12; stroke-width:1; }
+.line { fill:none; stroke:#d9752c; stroke-width:2.6; stroke-linejoin:round; stroke-linecap:round; }
+.dot,.bar { fill:#d9752c; }
+.dot { stroke:var(--card-bg,#fff); stroke-width:2; }
+.cursor { stroke:#d9752c; opacity:.4; stroke-width:1; }
+.readout { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; min-height:46px; font-size:12px; color:inherit; }
+.readout strong { font-size:18px; font-variant-numeric:tabular-nums; }
+.readout span,.readout small { opacity:.7; }
+.empty { display:grid; place-items:center; min-height:220px; text-align:center; padding:24px; font-size:13px; opacity:.7; }
+.hint { font-size:12px; opacity:.75; margin-top:8px; }
