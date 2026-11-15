@@ -15,7 +15,7 @@ test('only enabled, visible streams with trusted HTTPS links can be watched', ()
 test('YouTube playback includes the actual site origin and handles common shared video URLs', () => {
     for (const url of ['https://youtu.be/abcdefghijk', 'https://www.youtube.com/live/abcdefghijk', 'https://www.youtube.com/watch?feature=shared&v=abcdefghijk']) {
         const embed = new URL(liveEmbedUrl({ platform: 'youtube', url }, 'https://www.dayspring-vlbc.org'));
-        assert.equal(embed.pathname, '/embed/abcdefghijk'); assert.equal(embed.searchParams.get('origin'), 'https://www.dayspring-vlbc.org');
+        assert.equal(embed.searchParams.get('autoplay'), '0'); assert.equal(embed.searchParams.get('enablejsapi'), '1'); assert.equal(embed.pathname, '/embed/abcdefghijk'); assert.equal(embed.searchParams.get('origin'), 'https://www.dayspring-vlbc.org');
     }
 });
 test('restricted embeds and Instagram use a direct provider link', () => {

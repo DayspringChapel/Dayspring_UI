@@ -63,6 +63,7 @@ export default function CommentsPanel({ videoId, live = false }) {
             if (live) { const response = await fetch(`/api/live-engagement/${videoId}/comments`, { cache: 'no-store', signal: AbortSignal.timeout(15000) }); if (!response.ok) throw new Error('Comments are unavailable.'); const value = await response.json(); data = Array.isArray(value) ? value : value.comments; if (mounted.current) { setAnonymousName(value.anonymousName || ''); setSharingState(value.sharingWarning ? 'Uncertain' : value.sharingState || ''); } }
             else data = await apiClient.getVideoComments(videoId);
             if (!mounted.current) return;
+            if (!Array.isArray(data)) throw new Error('Comments are unavailable.');
             setComments(data);
             setLoadError(false);
         } catch {
@@ -135,7 +136,7 @@ export default function CommentsPanel({ videoId, live = false }) {
         <section className="bg-white rounded-2xl shadow-sm p-5 md:p-7" aria-labelledby="comments-heading">
             <div className="flex items-center justify-between gap-3 mb-5">
                 <h2 id="comments-heading" className="text-lg font-black text-gray-900">
-                    {live ? 'Live conversation' : 'Comments'}{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
+                    {live ? 'Live chat' : 'Comments'}{!loading && comments.length > 0 ? ` (${comments.length})` : ''}
                 </h2>
                 <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noopener noreferrer"
                     className="text-sm font-semibold text-primary hover:underline">

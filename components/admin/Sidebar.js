@@ -253,6 +253,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M4 17V10M10 17V4M16 17V13" /></svg>,
             children: [
                 { title: 'Reports & analytics', path: '/admin/reports', permission: 'CanViewReports' },
+                { title: 'Livestream analytics', path: '/admin/live-analytics', permission: 'CanViewReports' },
                 { title: 'Audit trail', path: '/admin/audit', permission: 'audit.view' },
             ],
         },

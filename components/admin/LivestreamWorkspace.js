@@ -1,5 +1,7 @@
 'use client';
 import { useCallback, useState } from 'react';
+import Link from 'next/link';
+import apiClient from '@/lib/apiClient';
 import YouTubeLiveSource from './YouTubeLiveSource';
 import LivestreamShare from '@/components/LivestreamShare';
 import AdminConfirm, { useConfirm } from './AdminConfirm';
@@ -35,6 +37,7 @@ export default function LivestreamWorkspace({ config, setAutomatic, update, crea
     }
     return <section className={styles.workspace} aria-label="Livestream workspace">
         <header className={styles.heading}><div><p className={styles.eyebrow}>Broadcast workspace</p><h2>Live streaming</h2><p>Choose your source, manage YouTube broadcasts and control what visitors can watch.</p></div></header>
+        {apiClient.hasPermission('CanViewReports') && <Link href="/admin/live-analytics">View livestream analytics ↗</Link>}
         <LivestreamShare />
         <div className={styles.tabs} role="tablist" aria-label="Livestream sections">{[['youtube', 'YouTube'], ['obs', 'OBS · direct website'], ['links', 'Other live links']].map(([id, label]) => <button key={id} id={`stream-tab-${id}`} type="button" role="tab" aria-selected={tab === id} aria-controls={`stream-panel-${id}`} onClick={() => { setTab(id); setReveal(false); setCopied(''); }}>{label}</button>)}</div>
         <div role="tabpanel" id={`stream-panel-${tab}`} aria-labelledby={`stream-tab-${tab}`}>

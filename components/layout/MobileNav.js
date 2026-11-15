@@ -23,5 +23,6 @@ export default function MobileNav({ isOpen, onClose }) {
         <header><strong>Explore Dayspring</strong><button type="button" onClick={onClose} aria-label="Close mobile menu">×</button></header>
         <ul className={styles.links}>{LINKS.map(([href,label]) => <li key={href}><Link href={href} onClick={onClose} className={href === '/live' && live ? 'watch-live-active' : ''}>{label}<span aria-hidden="true">↗</span></Link></li>)}</ul>
         <div className={styles.social}>{items.filter(([url]) => url).map(([url,label,Icon]) => <a key={label} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Follow us on ${label}`}><Icon width={22} height={22}/></a>)}</div>
+        <Link className={styles.staff} href="/admin/login" onClick={onClose}>Admin sign in <span aria-hidden="true">↗</span></Link>
     </nav>;
 }

@@ -12,3 +12,8 @@ test('the shared events workspace respects content or media resource visibility'
     for (const resource of ['content','media']) assert.equal(canAccessPath({ access:{ configured:true,resources:[resource] } }, '/admin/events'),true);
     assert.equal(canAccessPath({ access:{ configured:true,resources:['forms'] } }, '/admin/events'),false);
 });
+
+test('livestream analytics respects the reports resource', () => {
+    assert.equal(canAccessPath({access:{configured:true,resources:['reports']}},'/admin/live-analytics'),true);
+    assert.equal(canAccessPath({access:{configured:true,resources:['forms']}},'/admin/live-analytics'),false);
+});

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { activeLiveStreams, liveEmbedUrl, liveYouTubeVideoId } from '@/lib/livePlayer';
 import LivestreamShare from '@/components/LivestreamShare';
 import LiveCommunity from './LiveCommunity';
+import LivePlayer from './LivePlayer';
 import styles from './LiveWatch.module.css';
 
 export default function LiveWatch() {
@@ -38,13 +39,12 @@ export default function LiveWatch() {
     const videoId = liveYouTubeVideoId(stream);
     return <section className={styles.page}>
         <div className={styles.inner}>
-            <header className={styles.heading}><div><p className={styles.eyebrow}>DAYSPRING CHAPEL · WATCH TOGETHER</p><h1>Watch live</h1><p>Join our worship service wherever you are.</p></div><span className={stream ? styles.live : styles.badge}>{stream ? '● LIVE NOW' : settings ? 'BROADCAST STATUS' : error ? 'STATUS UNAVAILABLE' : 'CONNECTING'}</span></header>
+            <header className={styles.heading}><div><p className={styles.eyebrow}>DAYSPRING CHAPEL · WATCH TOGETHER</p><h1>Watch live</h1><p>Join our services</p></div><span className={stream ? styles.live : styles.badge}>{stream ? '● LIVE NOW' : settings ? 'BROADCAST STATUS' : error ? 'STATUS UNAVAILABLE' : 'CONNECTING'}</span></header>
             {error && <p className={styles.error} role="alert">{error} {stream && 'The player is showing the last received broadcast.'} <button type="button" disabled={busy} onClick={refresh}>{busy ? 'Checking…' : 'Try again'}</button></p>}
             <article className={styles.card} aria-label="Livestream player">
                 {streams.length > 1 && <div className={styles.platforms} aria-label="Watch on a platform">{streams.map(item => <button type="button" key={item.platform} aria-pressed={stream.platform === item.platform} onClick={() => setSelected(item.platform)}>{item.label}</button>)}</div>}
                 {stream ? <>
-                    {embed ? <div className={styles.player}><iframe key={embed} src={embed} title={`${stream.label} Live Stream`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /></div> : <div className={styles.empty}><span className={styles.eyebrow}>{stream.label} LIVE</span><h2>Continue watching on {stream.label}</h2><p>{stream.platform === 'instagram' ? 'This platform opens its live player in its own app or website.' : 'This broadcast is available through its original player.'}</p><a className={styles.primary} href={stream.url} target="_blank" rel="noopener noreferrer">Watch live on {stream.label} ↗</a></div>}
-                    <div className={styles.caption}><div><h2>{stream.label} live broadcast</h2>{stream.description && <p>{stream.description}</p>}</div><a href={stream.url} target="_blank" rel="noopener noreferrer">Open in {stream.label} ↗</a></div>
+                    <LivePlayer key={`${stream.platform}:${stream.url}`} stream={stream} embed={embed}/>
                 </> : <div className={styles.empty} role="status"><span className={styles.symbol}>▶</span><h2>{settings ? 'We’re not broadcasting right now' : error ? 'Unable to check the broadcast' : 'Checking for a live broadcast…'}</h2><p>{settings ? 'Join us here for our next service.' : error ? 'Please try again when your connection is restored.' : 'Connecting to the latest livestream status.'}</p><Link className={styles.primary} href="/library">Explore sermons</Link></div>}
             </article>
             {videoId && <LiveCommunity key={videoId} videoId={videoId} watchUrl={stream.url} />}

@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
                         <li>
                             <strong>Technical information.</strong> Our hosting providers keep standard server logs (such as the page requested and
                             the time). Signed-in staff have a sign-in token stored in their browser. The site also keeps copies of public pages and
-                            images in your browser so they load faster and work offline. Livestream reactions use an essential browser cookie to remember your likes and emoji choices. We do not use advertising or tracking cookies.
+                            images in your browser so they load faster and work offline. Livestream chat and reactions use an essential browser cookie to remember this browser. On the live page, we also use a broadcast-specific hashed identifier to estimate page visits, playback, watch time and concurrent viewers. We record broad device and referral categories, not a visitor list, exact location or browsing history. Playback statistics respect browser Do Not Track and Global Privacy Control signals. We do not use advertising cookies.
                         </li>
                     </ul>
                 </Section>
@@ -105,7 +105,7 @@ export default function PrivacyPolicyPage() {
                         We do not sell personal information. We use trusted service providers to run the website: Vercel (website hosting),
                         Render (application hosting), Neon (database), Cloudinary (image, audio and video storage) and YouTube (video). They process
                         information only on our behalf. When church staff share content on social platforms or messaging services, that content is
-                        what the church chooses to publish, not your personal details. We may also disclose information if the law requires it.
+                        what the church chooses to publish. Live chat messages and the display name you choose may also be shared publicly in YouTube live chat, as explained on the posting form. We may also disclose information if the law requires it.
                     </p>
                 </Section>
 

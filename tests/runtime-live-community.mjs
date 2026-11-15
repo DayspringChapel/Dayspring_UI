@@ -37,7 +37,7 @@ try {
         });
         const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message));
         await page.goto(`${origin}/live`);
-        await page.getByRole('heading', { name: /^Live conversation/ }).waitFor();
+        await page.getByRole('heading', { name: /^Live chat/ }).waitFor();
         await page.getByText('A message from another viewer', {exact:true}).waitFor();
         assert.equal(await page.getByTitle('YouTube live chat', {exact:true}).count(),0);
         assert.equal(await page.getByText('Website', {exact:true}).count(),0);

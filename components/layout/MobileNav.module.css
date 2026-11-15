@@ -7,4 +7,5 @@
 .links span { color:#f58634; }
 .social { display:flex; gap:12px; margin-top:12px; border-top:1px solid #ffffff1a; padding-top:10px; }
 .social a { display:grid; place-items:center; width:40px; height:40px; }
+.staff { display:flex; justify-content:space-between; gap:12px; padding:12px; border-top:1px solid #ffffff1a; font-size:13px; color:#f4b47e; }
 @media(min-width:768px) { .panel { display:none; } }

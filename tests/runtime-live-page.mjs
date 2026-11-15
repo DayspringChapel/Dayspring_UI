@@ -40,7 +40,7 @@ try {
         active = true;
         await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByTitle('YouTube Live Stream', { exact: true }).waitFor();
-        await page.getByRole('heading', {name:'Live conversation',exact:true}).waitFor();
+        await page.getByRole('heading', {name:'Live chat',exact:true}).waitFor();
         await page.getByText('No comments yet. Be the first to share a thought.', {exact:true}).waitFor();
         await page.waitForFunction(() => document.querySelector('nav a[href="/live"]')?.classList.contains('watch-live-active'));
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();

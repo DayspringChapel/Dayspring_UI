@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 const origin = process.env.DAYSPRING_SMOKE_ORIGIN, port = Number(process.env.DAYSPRING_PROXY_FIXTURE_PORT || 5310);
 if (!origin || !['localhost', '127.0.0.1'].includes(new URL(origin).hostname)) throw new Error('Use local servers only.');
-const id = 'abcdefghijk', visitors = new Map(); let calls = 0, lastComment;
+const id = 'abcdefghijk', visitors = new Map(); let calls = 0, lastComment, lastHeartbeat;
 const backend = http.createServer(async (request, response) => {
     calls++; assert.equal(request.headers.authorization, undefined); assert.equal(request.headers.cookie, undefined);
     const viewer = request.headers['x-dayspring-viewer']; assert.match(viewer, /^[a-f0-9]{32}$/);
@@ -11,6 +11,7 @@ const backend = http.createServer(async (request, response) => {
     response.setHeader('Content-Type', 'application/json');
     const chunks = []; for await (const chunk of request) chunks.push(chunk);
     const value = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : null;
+    if (request.url.startsWith('/api/v1/live-analytics/')) { lastHeartbeat=value; response.end(JSON.stringify({watching:1,views:2,pageVisits:3,playbackMeasured:true})); return; }
     if (request.url.endsWith('/comments')) {
         if (request.method === 'POST') { lastComment = value; response.end(JSON.stringify({ held: true, message: 'Your comment is awaiting review.' })); }
         else response.end('[]');
@@ -41,5 +42,14 @@ try {
     const anonymous = await fetch(`${endpoint}/comments`, { method: 'POST', headers, body: JSON.stringify({ text:'Anonymous 🙏' }) });
     assert.equal(anonymous.status, 200); assert.equal(lastComment.name, null);
     assert.equal((await fetch(`${endpoint}/comments`, {method:'POST',headers,body:JSON.stringify({text:'x'.repeat(141)})})).status,400);
-    console.log('PASS: private per-browser cookie, no-store responses, persistent choices, duplicate PUTs, origin/input validation and Unicode comments through the real Next proxy.');
+    const heartbeat={platform:'youtube',sourceUrl:`https://youtu.be/${id}`,sessionId:'a'.repeat(32),sequence:1,state:'playing',device:'mobile',referrer:'direct'};
+    const audience=await fetch(`${origin}/api/live-analytics/heartbeat`,{method:'POST',headers,body:JSON.stringify(heartbeat)});
+    assert.equal(audience.status,200); assert.equal((await audience.json()).watching,1); assert.deepEqual(lastHeartbeat,heartbeat);
+    const countBefore=calls;
+    assert.equal((await fetch(`${origin}/api/live-analytics/heartbeat`,{method:'POST',headers:{...headers,Origin:'https://untrusted.example'},body:JSON.stringify(heartbeat)})).status,403);
+    assert.equal((await fetch(`${origin}/api/live-analytics/heartbeat`,{method:'POST',headers,body:JSON.stringify({...heartbeat,state:'made-up'})})).status,400);
+    assert.equal(calls,countBefore);
+    const current=await fetch(`${origin}/api/live-analytics/current?${new URLSearchParams({platform:'youtube',sourceUrl:heartbeat.sourceUrl})}`);
+    assert.equal(current.status,200);assert.equal((await current.json()).views,2);
+    console.log('PASS: private per-browser cookie, no-store responses, persistent choices, duplicate PUTs, origin/input validation Unicode comments, audience heartbeats and public totals through the real Next proxy.');
 } finally { await new Promise(resolve => backend.close(resolve)); }

@@ -14,7 +14,7 @@ Deploy the backend reaction update and its main-context migration, then the fron
 
 ## Comments, likes and emoji reactions
 
-For a YouTube broadcast, `/live` has one conversation feed at every screen size. Website comments, imported YouTube video comments and connected YouTube live-chat messages appear together without source badges. There is no second chat iframe. The reaction buttons and emoji composer are next to the conversation.
+For a YouTube broadcast, `/live` has one section named Live chat at every screen size. Website comments, imported YouTube video comments and connected YouTube live-chat messages appear together without source badges. There is no second chat iframe. The reaction buttons and emoji composer are next to the conversation.
 
 Names are optional. Outside live broadcasts, an unnamed comment is shown as Anonymous. Within a live broadcast, the first unnamed commenter receives Anonymous1, the next receives Anonymous2, and so on. The server allocates these numbers atomically in PostgreSQL, remembers the same browser using an essential HTTP-only cookie, and scopes the numbering to the YouTube broadcast video ID. A new broadcast ID starts again at Anonymous1. Clearing cookies, changing browser or using another device creates a new viewer. A named comment does not consume an anonymous number. AnonymousN is reserved and cannot be manually impersonated through the live form.
 
@@ -39,3 +39,31 @@ Watch-live navigation pulses red while a public stream is active, with a steady 
 The mobile hamburger opens a compact dropdown rather than a full-screen overlay. Escape, an outside tap, the close button or a navigation link closes it. The assistant launcher can be dragged with mouse/touch or moved with arrow keys while focused; its position is saved and clamped back onto the screen after resizing. It starts on the left so it leaves the usual install-banner position free. The install banner also has priority above the assistant.
 
 Installation is remembered in browser storage after appinstalled, an accepted installation, standalone launch or the Already installed button. The reminder will not return on that browser while this saved state remains. Browsers cannot reliably detect an installation made in another browser/device; Already installed lets the viewer dismiss it permanently there too. Clearing site storage removes the saved state.
+
+## Website audience analytics
+
+Staff open **Insights & accountability → Livestream analytics** (`/admin/live-analytics`). The existing `CanViewReports` permission and Reports resource control access; Superadmin, Church Admin and Church Media already receive that permission. The livestream settings workspace also links to the reports. In the installed PWA, visitors can open the hamburger menu and select Admin sign in, which uses the same `/admin/login` route and staff credentials as the website.
+
+The live page says **Join our services** and shows **watching here** and **website views**. Public totals refresh about every 15 seconds. These are website measurements; they do not replace YouTube's official view count or cover people watching only on YouTube. The YouTube player now uses its own native play control rather than automatic playback, and its official player events provide playback state. No player state means no confirmed playback is counted. A failed statistics request displays a dash while the player and chat remain usable.
+
+Metric definitions:
+- Page visits: browser tab/page sessions that reached an active broadcast on `/live`.
+- Website views: one playback start per page session; pause/resume does not add views. Reloading or another tab can create another session/view.
+- Unique viewers: distinct browser cookies that reported playback for that broadcast, rather than identifiable people.
+- Watching now: distinct viewing browsers reporting playing within the last 45 seconds. Multiple tabs for the same browser count once.
+- Playback time: estimated visible playback between short server-timed heartbeat intervals. Paused, hidden and disconnected gaps do not accrue time. Overlapping tabs for the same browser share one watch-time interval.
+- Average viewing time: playback seconds divided by unique viewing browsers.
+- Peak watching: highest observed concurrent website viewing browsers.
+- Device/referral charts: page visits grouped into broad categories. No raw user-agent, IP address, exact location or referring URL is stored.
+
+Reports include per-stream history, date filters, sampled concurrent-viewer and playback-time charts, page/device/referral breakdowns, comment/reaction counts, player errors and a CSV export with UTC timestamps. New viewing cannot be backfilled for broadcasts that ended before tracking was deployed. For Facebook/Instagram, page attendance is measured; confirmed iframe playback is unavailable and is shown as Not measured. Reusing exactly the same non-YouTube live URL keeps its link-based report; YouTube reports use the broadcast's unique video ID.
+
+Do Not Track and Global Privacy Control disable audience heartbeat collection. The existing essential chat/reaction cookie is reused, hashed separately per broadcast; no staff token is forwarded to public tracking endpoints. The cookie is established on the `/live` response before parallel client requests start.
+
+**Deployment:** apply main-context migration `20261115082401_LiveAudienceAnalytics` and deploy both backend and frontend. No reporting-context migration, YouTube Analytics scope or new social secret is required. Existing social credentials must remain unchanged. The privacy page describes aggregate playback collection. The favicon uses the existing Dayspring logo icon.
+
+## Disabled YouTube video comments and chat availability
+
+`commentsDisabled` from `commentThreads.list` refers to ordinary video comments. It does not determine whether live chat is enabled. This expected response is logged once at information level and video-comment import backs off for 15 minutes, avoiding repeated exception traces and unnecessary calls. Authentication, quota and other provider failures remain distinguishable warnings. Reading saved website chat is protected by a four-second provider-sync budget, so a slow YouTube connection does not block the entire feed. The background worker imports ordinary video comments separately from the live-chat path.
+
+Website messages are relayed into **YouTube live chat** through the church account after moderation approval. Live chat must be enabled on YouTube and the existing account must have posting permission. This does not bypass disabled comments or YouTube's own restrictions. Enable the relevant feature in YouTube Studio if the channel owner wants it available.
