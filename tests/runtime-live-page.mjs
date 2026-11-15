@@ -24,6 +24,7 @@ try {
                 if (failure) return route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
                 return json({ youTube: { active, embedAllowed, url: 'https://www.youtube.com/watch?feature=shared&v=abcdefghijk', description: 'Sunday worship' }, instagram: { active: second, url: 'https://www.instagram.com/church/live' }, hideWatchOnline: hidden });
             }
+            if (url.pathname.startsWith('/api/live-engagement/')) return json(url.pathname.endsWith('/comments') ? {comments:[],sharingState:'Connected'} : {counts:{like:0,heart:0,amen:0,clap:0,joy:0},mine:[]});
             if (url.pathname.startsWith('/api/')) return json([]);
             return route.continue();
         });
@@ -34,9 +35,13 @@ try {
         assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://www.dayspring-vlbc.org/live');
         assert.equal(await page.getByRole('button', { name: 'Share livestream', exact: true }).isDisabled(), true);
         assert.equal(await page.getByLabel('Shareable watch link').inputValue(), '');
+        assert.equal(await page.getByRole('link', { name: 'Open livestream page ↗' }).count(), 0);
+        assert.equal(await page.getByRole('button', { name: 'Refresh live status', exact: true }).count(), 0);
         active = true;
-        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByTitle('YouTube Live Stream', { exact: true }).waitFor();
+        await page.getByRole('heading', {name:'Live conversation',exact:true}).waitFor();
+        await page.getByText('No comments yet. Be the first to share a thought.', {exact:true}).waitFor();
         await page.waitForFunction(() => document.querySelector('nav a[href="/live"]')?.classList.contains('watch-live-active'));
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
         await page.getByText('Livestream link copied.', { exact: true }).waitFor();
@@ -52,19 +57,19 @@ try {
         assert.equal(await page.evaluate(() => window.__nativeShare), null);
 
         active = true;
-        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         const player = page.getByTitle('YouTube Live Stream', { exact: true }); await player.waitFor();
         const embed = new URL(await player.getAttribute('src')); assert.equal(embed.pathname, '/embed/abcdefghijk'); assert.equal(embed.searchParams.get('origin'), origin);
         assert.equal(await player.getAttribute('referrerpolicy'), 'strict-origin-when-cross-origin');
         failure = true;
-        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByRole('alert').filter({ hasText: 'We could not refresh the broadcast.' }).waitFor(); assert.equal(await player.count(), 1);
         failure = false; embedAllowed = false;
-        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByRole('link', { name: 'Watch live on YouTube ↗', exact: true }).waitFor();
         assert.equal(await player.count(), 0);
         second = true;
-        await page.getByRole('button', { name: 'Refresh live status', exact: true }).click();
+        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await page.getByRole('button', { name: 'Instagram', exact: true }).click();
         await page.getByRole('link', { name: 'Watch live on Instagram ↗', exact: true }).waitFor();
         hidden = true;

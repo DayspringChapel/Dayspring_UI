@@ -1,10 +1,10 @@
 # Public livestream page
 
-The permanent visitor link is https://www.dayspring-vlbc.org/live. It opens directly without a Dayspring account. Navigation, the homepage live-player dialog, the footer and the chatbot link to it. The dashboard's livestream workspace includes the link and sharing controls.
+The permanent visitor link is https://www.dayspring-vlbc.org/live. It opens directly without a Dayspring account. Navigation, the homepage Live now action, the footer and the chatbot link directly to it. The dashboard's livestream workspace includes the link and sharing controls.
 
-The page uses the existing public `/api/livestream` status endpoint and existing broadcast settings. YouTube automatic discovery and manual links continue to be configured in the dashboard. The page checks status on arrival, once per minute while visible, and when the viewer returns to the tab or reconnects. Manual refresh is also available. It does not create, start or end broadcasts.
+The page uses the existing public `/api/livestream` status endpoint and existing broadcast settings. YouTube automatic discovery and manual links continue to be configured in the dashboard. The page checks status on arrival, once per minute while visible, and when the viewer returns to the tab or reconnects. A retry control is available if the status request fails. It does not create, start or end broadcasts.
 
-When no broadcast is available, the page remains shareable and displays an offline message and sermon-library link. Once a broadcast becomes available, the player appears automatically. If the connection fails, an error is shown; an already-open player remains available. The dashboard's hide-watch-online setting hides playback on this page as well.
+When no broadcast is available, the page remains reachable and displays an offline message and sermon-library link; sharing controls stay disabled. Once a broadcast becomes available, the player appears automatically. If the connection fails, an error is shown; an already-open player remains available. The dashboard's hide-watch-online setting hides playback on this page as well.
 
 YouTube and Facebook use their embedded players. Restricted embeds and Instagram provide direct watch links. Platform restrictions still apply. The new page does not provide independent OBS hosting or change stream keys, provider credentials or existing broadcast controls.
 

@@ -15,14 +15,22 @@ function calcTimeLeft(targetDate) {
     };
 }
 
+// Start ticking after hydration so the browser agrees with server-rendered HTML.
+function useTimeLeft(targetDate) {
+    const [time, setTime] = useState(null);
+    useEffect(() => {
+        let active = true;
+        const update = () => { if (active) setTime(calcTimeLeft(targetDate)); };
+        Promise.resolve().then(update);
+        const timer = setInterval(update, 1000);
+        return () => { active = false; clearInterval(timer); };
+    }, [targetDate]);
+    return time;
+}
+
 // ── Large hero countdown (white tiles with orange accent) ─────────────────────
 export function HeroCountdown({ targetDate }) {
-    const [t, setT] = useState(() => calcTimeLeft(targetDate));
-
-    useEffect(() => {
-        const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
-        return () => clearInterval(id);
-    }, [targetDate]);
+    const t = useTimeLeft(targetDate);
 
     if (!t) return null;
     if (t.over) return (
@@ -79,12 +87,7 @@ export function HeroCountdown({ targetDate }) {
 
 // ── Medium tile countdown (overlaid on event cards) ──────────────────────────
 export function CardCountdown({ targetDate }) {
-    const [t, setT] = useState(() => calcTimeLeft(targetDate));
-
-    useEffect(() => {
-        const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
-        return () => clearInterval(id);
-    }, [targetDate]);
+    const t = useTimeLeft(targetDate);
 
     if (!t) return null;
     if (t.over) return (
@@ -142,12 +145,7 @@ export function CardCountdown({ targetDate }) {
 
 // ── Small badge countdown (overlaid on cards) ─────────────────────────────────
 export default function CountdownBadge({ targetDate, dark = false }) {
-    const [t, setT] = useState(() => calcTimeLeft(targetDate));
-
-    useEffect(() => {
-        const id = setInterval(() => setT(calcTimeLeft(targetDate)), 1000);
-        return () => clearInterval(id);
-    }, [targetDate]);
+    const t = useTimeLeft(targetDate);
 
     if (!t) return null;
     if (t.over) return (

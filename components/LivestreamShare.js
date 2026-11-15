@@ -5,7 +5,7 @@ import { LIVE_PAGE_URL } from '@/lib/livePlayer';
 import styles from './LivestreamShare.module.css';
 import useLiveStatus, { readLiveStatus } from '@/lib/useLiveStatus';
 
-export default function LivestreamShare({ active }) {
+export default function LivestreamShare({ active, showPageLink = true }) {
     const [status, setStatus] = useState('');
     const detected = useLiveStatus();
     const live = detected && active !== false;
@@ -22,7 +22,7 @@ export default function LivestreamShare({ active }) {
         finally { setBusy(false); }
     }
     return <div className={styles.share}>
-        <div className={styles.actions}><Link href="/live">Open livestream page ↗</Link><button type="button" disabled={!live || busy} onClick={share}>{busy ? 'Checking broadcast…' : 'Share livestream'}</button></div>
+        <div className={styles.actions}>{showPageLink && <Link href="/live">Open livestream page ↗</Link>}<button type="button" disabled={!live || busy} onClick={share}>{busy ? 'Checking broadcast…' : 'Share livestream'}</button></div>
         <label>Shareable watch link<input type="url" readOnly disabled={!live} value={live ? LIVE_PAGE_URL : ''} placeholder="Available during a live broadcast" onFocus={event => { if (live) event.target.select(); }} /></label>
         <span role="status">{live ? status : 'Sharing becomes available when we are live.'}</span>
     </div>;

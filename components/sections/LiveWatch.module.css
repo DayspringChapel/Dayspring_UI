@@ -2,7 +2,7 @@
 .inner { max-width: 1120px; margin: auto; min-width: 0; }
 .heading { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 28px; }
 .heading h1 { margin: 10px 0; font-size: clamp(32px,5vw,54px); font-weight: 800; line-height: 1.1; }
-.heading p,.below p,.shareCard p,.empty p,.caption p { color: #c1bdce; line-height: 1.7; }
+.heading p,.shareCard p,.empty p,.caption p { color: #c1bdce; line-height: 1.7; }
 .eyebrow { font-size: 11px; color: #f0b17c !important; letter-spacing: .15em; font-weight: 750; }
 .live,.badge { border: 1px solid #ffffff25; border-radius: 24px; padding: 10px 16px; font-size: 12px; font-weight: 750; }
 .live { background: #ef334020; color: #ff929b; border-color: #ef334040; }
@@ -21,8 +21,6 @@
 .caption h2,.shareCard h2 { font-size: 20px; font-weight: 750; margin-bottom: 8px; }
 .caption p { white-space: pre-line; overflow-wrap: anywhere; }
 .caption a { color: #f0b17c; }
-.below { display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 22px 0; }
-.below p { flex: 1; min-width: 200px; font-size: 13px; }
 .shareCard { margin-top: 16px; padding: 28px; background: #ffffff05; border: 1px solid #ffffff20; border-radius: 16px; }
 .error { background: #583529; color: #ffdcc5; padding: 16px; border-radius: 10px; margin-bottom: 20px; }
 .page :is(a,button,input):focus-visible { outline: 3px solid #f0b17c; outline-offset: 3px; }

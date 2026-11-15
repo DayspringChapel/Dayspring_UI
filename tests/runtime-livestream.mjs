@@ -29,27 +29,20 @@ try {
         await page.goto(origin);
         await page.waitForFunction(() => document.querySelector('h1')?.textContent.includes('DISCOVER PURPOSE'));
         while (reads === 0) await page.waitForTimeout(50);
-        const button = page.getByRole('button', { name: 'LIVE NOW — WATCH', exact: true });
+        const button = page.getByRole('link', { name: 'LIVE NOW — WATCH', exact: true });
         assert.equal(await button.count(), 0);
         active = true;
         await page.evaluate(() => window.dispatchEvent(new Event('focus')));
         await button.waitFor();
+        assert.equal(await button.getAttribute('href'), '/live');
         await button.click();
+        await page.waitForURL(`${origin}/live`);
         const player = page.getByTitle('YouTube Live Stream', { exact: true });
         await player.waitFor();
         assert.match(await player.getAttribute('src'), /^https:\/\/www\.youtube\.com\/embed\/AqLocal12345\?/);
-        assert.equal(new URL(await player.getAttribute('src')).searchParams.get('origin'), origin);
-        assert.equal(await player.getAttribute('referrerpolicy'), 'strict-origin-when-cross-origin');
-        assert.equal(await page.getByRole('link', { name: 'Open in YouTube →' }).getAttribute('href'), 'https://www.youtube.com/watch?v=AqLocal12345');
-        await page.getByRole('button', { name: 'Close', exact: true }).click();
-        embedAllowed = false;
-        const received = page.waitForResponse(response => new URL(response.url()).pathname === '/api/livestream');
-        await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-        await received; await page.waitForTimeout(100);
-        await button.click();
-        await page.getByRole('link', { name: 'Watch live on YouTube', exact: true }).waitFor();
-        assert.equal(await player.count(), 0, 'A provider-disabled embed uses a direct watch link.');
-        await page.getByRole('button', { name: 'Close', exact: true }).click();
+        assert.equal(await page.getByText("We're LIVE!", {exact:true}).count(),0);
+        await page.goto(origin);
+        await button.waitFor();
         hidden = true;
         await page.evaluate(() => window.dispatchEvent(new Event('online')));
         await button.waitFor({ state: 'hidden' });
@@ -61,5 +54,5 @@ try {
         assert.deepEqual(errors, []);
         await context.close();
     }
-    console.log('PASS: raw backend and normalized YouTube casing, inactive/hidden states, returning-tab live detection, YouTube player/link and mobile/desktop layouts.');
+    console.log('PASS: raw backend and normalized YouTube casing, inactive/hidden states, returning-tab live detection, direct navigation to /live and mobile/desktop layouts.');
 } finally { await browser.close(); }
