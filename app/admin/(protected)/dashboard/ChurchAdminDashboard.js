@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import Link from 'next/link';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DonutChart from '@/components/admin/charts/DonutChart';
@@ -121,7 +122,7 @@ export default function ChurchAdminDashboard({ userName }) {
     const hasPermission = (p) => permissions.includes(p);
 
     const topStats = visibleItems([
-        {label:'Pending Approvals',value:stats.pendingApprovals,color:'#b42335',note:'Media awaiting your review',icon:'⚡',anyPermission:PERMISSION_GROUPS.approve},
+        {label:'Pending Approvals',path:'/admin/approvals',value:stats.pendingApprovals,color:'#b42335',note:'Media awaiting your review',icon:'⚡',anyPermission:PERMISSION_GROUPS.approve},
         { label: 'Members',              value: stats.members,      color: '#0d9488', note: 'Church members',     icon: '👥', anyPermission: PERMISSION_GROUPS.members },
         { label: 'Pending Appointments', value: stats.pendingAppts, color: '#ef4444', note: 'Awaiting action',    icon: '⚡', urgent: true, permission: 'CanManageAppointment' },
         { label: 'Pending Requisitions', value: stats.pendingReqs,  color: '#f59e0b', note: 'Needs review',       icon: '📝', urgent: stats.pendingReqs > 0, permission: 'CanManageRequisition' },
@@ -265,7 +266,7 @@ export default function ChurchAdminDashboard({ userName }) {
     );
 }
 
-function StatCard({ label, value, color, note, icon, urgent }) {
+function StatCard({ label, value, color, note, icon, urgent, path }) {
     return (
         <article
             className={`${styles.statCard} ${urgent ? styles.statUrgent : ''}`}
@@ -278,6 +279,7 @@ function StatCard({ label, value, color, note, icon, urgent }) {
             <p className={styles.statValue}>{value}</p>
             <p className={styles.statLabel}>{label}</p>
             <span className={styles.statNote}>{note}</span>
+            {path&&<Link href={path} style={{display:'inline-block',marginTop:12,color:'#7c2d12',fontSize:13,fontWeight:700,textDecoration:'underline'}}>Review publishable content →</Link>}
         </article>
     );
 }

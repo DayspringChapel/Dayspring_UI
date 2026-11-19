@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
+import Link from 'next/link';
 import BirthdayWidget from '@/components/admin/widgets/BirthdayWidget';
 import QuickGuideWidget from '@/components/admin/widgets/QuickGuideWidget';
 import DashboardTour from '@/components/admin/DashboardTour';
@@ -113,7 +114,7 @@ export default function SuperAdminDashboard({ userName }) {
 
     const topStats = visibleItems([
         { label: 'Total Members',      value: stats.members,          color: '#7c3aed', note: 'Church members',     icon: '👥', anyPermission: PERMISSION_GROUPS.members },
-        { label: 'Pending Approvals',  value: stats.pendingApprovals, color: '#ef4444', note: 'Needs your action',  icon: '⚡', urgent: true, anyPermission: PERMISSION_GROUPS.approve },
+        { label: 'Pending Approvals', path:'/admin/approvals', value: stats.pendingApprovals, color: '#ef4444', note: 'Needs your action',  icon: '⚡', urgent: true, anyPermission: PERMISSION_GROUPS.approve },
         { label: 'Scheduled Posts',    value: stats.scheduledPosts,   color: '#3b82f6', note: 'Publishing queue',   icon: '📅', anyPermission: PERMISSION_GROUPS.publish },
         { label: 'Media Content',      value: stats.media,            color: '#a78bfa', note: 'Total uploads',      icon: '🎬', anyPermission: PERMISSION_GROUPS.media },
         { label: 'Events',             value: stats.events,           color: '#0f766e', note: 'Active events',      icon: '📌', permission: 'CanManageEvent' },
@@ -240,7 +241,7 @@ export default function SuperAdminDashboard({ userName }) {
     );
 }
 
-function StatCard({ label, value, color, note, icon, urgent }) {
+function StatCard({ label, value, color, note, icon, urgent, path }) {
     return (
         <article
             className={`${styles.statCard} ${urgent ? styles.statUrgent : ''}`}
@@ -253,6 +254,7 @@ function StatCard({ label, value, color, note, icon, urgent }) {
             <p className={styles.statValue}>{value}</p>
             <p className={styles.statLabel}>{label}</p>
             <span className={styles.statNote}>{note}</span>
+            {path&&<Link href={path} style={{display:'inline-block',marginTop:12,color:'#7c2d12',fontSize:13,fontWeight:700,textDecoration:'underline'}}>Review publishable content →</Link>}
         </article>
     );
 }

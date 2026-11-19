@@ -65,10 +65,10 @@ export default function WorkflowPage() {
     const role = resolveRole();
     const canReview = apiClient.hasPermission('CanReviewContent');
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {const refresh=()=>{if(!document.hidden)load(true);};load();const timer=setInterval(refresh,30000);window.addEventListener('focus',refresh);window.addEventListener('dayspring:workflow-changed',refresh);document.addEventListener('visibilitychange',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('dayspring:workflow-changed',refresh);document.removeEventListener('visibilitychange',refresh);};}, []);
 
-    async function load() {
-        setLoading(true);
+    async function load(quiet=false) {
+        if(!quiet)setLoading(true);
         try {
             const data = await apiClient.getMediaContents();
             const items = data || [];
@@ -288,7 +288,8 @@ export default function WorkflowPage() {
         const fromSuperAdmin = inPipeline.filter((c) => c.workflowStatus === 3 && historyMap[c.id]?.fromStatus === 6);
         // Only content that has actually reached the Admin stage or beyond — anything still
         // sitting in churchMedia's internal review queue hasn't been forwarded to admin yet.
-        const submitted = inPipeline.filter((c) => c.workflowStatus >= 5 && c.workflowStatus !== 10);
+        const submitted = inPipeline.filter((c) => c.workflowStatus === 5);
+        const forwarded = inPipeline.filter((c)=>[6,7,8,9].includes(c.workflowStatus));
 
         return (
             <div className={styles.page}>
@@ -309,15 +310,16 @@ export default function WorkflowPage() {
                     </>
                 )}
 
-                <h2 className={styles.sectionTitle}>Forwarded For Approval</h2>
+                <h2 className={styles.sectionTitle}>Awaiting your approval ({submitted.length})</h2>
                 {submitted.length === 0 ? (
-                    <div className={styles.empty}>Nothing has been forwarded to you yet.</div>
+                    <div className={styles.empty}>No publishable content is awaiting your approval. New submissions from Church Media appear here automatically.</div>
                 ) : (
                     <div className={styles.list} style={{ marginBottom: '2rem' }}>
                         {submitted.map((item) => <Row key={item.id} item={item} showReviewActions={false} />)}
                     </div>
                 )}
 
+                {forwarded.length>0&&<><h2 className={styles.sectionTitle}>With Superadmin / ready for publishing</h2><div className={styles.list}>{forwarded.map(item=><Row key={item.id} item={item} showReviewActions={false}/>)}</div></>}
                 <h2 className={styles.sectionTitle}>Published</h2>
                 {published.length === 0 ? (
                     <div className={styles.empty}>Nothing has been published yet.</div>
@@ -331,7 +333,7 @@ export default function WorkflowPage() {
     }
 
     // Superadmin can override any pending stage, including the media review queue.
-    const visibleForCategorizedView = inPipeline;
+    const visibleForCategorizedView = role==='superAdmin'?inPipeline.filter(c=>c.workflowStatus===6||c.ownerId===apiClient.getUserData()?.id):inPipeline;
     const categories = [...new Set(visibleForCategorizedView.map((c) => c.categoryName))].sort();
 
     return (
@@ -342,7 +344,7 @@ export default function WorkflowPage() {
             <div className={styles.header}>
                 <h1>Media Workflow</h1>
                 <p>{role === 'superAdmin'
-                    ? 'Review any pending stage or make content ready to publish directly'
+                    ? 'Review items forwarded to Superadmin. Use Approval audit to inspect earlier stages.'
                     : 'All content, grouped by category and current stage'}</p>
             </div>
 

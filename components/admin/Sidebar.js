@@ -190,6 +190,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 </svg>
             ),
             children: [
+                ...(role === 'superAdmin' ? [{title:'Approval audit',path:'/admin/approval-audit',permission:'CanApproveAsSuperAdmin'}] : []),
                 { title: 'Media library', path: '/admin/media', anyPermission: PERMISSION_GROUPS.media },
                 { title: 'Events & programs', path: '/admin/events', anyPermission: ['CanManageEvent', 'CanUploadContent'] },
                 {
@@ -203,7 +204,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                     ),
                 },
                 {
-                    title: 'Approvals',
+                    title: 'Publishable approvals',
                     path: '/admin/approvals',
                     anyPermission: PERMISSION_GROUPS.approve,
                     badgeKey: 'approvals',
@@ -215,6 +216,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
                 },
                 {
                     title: 'Publishing',
+                    badgeKey: 'publishing',
                     path: '/admin/publishing',
                     // Anyone who can publish to at least one destination (e.g. churchAdmin: WhatsApp only).
                     anyPermission: PERMISSION_GROUPS.publish,

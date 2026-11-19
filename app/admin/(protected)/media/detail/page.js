@@ -1,4 +1,5 @@
 'use client';
+import ApprovalTracker from '@/components/admin/ApprovalTracker';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -191,6 +192,7 @@ function MediaDetail() {
                 {/* Workflow timeline */}
                 <div className={styles.sideCol}>
                     <div className={styles.card}>
+                        <ApprovalTracker content={content} history={history} />
                         <h2 className={styles.cardTitle}>Workflow Timeline</h2>
                         {history.length === 0 ? (
                             <p style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>No transitions yet</p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import AdminToast, { useToast } from '@/components/admin/AdminToast';
 import Portal from '@/components/ui/Portal';
@@ -10,6 +11,8 @@ import styles from './approvals.module.css';
 export default function ApprovalsPage() {
     const router = useRouter();
     const panel = useRef(null);
+    const currentRole=apiClient.getUserData()?.role;
+    const isRoot=(typeof currentRole==='string'?currentRole:currentRole?.name)==='superAdmin';
     const pending = useRef(false);
     const [activeTab, setActiveTab] = useState(() => apiClient.hasPermission('CanApproveAsSuperAdmin') ? 'superadmin' : 'admin');
     const [error, setError] = useState('');
@@ -98,8 +101,9 @@ export default function ApprovalsPage() {
             </div>
 
             <button className={styles.btnGhost} disabled={loading} onClick={() => { setLoading(true); setReload(value => value + 1); }}>Refresh queue</button>
+            {isRoot&&<Link className={styles.btnGhost} href="/admin/approval-audit">Audit earlier stages →</Link>}
             <div className={styles.tabs}>
-                {TABS.filter((tab) => apiClient.hasPermission(tab.id === 'admin' ? 'CanApproveAsAdmin' : 'CanApproveAsSuperAdmin')).map((tab) => (
+                {TABS.filter((tab) => (!isRoot||tab.id==='superadmin')&&apiClient.hasPermission(tab.id === 'admin' ? 'CanApproveAsAdmin' : 'CanApproveAsSuperAdmin')).map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => { setLoading(true); setActiveTab(tab.id); }}

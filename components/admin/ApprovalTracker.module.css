@@ -1,0 +1,11 @@
+.tracker { background:#fff; border:1px solid #dbe2ec; border-radius:14px; padding:24px; color:#172b43; margin-bottom:24px; }
+.tracker h2 { font-size:20px; font-weight:750; }.tracker p { font-size:14px; line-height:1.7; color:#526177; margin-top:8px; }
+.tracker ol { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:14px; padding:0; margin:24px 0 0; list-style:none; }
+.tracker li { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:0; }
+.bubble { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; border:2px solid #c6d1e0; color:#54647b; background:#f3f6fa; font-size:14px; font-weight:750; }
+.active .bubble { background:#a84c14; border-color:#a84c14; color:#fff; }.complete .bubble { background:#e8f6ed; border-color:#257449; color:#166136; }
+.tracker li strong { font-size:13px; }.tracker small,.tracker time,.actor { font-size:12px; line-height:1.6; color:#58677d; overflow-wrap:anywhere; }.active small { color:#8f4010; font-weight:700; }
+.returned { margin-top:20px; border-left:3px solid #a62b3d; background:#fff2f4; padding:14px; }
+@media(max-width:1000px){.tracker ol {grid-template-columns:repeat(3,minmax(0,1fr));row-gap:24px;}}@media(max-width:500px){.tracker {padding:18px;}.tracker ol {grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+.sentBack .bubble {background:#fff0f2;border-color:#a62b3d;color:#8f2032;}
