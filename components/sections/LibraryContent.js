@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 
@@ -110,6 +110,7 @@ export default function LibraryContent() {
                                             src={book.imageUrl || '/library.jpg'}
                                             alt={book.title}
                                             fill
+                                            sizes="(max-width: 767px) 100vw, 33vw"
                                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                                         />
                                     </div>

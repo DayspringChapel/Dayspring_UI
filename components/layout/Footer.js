@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import { useSocialLinks, whatsAppLink } from '@/lib/useSocialLinks';
 import { FacebookIcon, InstagramIcon, YouTubeIcon, WhatsAppIcon } from '@/components/icons/SocialIcons';
 import InstallAppButton from '@/components/InstallAppButton';

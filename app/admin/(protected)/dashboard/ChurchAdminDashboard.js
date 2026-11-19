@@ -44,7 +44,7 @@ export default function ChurchAdminDashboard({ userName }) {
         try {
             const [
                 appts, events, members, units,
-                smallGroups, requisitions, givings,
+                smallGroups, requisitions, givings, approvals,
             ] = await Promise.allSettled([
                 apiClient.getAppointments(),
                 apiClient.getEvents(),
@@ -53,6 +53,7 @@ export default function ChurchAdminDashboard({ userName }) {
                 apiClient.getSmallGroups(),
                 apiClient.getRequisitions(),
                 apiClient.getGivings(),
+                apiClient.getAdminApprovalQueue(),
             ]);
 
             const v = (r) => (r.status === 'fulfilled' ? r.value || [] : []);
@@ -96,6 +97,7 @@ export default function ChurchAdminDashboard({ userName }) {
                     givings:      givArr.length,
                     pendingAppts: apptStatus.pending,
                     pendingReqs:  reqStatus.pending,
+                    pendingApprovals: approvals.status==='fulfilled'?v(approvals).length:'Unavailable',
                 },
                 apptStatus,
                 reqStatus,
@@ -106,7 +108,7 @@ export default function ChurchAdminDashboard({ userName }) {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { const refresh=()=>{if(!document.hidden)load();};load();const timer=setInterval(refresh,30000);window.addEventListener('focus',refresh);window.addEventListener('dayspring:workflow-changed',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('dayspring:workflow-changed',refresh);}; }, []);
 
     const navigate = useCallback((path) => {
         setNavigating(path);
@@ -119,6 +121,7 @@ export default function ChurchAdminDashboard({ userName }) {
     const hasPermission = (p) => permissions.includes(p);
 
     const topStats = visibleItems([
+        {label:'Pending Approvals',value:stats.pendingApprovals,color:'#b42335',note:'Media awaiting your review',icon:'⚡',anyPermission:PERMISSION_GROUPS.approve},
         { label: 'Members',              value: stats.members,      color: '#0d9488', note: 'Church members',     icon: '👥', anyPermission: PERMISSION_GROUPS.members },
         { label: 'Pending Appointments', value: stats.pendingAppts, color: '#ef4444', note: 'Awaiting action',    icon: '⚡', urgent: true, permission: 'CanManageAppointment' },
         { label: 'Pending Requisitions', value: stats.pendingReqs,  color: '#f59e0b', note: 'Needs review',       icon: '📝', urgent: stats.pendingReqs > 0, permission: 'CanManageRequisition' },

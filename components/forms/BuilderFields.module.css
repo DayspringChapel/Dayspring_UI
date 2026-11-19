@@ -11,18 +11,18 @@
 .dropTarget { outline: 3px dashed var(--form-accent,#b95b1d); outline-offset: 3px; }
 .dragging { opacity: .55; }
 .orderNotice { font-size: 12px; color: #475569; min-height: 1em; }
-.number { border-radius: 7px; width: 27px; height: 27px; display: grid; place-items: center; background: #f1f4f7; color: #7a8998; font-size: 10px; font-weight: 700; }
+.number { border-radius: 7px; width: 27px; height: 27px; display: grid; place-items: center; background: #f1f4f7; color: #59677c; font-size: 12px; font-weight: 700; }
 .name { color: #32465e; font-size: 12px; font-weight: 650; flex: 1; overflow-wrap: anywhere; }
-.type { color: #9aa5b2; font-size: 10px; }
+.type { color: #59677c; font-size: 12px; }
 .required { color: #ce7c43; font-size: 12px; }
 .body { display: grid; gap: 14px; padding: 5px 17px 18px !important; }
 .body>legend { display: none; }
 .body>label { margin: 0 !important; }
 .body>label:has(input[type=checkbox]) { flex-direction: row; align-items: center; }
 .body>details { border-top: 1px solid #edf0f4; padding-top: 12px; }
-.body>details>summary { font-size: 11px; color: #8593a3; cursor: pointer; }
+.body>details>summary { font-size: 12px; color: #8593a3; cursor: pointer; }
 .body>details>label { margin-block: 12px; }
-.body button { font-size: 10px; padding: 6px 9px; background: #f3f5f7; border-radius: 6px; color: #6d7c8d; cursor: pointer; }
+.body button { font-size: 12px; padding: 6px 9px; background: #f3f5f7; border-radius: 6px; color: #6d7c8d; cursor: pointer; }
 .body button:last-child { margin-left: auto; color: #a65c4f; background: #fcf4f2; }
 .questionHeader { display: grid; grid-template-columns: minmax(0,1fr) 180px; gap: 18px; }
 .body label { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #475569; }

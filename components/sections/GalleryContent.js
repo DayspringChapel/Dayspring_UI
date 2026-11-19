@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import apiClient from '@/lib/apiClient';
 
 export default function GalleryContent() {
@@ -136,9 +136,10 @@ export default function GalleryContent() {
                                     src={image.url || image}
                                     alt={`${currentAlbum.title} - Image ${index + 1}`}
                                     fill
+                                    sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
                                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors duration-300 flex items-center justify-center">
                                     <span className="text-white font-semibold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                         View
                                     </span>

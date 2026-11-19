@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
 import { HeroCountdown } from '@/components/CountdownTimer';
@@ -70,7 +70,6 @@ export default function EventsSlideshowHero() {
                     className="object-cover object-center"
                     style={{ opacity: 0.45 }}
                     priority
-                    unoptimized
                 />
             )}
 

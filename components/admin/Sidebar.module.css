@@ -41,7 +41,7 @@
 
 .header p {
     font-size: 0.72rem;
-    color: rgba(255, 255, 255, 0.32);
+    color: #b8c4d8;
     margin: 0;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -72,7 +72,7 @@
     border-radius: 10px;
     background: none;
     border: 1px solid transparent;
-    color: rgba(255, 255, 255, 0.50);
+    color: #d1d9e6;
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -119,9 +119,9 @@
     height: 1.25rem;
     padding: 0 0.4rem;
     border-radius: 999px;
-    background: #d9752c;
+    background: #aa4b13;
     color: #fff;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -133,7 +133,7 @@
 .subItem .navBadge {
     height: 1.1rem;
     min-width: 1.1rem;
-    font-size: 0.64rem;
+    font-size: 0.75rem;
 }
 
 /* ── Logout footer ────────────────────────────────────────────── */
@@ -170,7 +170,7 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    color: rgba(255, 255, 255, 0.28);
+    color: #b8c4d8;
     transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -206,7 +206,7 @@
     border: none;
     border-left: 2px solid rgba(255, 255, 255, 0.07);
     background: none;
-    color: rgba(255, 255, 255, 0.65);
+    color: #d1d9e6;
     font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 
@@ -43,6 +43,7 @@ export default function GalleryPreviewSection() {
                                 src={image.url}
                                 alt={`${image.albumTitle || 'DaySpring Chapel gallery'} photo ${index + 1}`}
                                 fill
+                                sizes="(max-width: 767px) 100vw, 33vw"
                                 className="object-cover"
                             />
                         </div>

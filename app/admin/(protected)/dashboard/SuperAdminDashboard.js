@@ -88,7 +88,7 @@ export default function SuperAdminDashboard({ userName }) {
                     units:        v(units).length,
                     smallGroups:  v(smallGroups).length,
                     media:        mediaArr.length,
-                    pendingApprovals: v(approvals).length,
+                    pendingApprovals: approvals.status==='fulfilled'?v(approvals).length:'Unavailable',
                     scheduledPosts:   v(scheduled).length,
                     albums:       v(albums).length,
                 },
@@ -99,7 +99,7 @@ export default function SuperAdminDashboard({ userName }) {
         }
     };
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => { const refresh=()=>{if(!document.hidden)load();};load();const timer=setInterval(refresh,30000);window.addEventListener('focus',refresh);window.addEventListener('dayspring:workflow-changed',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);window.removeEventListener('dayspring:workflow-changed',refresh);}; }, []);
 
     const navigate = useCallback((path) => {
         setNavigating(path);

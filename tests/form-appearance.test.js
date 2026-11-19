@@ -23,3 +23,11 @@ test('button text contrast follows light and dark accent colors', () => {
     assert.equal(appearanceStyle({ appearance: { accentColor: '#ffffff' } })['--form-on-accent'], '#14263b');
     assert.equal(appearanceStyle({ appearance: { accentColor: '#000000' } })['--form-on-accent'], '#ffffff');
 });
+
+test('mid-tone custom accents retain readable button text',()=>{
+    const luminance=hex=>{const rgb=hex.slice(1).match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;};
+    for(const accentColor of ['#777777','#808080','#d9752c','#7c3aed','#ffffff','#000000']){
+        const foreground=appearanceStyle({appearance:{accentColor}})['--form-on-accent'];const a=luminance(accentColor),b=luminance(foreground);
+        assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,accentColor);
+    }
+});

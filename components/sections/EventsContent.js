@@ -1,10 +1,11 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { useEvents } from '@/context/EventContext';
 import CountdownBadge from '@/components/CountdownTimer';
-import VideoEmbed from '@/components/VideoEmbed';
+import { videoPoster } from '@/lib/mediaDelivery';
+import { extractYouTubeId } from '@/lib/youtube';
 
 function formatDate(dateStr) {
     if (!dateStr) return null;
@@ -21,32 +22,22 @@ function formatDate(dateStr) {
 function ShuffleCard({ event, height = 300 }) {
     const title       = (event.heading || event.title || 'Event').toUpperCase();
     const dateStr     = event.eventDate || event.datetime;
-    const image       = event.eventImage || '/upcoming-events-1.png';
+    const youtubeId=extractYouTubeId(event.highlightYoutubeUrl);
+    const image       = event.eventImage || videoPoster(event.highlightVideoUrl,640) || (youtubeId?`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`:'/upcoming-events-1.png');
     const description = event.description;
     const date        = formatDate(dateStr);
-    const hasHighlightVideo = !!(event.highlightVideoUrl || event.highlightYoutubeUrl);
 
     return (
         <Link href={`/content/event/${event.id}`} style={{ display: 'block', height: '100%' }}>
             <div className="group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300"
                 style={{ height }}>
-                {hasHighlightVideo ? (
-                    <VideoEmbed
-                        youtubeUrl={event.highlightYoutubeUrl}
-                        videoUrl={event.highlightVideoUrl}
-                        title={title}
-                        fill
-                        autoplay
-                    />
-                ) : (
                     <Image
                         src={image}
                         alt={title}
                         fill
+                        sizes="(max-width: 767px) 100vw, 50vw"
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                        unoptimized
                     />
-                )}
 
                 {/* Gradient */}
                 <div className="absolute inset-0 pointer-events-none"
@@ -250,7 +241,7 @@ export default function EventsContent() {
                                     <Link key={event.id} href={`/content/event/${event.id}`}>
                                         <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all group">
                                             <div className="relative rounded-lg overflow-hidden flex-shrink-0" style={{ width: 70, height: 70 }}>
-                                                <Image src={image} alt={title} fill className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300" unoptimized />
+                                                <Image src={image} alt={title} fill className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300" />
                                             </div>
                                             <div style={{ minWidth: 0 }}>
                                                 <p className="font-bold text-gray-700 text-sm leading-tight truncate group-hover:text-gray-900 transition-colors">

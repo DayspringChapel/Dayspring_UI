@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { fetchEventByIdServer } from '@/lib/serverApi';
 import { HeroCountdown } from '@/components/CountdownTimer';
@@ -61,7 +61,6 @@ export default async function EventDetailPage({ params }) {
                         className="object-cover object-center"
                         style={{ opacity: 0.45 }}
                         priority
-                        unoptimized
                     />
                 )}
                 <div className="absolute inset-0"

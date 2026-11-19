@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CardCountdown } from '@/components/CountdownTimer';
@@ -87,7 +87,6 @@ export default function EventsCarousel({ events }) {
                                         fill
                                         className="object-cover object-center"
                                         style={{ transition: 'transform 0.6s ease', transform: isActive ? 'scale(1.03)' : 'scale(1)' }}
-                                        unoptimized
                                         priority={isActive}
                                     />
                                 )}

@@ -120,7 +120,7 @@ try {
 
     await page.locator('#file-input').setInputFiles(video); await page.locator('input[name="title"]').fill('Synthetic service recording'); await page.locator('textarea[name="description"]').fill('Synthetic video for local upload acceptance.');
 
-    const upload = page.getByRole('button', { name: 'Upload Media', exact: true });
+    const upload = page.getByRole('button', { name: /^(Upload media|Upload & submit)$/ });
 
     await upload.click(); await page.getByText('Synthetic storage failure. Retry.', { exact: true }).first().waitFor();
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 
@@ -65,7 +65,7 @@ export default function LibrarySection() {
                     {libraryItems.map((item) => (
                         <div key={item.id} className="flex flex-col items-center gap-4 text-dark group">
                             <div className="relative w-64 h-64 overflow-hidden rounded-full shadow-xl transition-transform duration-300 group-hover:scale-105">
-                                <Image src={item.image} alt={item.title} fill className="object-cover" />
+                                <Image src={item.image} alt={item.title} sizes="256px" fill className="object-cover" />
                             </div>
                             <p className="font-bold text-xl mt-4">{item.title}</p>
                             {item.count !== null && (

@@ -151,7 +151,7 @@
 .inputIcon {
   position: absolute;
   left: 1rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: #c0cbdd;
   pointer-events: none;
 }
 
@@ -174,7 +174,7 @@
 }
 
 .inputGroup input::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: #d1d9e6;
 }
 
 .togglePassword {
@@ -182,7 +182,7 @@
   right: 0.85rem;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: #c0cbdd;
   cursor: pointer;
   display: flex;
   align-items: center;

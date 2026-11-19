@@ -32,7 +32,7 @@ Validation: pure helper tests cover trusted stream URLs and embed handling. The 
 
 ## Live-only sharing and public styling
 
-Watch-live navigation pulses red while a public stream is active, with a steady indicator for reduced-motion preferences. Copy/share controls are disabled and the URL field is empty while offline. Sharing rechecks public status before proceeding. The public website uses the shared blue-black palette; staff dashboards and creator-themed standalone forms keep their existing themes.
+Watch-live navigation pulses red while a public stream is active, with a steady indicator for reduced-motion preferences. Copy/share controls are disabled and the URL field is empty while offline. Sharing rechecks public status before proceeding. The public website uses a stable light palette with white cards, pale backgrounds and orange accents, including the live page and mobile menu. Device dark-mode preferences do not recolour public content. Staff dashboards and creator-themed standalone forms keep their existing themes.
 
 ## Mobile navigation, assistant and install reminder
 

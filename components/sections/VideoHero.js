@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
+import HeroVideo from '@/components/HeroVideo';
 import apiClient from '@/lib/apiClient';
 import { normalizeLivestreamSettings } from '@/lib/livestreamSettings';
 
@@ -67,20 +68,11 @@ export default function VideoHero() {
         <>
             <div className="relative w-full h-screen overflow-hidden">
                 {useDefaultHero ? (
-                    <>
-                        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hidden md:block">
-                            <source src="/home-hero-vid.mp4" type="video/mp4" />
-                        </video>
-                        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover md:hidden">
-                            <source src="/home-hero-vid-portrait.mp4" type="video/mp4" />
-                        </video>
-                    </>
+                    <HeroVideo />
                 ) : hero.mode === 1 ? (
-                    <video
+                    <HeroVideo
                         key={hero.items[0].url}
                         src={hero.items[0].url}
-                        autoPlay muted loop playsInline
-                        className="absolute inset-0 w-full h-full object-cover"
                         onError={() => setHeroFailed(true)}
                     />
                 ) : (
@@ -89,6 +81,7 @@ export default function VideoHero() {
                         src={hero.items[heroIndex]?.url}
                         alt=""
                         fill
+                        sizes="100vw"
                         priority={heroIndex === 0}
                         className="object-cover"
                         onError={() => setHeroFailed(true)}
@@ -96,7 +89,7 @@ export default function VideoHero() {
                 )}
 
                 {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-black/60" />
 
                 {/* Content */}
                 <div className="relative h-full flex flex-col items-center justify-center text-white text-center px-4 z-10">

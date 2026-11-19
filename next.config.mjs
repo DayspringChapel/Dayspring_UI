@@ -10,8 +10,11 @@ const nextConfig = {
     root: __dirname,
   },
   images: {
-    unoptimized: true,
+    minimumCacheTTL: 86400,
     remotePatterns: [
+      { protocol: 'https', hostname: 'i.ytimg.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'img.youtube.com', pathname: '/**' },
+      { protocol: 'https', hostname: 'yt3.ggpht.com', pathname: '/**' },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',

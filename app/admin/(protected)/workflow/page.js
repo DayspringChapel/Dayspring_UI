@@ -1,4 +1,5 @@
 'use client';
+import MediaWorkflowSettings from '@/components/admin/MediaWorkflowSettings';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -266,6 +267,7 @@ export default function WorkflowPage() {
             <div className={styles.page}>
                 <AdminToast toast={toast} onClose={clearToast} />
                 <AdminConfirm dialog={dialog} onClose={closeDialog} />
+                <MediaWorkflowSettings />
                 <div className={styles.header}>
                     <h1>My Content</h1>
                     <p>Track the stage of everything you&apos;ve uploaded</p>
@@ -292,6 +294,7 @@ export default function WorkflowPage() {
             <div className={styles.page}>
                 <AdminToast toast={toast} onClose={clearToast} />
                 <AdminConfirm dialog={dialog} onClose={closeDialog} />
+                <MediaWorkflowSettings />
                 <div className={styles.header}>
                     <h1>Media Workflow</h1>
                     <p>Content forwarded to you for approval, and what Super Admin sent back</p>
@@ -335,6 +338,7 @@ export default function WorkflowPage() {
         <div className={styles.page}>
             <AdminToast toast={toast} onClose={clearToast} />
             <AdminConfirm dialog={dialog} onClose={closeDialog} />
+                <MediaWorkflowSettings />
             <div className={styles.header}>
                 <h1>Media Workflow</h1>
                 <p>{role === 'superAdmin'

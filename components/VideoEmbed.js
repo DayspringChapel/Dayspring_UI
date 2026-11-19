@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { extractYouTubeId } from '@/lib/youtube';
+import Image from '@/components/PublicImage';
+import { deliveryVideo, videoPoster } from '@/lib/mediaDelivery';
 
 const YOUTUBE_RATIO = 16 / 9;
 
@@ -16,6 +18,14 @@ export default function VideoEmbed({ youtubeUrl, videoUrl, title = 'Video', clas
     const youtubeId = extractYouTubeId(youtubeUrl);
     const containerRef = useRef(null);
     const [coverSize, setCoverSize] = useState(null);
+    const [near,setNear]=useState(false),[activated,setActivated]=useState(false),[motion,setMotion]=useState(false);
+    const [failedSource,setFailedSource]=useState(null);
+    useEffect(()=>{
+        const element=containerRef.current;if(!element)return;
+        const observer=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){setNear(true);setMotion(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!navigator.connection?.saveData);observer.disconnect();}},{rootMargin:'150px'});
+        observer.observe(element);return()=>observer.disconnect();
+    },[youtubeId,videoUrl]);
+    const automatic=autoplay&&motion;
     const fillStyle = fill
         ? { position: 'absolute', inset: 0, width: '100%', height: '100%' }
         : { position: 'relative', width: '100%', aspectRatio: '16 / 9' };
@@ -40,8 +50,10 @@ export default function VideoEmbed({ youtubeUrl, videoUrl, title = 'Video', clas
 
     if (youtubeId) {
         const params = new URLSearchParams({ modestbranding: '1', rel: '0' });
-        if (autoplay) {
+        if (automatic || activated) {
             params.set('autoplay', '1');
+        }
+        if (automatic) {
             params.set('mute', '1');
             params.set('loop', '1');
             params.set('playlist', youtubeId); // required by YouTube for single-video looping
@@ -70,31 +82,37 @@ export default function VideoEmbed({ youtubeUrl, videoUrl, title = 'Video', clas
                 className={className}
                 style={{ ...fillStyle, overflow: 'hidden', background: '#000', ...style }}
             >
-                <iframe
+                {near&&(automatic||activated)?<iframe
                     src={`https://www.youtube-nocookie.com/embed/${youtubeId}?${params.toString()}`}
                     title={title}
                     style={iframeStyle}
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                />
+                />:<button type="button" aria-label={`Play ${title}`} onClick={()=>setActivated(true)} style={{position:'absolute',inset:0,width:'100%',height:'100%',padding:0,background:'#101521',color:'#fff'}}>
+                    {near&&<Image src={`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`} alt="" fill sizes="(max-width: 767px) 100vw, 50vw" className="object-cover"/>}
+                    <span style={{position:'relative',display:'inline-grid',placeItems:'center',width:64,height:64,borderRadius:'50%',background:'#0009',fontSize:28}}>▶</span>
+                </button>}
             </div>
         );
     }
 
     if (videoUrl) {
         return (
-            <video
-                src={videoUrl}
-                controls={!autoplay}
-                autoPlay={autoplay}
-                muted={autoplay}
-                loop={autoplay}
-                playsInline={autoplay}
+            <div ref={containerRef} className={className} style={{...fillStyle,overflow:'hidden',background:'#000',...style}}><video
+                src={near?(failedSource===videoUrl?videoUrl:deliveryVideo(videoUrl)):undefined}
+                onError={()=>setFailedSource(videoUrl)}
+                poster={near?videoPoster(videoUrl):undefined}
+                preload="none"
+                controls={!automatic}
+                autoPlay={automatic&&near}
+                muted={automatic}
+                loop={automatic}
+                playsInline
                 className={className}
                 style={fill
                     ? { ...fillStyle, objectFit: 'cover', background: '#000', ...style }
                     : { width: '100%', display: 'block', objectFit: 'cover', background: '#000', ...style }}
-            />
+            /></div>
         );
     }
 

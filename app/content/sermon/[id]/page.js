@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { fetchSermonByIdServer } from '@/lib/serverApi';
 import SermonPlayer from '@/components/SermonPlayer';
@@ -56,7 +56,6 @@ export default async function SermonDetailPage({ params }) {
                                     alt={sermon.title || 'Sermon'}
                                     fill
                                     className="object-cover p-1"
-                                    unoptimized
                                 />
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>

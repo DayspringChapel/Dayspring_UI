@@ -13,7 +13,7 @@
     --hero-b:       #2d1400;
 
     /* glass palette */
-    --g-card:       rgba(255,255,255,0.80);
+    --g-card:       #ffffff;
     --g-card-h:     rgba(255,255,255,0.90);
     --g-border:     rgba(255,255,255,0.88);
     --g-border-h:   rgba(255,255,255,1);
@@ -32,7 +32,7 @@
     /* text */
     --ink:          #0f172a;
     --muted:        #475569;
-    --faint:        #94a3b8;
+    --faint:        #5c6d83;
     --on-dark:      #f1f5f9;
 
     /* geometry */
@@ -152,7 +152,7 @@
     background: rgba(255,255,255,0.09);
     backdrop-filter: blur(8px);
     color: var(--brand-l);
-    font-size: 0.67rem;
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -178,7 +178,7 @@
 
 .heroSub {
     margin: 0;
-    color: rgba(226, 232, 240, 0.72);
+    color: #dce4ef;
     font-size: clamp(0.88rem, 1.4vw, 1.02rem);
     font-weight: 500;
     line-height: 1.75;
@@ -217,8 +217,8 @@
 }
 
 .heroSmall {
-    color: rgba(255,255,255,0.62);
-    font-size: 0.68rem;
+    color: #dce4ef;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -230,7 +230,7 @@
     padding: 0.22rem 0.65rem;
     background: linear-gradient(135deg, #ef4444, #b91c1c);
     color: #fff;
-    font-size: 0.64rem;
+    font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 0.02em;
     box-shadow: 0 4px 14px rgba(239,68,68,0.55);
@@ -374,7 +374,7 @@
 
 .statNote {
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     margin-top: 0.12rem;
 }

@@ -82,7 +82,7 @@
 
 .adminLayout input::placeholder,
 .adminLayout textarea::placeholder {
-    color: #94a3b8;
+    color: #607087;
     opacity: 1;
 }
 
@@ -112,7 +112,7 @@
 }
 
 .loadingContainer p {
-    color: #94a3b8;
+    color: #607087;
     font-size: 1rem;
 }
 

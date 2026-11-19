@@ -26,7 +26,7 @@ try{
   await page.goto(`${origin}/admin/certificates?batch=${batchId}`);await page.getByText('Status: Generated',{exact:false}).waitFor();
   if(role==='superAdmin'){assert.equal(await page.getByRole('button',{name:'Submit for approval',exact:true}).count(),0);await page.getByRole('button',{name:'Issue batch',exact:true}).waitFor();}
   else {await page.getByRole('button',{name:'Submit for approval',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Issue batch',exact:true}).count(),0);}
-  await page.goto(`${origin}/admin/media/create`);await page.getByRole('heading',{name:'Upload Media',exact:true}).waitFor();if(role==='superAdmin')await page.getByText('Superadmin does not require approval.',{exact:false}).waitFor();else await page.getByText('it starts in Draft status',{exact:false}).waitFor();
+  await page.goto(`${origin}/admin/media/create`);await page.getByRole('heading',{name:'Upload Media',exact:true}).waitFor();if(role==='superAdmin')await page.getByText('Superadmin does not require approval.',{exact:false}).waitFor();else await page.getByText('submit to the next reviewer automatically',{exact:false}).waitFor();
   assert.deepEqual(errors,[]);await context.close();
  }
  console.log('PASS: superadmin can directly publish pending content and issue generated batches; other media users retain approval gates and draft uploads.');

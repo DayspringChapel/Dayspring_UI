@@ -39,7 +39,7 @@
 }
 
 .role {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -47,8 +47,8 @@
 
 @media (max-width: 640px) {
     .info { display: flex; }
-    .name { max-width: 95px; font-size: 11px; }
-    .role { font-size: 9px; max-width: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .name { max-width: 95px; font-size: 12px; }
+    .role { font-size: 12px; max-width: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .profileBadge {
         padding: 0.3rem;
         max-width: 125px;

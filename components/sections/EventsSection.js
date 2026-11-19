@@ -19,7 +19,7 @@ export default async function EventsSection() {
             <div className="mb-10">
                 <div className="flex items-center gap-4 mb-4">
                     <div style={{ width: 5, height: 48, background: '#f58634', borderRadius: 3, flexShrink: 0 }} />
-                    <h2 className="font-black uppercase leading-none text-black dark:text-white"
+                    <h2 className="font-black uppercase leading-none text-black"
                         style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}>
                         Upcoming Events
                     </h2>

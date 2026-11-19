@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '@/lib/apiClient';
@@ -119,6 +119,7 @@ export default function SermonSection({ limit = null }) {
                                                 src={sermon.imageUrl || "/headset.png"}
                                                 alt={sermon.title}
                                                 fill
+                                                sizes="(max-width: 767px) 96px, 128px"
                                                 className="object-cover p-2"
                                             />
                                         </div>

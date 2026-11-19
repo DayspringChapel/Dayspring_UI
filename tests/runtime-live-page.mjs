@@ -7,8 +7,9 @@ const origin = process.env.DAYSPRING_SMOKE_ORIGIN;
 if (!origin || !['localhost', '127.0.0.1'].includes(new URL(origin).hostname)) throw new Error('Use a disposable local frontend.');
 const browser = await chromium.launch({ headless: true, ...(process.env.DAYSPRING_CHROMIUM ? { executablePath: process.env.DAYSPRING_CHROMIUM } : {}) });
 try {
-    for (const width of [390, 1280]) {
-        const context = await browser.newContext({ viewport: { width, height: 900 } });
+    for (const {width,colorScheme} of [390,1280].flatMap(width=>['light','dark'].map(colorScheme=>({width,colorScheme})))) {
+        console.log(`Checking public palette: ${width}px, ${colorScheme} device preference`);
+        const context = await browser.newContext({ viewport: { width, height: 900 },colorScheme });
         let active = false, hidden = false, embedAllowed = true, failure = false, second = false, authReads = 0;
         const errors = [];
         await context.addInitScript(() => {
@@ -32,6 +33,11 @@ try {
         await page.goto(`${origin}/live`);
         await page.getByRole('heading', { name: 'Watch live', exact: true }).waitFor();
         await page.getByRole('heading', { name: 'We’re not broadcasting right now' }).waitFor();
+        assert.equal(await page.locator('.public-site').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+        assert.equal(await page.locator('.public-site').evaluate(el=>getComputedStyle(el).colorScheme),'light');
+        assert.equal(await page.getByRole('article',{name:'Livestream player'}).evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+        assert.equal(await page.getByRole('heading',{name:'Watch live',exact:true}).evaluate(el=>getComputedStyle(el).color),'rgb(23, 43, 67)');
+        if(width===390){await page.getByRole('button',{name:'Open mobile menu'}).click();assert.equal(await page.getByRole('navigation',{name:'Mobile navigation'}).evaluate(el=>getComputedStyle(el).color),'rgb(23, 43, 67)');await page.getByRole('button',{name:'Close mobile menu'}).click();}
         assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), 'https://www.dayspring-vlbc.org/live');
         assert.equal(await page.getByRole('button', { name: 'Share livestream', exact: true }).isDisabled(), true);
         assert.equal(await page.getByLabel('Shareable watch link').inputValue(), '');
@@ -42,9 +48,13 @@ try {
         await page.getByTitle('YouTube Live Stream', { exact: true }).waitFor();
         await page.getByRole('heading', {name:'Live chat',exact:true}).waitFor();
         await page.getByText('No comments yet. Be the first to share a thought.', {exact:true}).waitFor();
+        assert.equal(await page.getByRole('heading',{name:'Live chat',exact:true}).evaluate(el=>getComputedStyle(el.closest('section')).backgroundColor),'rgb(255, 255, 255)');
+        if(colorScheme==='dark')await page.screenshot({path:`../.tmp/public-light-${width}.png`});
         await page.waitForFunction(() => document.querySelector('nav a[href="/live"]')?.classList.contains('watch-live-active'));
+        await page.getByRole('button', { name: 'Share livestream', exact: true }).scrollIntoViewIfNeeded();
+        await page.waitForFunction(()=>window.scrollY<=50||getComputedStyle(document.querySelector('nav[aria-label="Primary navigation"]')).position==='fixed');
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
-        await page.getByText('Livestream link copied.', { exact: true }).waitFor();
+        try{await page.getByText('Livestream link copied.', { exact: true }).waitFor();}catch(error){console.log(await page.getByRole('status').allTextContents());throw error;}
         assert.equal(await page.evaluate(() => window.__sharedLink), 'https://www.dayspring-vlbc.org/live');
         await page.evaluate(() => Object.defineProperty(navigator, 'share', { configurable: true, value: async data => { window.__nativeShare = data.url; } }));
         await page.getByRole('button', { name: 'Share livestream', exact: true }).click();
@@ -79,7 +89,12 @@ try {
         assert.equal(await page.getByLabel('Shareable watch link').inputValue(), '');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Overflow at ${width}px`);
         assert.equal(authReads, 0); assert.deepEqual(errors, []);
+        await page.goto(origin);
+        const welcome=page.getByRole('heading',{name:'WELCOME TO DAYSPRING CHAPEL',exact:true});await welcome.waitFor();
+        assert.equal(await welcome.evaluate(el=>getComputedStyle(el.nextElementSibling).color),'rgb(0, 0, 0)');
+        assert.equal(await page.getByRole('heading',{name:'Upcoming Events',exact:true}).evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
+        assert.equal(await page.locator('.public-site').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
         await context.close();
     }
-    console.log('PASS: public /live page, canonical link, copy/native sharing, offline-to-live refresh, platform switching, restricted embeds, error recovery and mobile/desktop layouts.');
+    console.log('PASS: stable light public palette under light/dark device preferences, readable live chat/mobile menu, canonical link, sharing, live refresh, platform switching, restricted embeds, error recovery and responsive layouts.');
 } finally { await browser.close(); }

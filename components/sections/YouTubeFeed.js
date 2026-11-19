@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import Image from '@/components/PublicImage';
 
 export default function YouTubeFeed() {
     const [videos, setVideos] = useState([]);
@@ -46,6 +46,7 @@ export default function YouTubeFeed() {
                                         src={video.thumbnail}
                                         alt={video.title}
                                         fill
+                                        sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, 33vw"
                                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                                     />
                                 )}

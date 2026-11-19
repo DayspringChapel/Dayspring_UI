@@ -106,6 +106,7 @@ export default function CreateMediaPage() {
             formData.append('contentType', selectedCategory.contentType);
             formData.append('category', form.category);
             formData.append('tags', form.tags);
+            formData.append('saveAsDraft',String(e.nativeEvent?.submitter?.value==='draft'));
             if (usingYoutube) {
                 formData.append('youtubeUrl', form.youtubeUrl.trim());
             } else {
@@ -131,7 +132,7 @@ export default function CreateMediaPage() {
         <div className={styles.page}>
             <button className={styles.backBtn} onClick={() => router.back()}>← Back</button>
             <h1 className={styles.pageTitle}>Upload Media</h1>
-            <p className={styles.pageSubtitle}>{superadmin ? 'Upload media and publish directly. Superadmin does not require approval.' : 'Upload a new media file — it starts in Draft status'}</p>
+            <p className={styles.pageSubtitle}>{superadmin ? 'Upload media and publish directly. Superadmin does not require approval.' : 'Upload and submit to the next reviewer automatically, or save a draft to finish later.'}</p>
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.formGroup}>
@@ -244,8 +245,9 @@ export default function CreateMediaPage() {
                     <button type="button" className={styles.btnCancel} onClick={() => router.back()}>
                         Cancel
                     </button>
-                    <button type="submit" className={styles.btnSubmit} disabled={loading}>
-                        {loading ? 'Uploading…' : 'Upload Media'}
+                    <button type="submit" value="draft" className={styles.btnCancel} disabled={loading}>Save as draft</button>
+                    <button type="submit" value="submit" className={styles.btnSubmit} disabled={loading}>
+                        {loading ? 'Uploading…' : superadmin?'Upload media':'Upload & submit'}
                     </button>
                 </div>
             </form>

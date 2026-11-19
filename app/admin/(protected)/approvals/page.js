@@ -11,7 +11,7 @@ export default function ApprovalsPage() {
     const router = useRouter();
     const panel = useRef(null);
     const pending = useRef(false);
-    const [activeTab, setActiveTab] = useState(() => apiClient.hasPermission('CanApproveAsAdmin') ? 'admin' : 'superadmin');
+    const [activeTab, setActiveTab] = useState(() => apiClient.hasPermission('CanApproveAsSuperAdmin') ? 'superadmin' : 'admin');
     const [error, setError] = useState('');
     const [reload, setReload] = useState(0);
     const [items, setItems] = useState([]);
@@ -40,7 +40,7 @@ export default function ApprovalsPage() {
         window.addEventListener('focus', refresh);
         return () => { clearInterval(timer); window.removeEventListener('focus', refresh); };
     }, []);
-    const finalApproval = activeTab === 'superadmin' || apiClient.getUserData()?.role?.name === 'superAdmin';
+    const finalApproval = activeTab === 'superadmin' || String(typeof apiClient.getUserData()?.role==='string'?apiClient.getUserData().role:apiClient.getUserData()?.role?.name||'').toLowerCase()==='superadmin';
     const openModal = (type, contentId) => {
         setComment('');
         setModal({ type, contentId });
