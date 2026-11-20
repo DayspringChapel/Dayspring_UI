@@ -35,7 +35,7 @@ export default function Home() {
 
       {/* Sermon Section */}
       <ScrollReveal>
-        <SermonSection limit={4} />
+        <SermonSection limit={5} />
       </ScrollReveal>
 
       {/* Gallery Preview Section */}
