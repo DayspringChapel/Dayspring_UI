@@ -5,6 +5,7 @@ import Image from '@/components/PublicImage';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import useLiveStatus from '@/lib/useLiveStatus';
+import EventsNavLink from './EventsNavLink';
 
 const navigation = [
     { href: '/', label: 'Home' },
@@ -17,7 +18,7 @@ const navigation = [
     { href: '/appointment', label: 'Appointment' },
 ];
 
-export default function Navbar() {
+export default function Navbar({ upcomingEvent }) {
     const pathname = usePathname();
     const live = useLiveStatus();
     const [isScrolled, setIsScrolled] = useState(false);
@@ -41,13 +42,14 @@ export default function Navbar() {
             <ul className="hidden items-center gap-6 md:flex">
                 {navigation.map((item) => (
                     <li key={item.href}>
+                        {item.href === '/events' ? <EventsNavLink event={upcomingEvent} current={pathname === '/events'} /> :
                         <Link
                             href={item.href}
                             className={`${item.href === '/live' && live ? 'watch-live-active' : ''} transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : ''}`}
                             aria-current={pathname === item.href ? 'page' : undefined}
                         >
                             {item.label}
-                        </Link>
+                        </Link>}
                     </li>
                 ))}
             </ul>
